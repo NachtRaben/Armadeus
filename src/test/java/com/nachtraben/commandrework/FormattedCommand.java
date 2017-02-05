@@ -23,7 +23,7 @@ public class FormattedCommand {
 
     private Command command;
 
-    private MethodType methodType;
+    private int methodType = 3;
     private Method method;
     private Object methodHolder;
 
@@ -77,13 +77,13 @@ public class FormattedCommand {
         try {
             Object o = null;
             switch (methodType) {
-                case SENDER_ARGS_FLAGS:
+                case 3:
                     o = method.invoke(methodHolder, sender, filteredArguments, filteredFlags);
                     break;
-                case SENDER_ARGS:
+                case 2:
                     o = method.invoke(methodHolder, sender, filteredArguments);
                     break;
-                case SENDER:
+                case 1:
                     o = method.invoke(methodHolder, sender);
                     break;
             }
@@ -196,7 +196,7 @@ public class FormattedCommand {
         Class[] parameters = method.getParameterTypes();
         if (parameters.length == 1) {
             if (parameters[0].isAssignableFrom(CommandSender.class)) {
-                methodType = MethodType.SENDER;
+                methodType = 1;
             } else {
                 System.out.println(parameters[0].getName());
                 System.out.println(CommandSender.class.getName());
@@ -204,16 +204,19 @@ public class FormattedCommand {
             }
         } else if (parameters.length == 2) {
             if (parameters[0].isAssignableFrom(CommandSender.class) && parameters[1].isAssignableFrom(Map.class)) {
-                methodType = MethodType.SENDER_ARGS;
+                methodType = 2;
             } else {
                 return false;
             }
         } else if (parameters.length == 3) {
             if (parameters[0].isAssignableFrom(CommandSender.class) && parameters[1].isAssignableFrom(Map.class) && parameters[2].isAssignableFrom(Map.class)) {
-                methodType = MethodType.SENDER_ARGS_FLAGS;
+                methodType = 3;
             } else {
                 return false;
             }
+        } else {
+            // TODO: Exception, not a valid method we can use.
+            return false;
         }
         String senderName = parameters[0].getName();
         if(senderName.equals(UserCommandSender.class.getName())) target = CmdSender.USER;
@@ -286,11 +289,4 @@ public class FormattedCommand {
         sb.append(" )");
         return sb.toString();
     }
-
-}
-
-enum MethodType {
-    SENDER_ARGS_FLAGS,
-    SENDER_ARGS,
-    SENDER
 }
