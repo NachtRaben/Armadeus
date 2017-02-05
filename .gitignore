@@ -11,3 +11,4 @@ gradlew.bat
 logs/
 out/
 settings.gradle
+/src/main/java/com/nachtraben/utils/Reference.java

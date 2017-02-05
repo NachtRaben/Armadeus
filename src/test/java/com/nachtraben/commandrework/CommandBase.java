@@ -75,7 +75,7 @@ public class CommandBase {
             for (FormattedCommand command : instances) {
                 int length = command.getArgCount();
                 CommandArg[] arguments = command.getArguments();
-                if (CmdSender.valueOf(sender).equals(command.getCommandTarget())) {
+                if (CmdSender.valueOf(sender).equals(command.getCommandTarget()) || command.getCommandTarget().equals(CmdSender.BOTH)) {
                     if (args.length == length) {
                         boolean matches = true;
                         for (int i = 0; i < length; i++) {
