@@ -1,3 +1,2 @@
-1) Allow for same command to be declared twice for Console or UserCommand senders.
-2) Result handling when processing commands.
-3) Determine command collision based off of same number of args and same available flags
+1) Result handling when processing commands.
+2) Determine command collision based off of same number of args and same available flags
