@@ -131,7 +131,7 @@ public class FormattedCommand {
                 String temp = s.replace("--", "");
                 String[] tokens = temp.split("=");
                 if (flags.contains(tokens[0]) && tokens.length >= 2) {
-                    dest.put(tokens[0], tokens.length == 2 ? argsToString(Arrays.copyOfRange(tokens, 1, tokens.length)) : null);
+                    dest.put(tokens[0], argsToString(Arrays.copyOfRange(tokens, 1, tokens.length)));
                 } else {
                     return false;
                 }
