@@ -2,6 +2,7 @@ package com.nachtraben.commands;
 
 import com.xilixir.fw.command.Command;
 import com.xilixir.fw.command.sender.UserCommandSender;
+import com.xilixir.fw.utils.LogManager;
 
 import java.util.Map;
 import java.util.Random;
@@ -45,7 +46,9 @@ public class MiscCommands {
 
     @Command(name = "8ball", format = "{rest}", description = "Queries the magical 8ball to answer your question.")
     public void eightball(UserCommandSender sender, Map<String, String> args) {
+        LogManager.TOHSAKA.info(args.get("rest"));
         if(args.get("rest") == null) return;
+        System.out.println(args.get("rest"));
         if(!args.get("rest").endsWith("?")) {
             sender.getCommandMessage().getTextChannel().sendMessage("You have to actually ask me a question >~> try again.").queue();
         } else {
