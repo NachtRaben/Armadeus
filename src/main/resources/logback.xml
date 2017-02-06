@@ -7,8 +7,9 @@
     <property name="LOG_PATH" value="."/>
     <property name="LOG_ARCHIVE" value="${LOG_PATH}/logs"/>
 
-    <logger name="net.dv8tion.jda.core.JDA" level="INFO"/>
-    <logger name="com.nachtraben.Tohsaka" level="TRACE"/>
+    <logger name="JDA" level="INFO"/>
+    <logger name="TOHSAKA" level="TRACE"/>
+    <logger name="YUKKI" level="TRACE"/>
 
 
     <appender name="Console" class="ch.qos.logback.core.ConsoleAppender">

@@ -1,11 +1,6 @@
-package com.nachtraben.command.commands;
+package com.nachtraben.commands;
 
 import com.nachtraben.audio.GuildMusicManager;
-import com.nachtraben.command.Cmd;
-import com.nachtraben.command.sender.CommandSender;
-import com.nachtraben.command.sender.UserCommandSender;
-import com.nachtraben.log.LogManager;
-import com.nachtraben.utils.HasteBin;
 import com.nachtraben.utils.TimeUtil;
 import com.sedmelluq.discord.lavaplayer.player.AudioConfiguration;
 import com.sedmelluq.discord.lavaplayer.player.AudioLoadResultHandler;
@@ -17,6 +12,11 @@ import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
 import com.sedmelluq.discord.lavaplayer.track.AudioPlaylist;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackInfo;
+import com.xilixir.fw.command.Command;
+import com.xilixir.fw.command.sender.CommandSender;
+import com.xilixir.fw.command.sender.UserCommandSender;
+import com.xilixir.fw.utils.HasteBin;
+import com.xilixir.fw.utils.LogManager;
 import net.dv8tion.jda.core.entities.Guild;
 import net.dv8tion.jda.core.entities.Message;
 
@@ -25,7 +25,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static com.nachtraben.utils.Utils.format;
+import static com.xilixir.fw.utils.Utils.format;
 
 /**
  * Created by NachtRaben on 1/18/2017.
@@ -39,33 +39,31 @@ public class AudioCommands {
         this.musicManagers = new HashMap<>();
         this.playerManager = new DefaultAudioPlayerManager();
         AudioSourceManagers.registerRemoteSources(playerManager);
-//        AudioSourceManagers.registerLocalSource(playerManager);
         playerManager.getConfiguration().setOpusEncodingQuality(AudioConfiguration.OPUS_QUALITY_MAX);
         playerManager.getConfiguration().setResamplingQuality(AudioConfiguration.ResamplingQuality.HIGH);
         playerManager.source(YoutubeAudioSourceManager.class).setPlaylistPageCount(10);
     }
 
-    @Cmd(name = "play", format = "play {target}", description = "Plays the specified URL/Song.")
+    @Command(name = "play", format = "{target}", description = "Searches and attempts to play the provided song.")
     public void play(UserCommandSender sender, Map<String, String> args) {
         Message message = sender.getCommandMessage().getTextChannel().sendMessage("Searching for videos! Please give me a moment.").complete();
         String trackUrl = args.get("target");
         loadAndPlay(sender.getCommandMessage(), trackUrl);
-        message.deleteMessage().queue();
     }
 
-    @Cmd(name = "pause", format = "pause", description = "Toggles the bots pause status.")
+    @Command(name = "pause", format = "", description = "Toggles the pause status of the audio player.")
     public void pause(UserCommandSender sender, Map<String, String> args) {
         GuildMusicManager musicManager = getGuildAudioPlayer(sender.getCommandMessage().getGuild());
         musicManager.player.setPaused(!musicManager.player.isPaused());
     }
 
-    @Cmd(name = "stop", format = "stop", description = "Stops any currently playing audio and clears the queue.")
+    @Command(name = "stop", format = "", description = "Stops audio playback.")
     public void stop(UserCommandSender sender, Map<String, String> args) {
         GuildMusicManager musicManager = getGuildAudioPlayer(sender.getCommandMessage().getGuild());
         musicManager.scheduler.stop();
     }
 
-    @Cmd(name = "vol", format = "vol <volume>", description = "Changes the volume for this guild. Value must be an integer [0-150].")
+    @Command(name = "vol", format = "<volume>", description = "Changes the desired volume to a value between [0-150].")
     public boolean vol(CommandSender sender, Map<String, String> args) {
         UserCommandSender user = (UserCommandSender) sender;
         GuildMusicManager musicManager = getGuildAudioPlayer(user.getCommandMessage().getGuild());
@@ -80,13 +78,13 @@ public class AudioCommands {
         return true;
     }
 
-    @Cmd(name = "skip", format = "skip", description = "Skips the currently playing song.")
+    @Command(name = "skip", format = "", description = "Skips the currently playing track.")
     public void skip(UserCommandSender sender, Map<String, String> args) {
         GuildMusicManager musicManager = getGuildAudioPlayer(sender.getCommandMessage().getGuild());
         musicManager.scheduler.nextTrack();
     }
 
-    @Cmd(name = "buffer", format = "buffer <time>", description = "Buffers to the desired timestamp.")
+    @Command(name = "buffer", format = "<time>", description = "Buffers the currently playing track to the desired time.")
     public void buffer(UserCommandSender sender, Map<String, String> args) {
         GuildMusicManager musicManager = getGuildAudioPlayer(sender.getCommandMessage().getGuild());
         if (musicManager.player.getPlayingTrack().isSeekable()) {
@@ -102,28 +100,24 @@ public class AudioCommands {
         }
     }
 
-    @Cmd(name = "queue", format = "queue", description = "Provides a hastebin of the current song queue.")
+    @Command(name = "queue", format = "", description = "Generates a hastebin of the current song queue.")
     public void queuelist(UserCommandSender sender, Map<String, String> args) {
         GuildMusicManager man = getGuildAudioPlayer(sender.getCommandMessage().getGuild());
         StringBuilder sb = new StringBuilder();
         if (man.player.getPlayingTrack() != null) {
             AudioTrackInfo info = man.player.getPlayingTrack().getInfo();
-            sb.append("Current) ").append(info.title).append(" by ").append(info.author).append(" for ").append(info.length).append(".\n");
+            sb.append("Current) ").append(info.title).append(" by ").append(info.author).append(" for ").append(TimeUtil.millisToString(info.length, TimeUtil.FormatType.STRING)).append(".\n");
         }
         List<AudioTrack> queue = man.scheduler.getQueueList();
         for (int i = 0; i < queue.size(); i++) {
             AudioTrack audioTrack = queue.get(i);
             sb.append(i).append(") ").append(audioTrack.getInfo().title).append(" by ").append(audioTrack.getInfo().author).append(" for ").append(TimeUtil.millisToString(audioTrack.getInfo().length, TimeUtil.FormatType.STRING)).append(".\n");
         }
-        String hastebin = HasteBin.postHaste(sb.toString());
-        if (hastebin != null) {
-            sender.getCommandMessage().getTextChannel().sendMessage("Here's the queue for ya! " + hastebin).queue();
-        } else {
-            sender.getCommandMessage().getTextChannel().sendMessage("I couldn't paste the song queue, try again later :C").queue();
-        }
+        HasteBin hastebin = new HasteBin(sb.toString());
+        sender.getCommandMessage().getTextChannel().sendMessage("Here's the queue for ya! " + hastebin.getHaste()).queue();
     }
 
-    @Cmd(name = "skipto", format = "skipto {rest}", description = "Forwards the queue to the track with the desired name.")
+    @Command(name = "skipto", format = "{rest}", description = "Skips to the desired index in the queue.")
     public void queueto(UserCommandSender sender, Map<String, String> args) {
         boolean isIndex = false;
         int index = -1;
@@ -152,7 +146,7 @@ public class AudioCommands {
         sender.getCommandMessage().getTextChannel().sendMessage(format("`%s` wasn't found anywhere in the queue!", identifier)).queue();
     }
 
-    @Cmd(name = "repeat", format = "repeat", description = "Toggles the repeat state of the player.")
+    @Command(name = "repeat", format = "", description = "Sets the current track to repeat.")
     public void repeat(UserCommandSender sender, Map<String, String> args) {
         GuildMusicManager man = getGuildAudioPlayer(sender.getCommandMessage().getGuild());
         boolean repeat = !man.scheduler.repeat;
@@ -160,7 +154,7 @@ public class AudioCommands {
         sender.getCommandMessage().getTextChannel().sendMessage(format("Repeating: %s", repeat)).queue();
     }
 
-    @Cmd(name = "shuffle", format = "shuffle", description = "Shuffles the queue.")
+    @Command(name = "shuffle", format = "", description = "Shuffles the current song queue.")
     public void shuffle(UserCommandSender sender, Map<String, String> args) {
         GuildMusicManager man = getGuildAudioPlayer(sender.getCommandMessage().getGuild());
         man.scheduler.shuffle();

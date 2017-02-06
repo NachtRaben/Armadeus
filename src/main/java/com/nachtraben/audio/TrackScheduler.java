@@ -1,6 +1,5 @@
 package com.nachtraben.audio;
 
-import com.nachtraben.log.LogManager;
 import com.nachtraben.utils.TimeUtil;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayer;
 import com.sedmelluq.discord.lavaplayer.player.event.AudioEventAdapter;
@@ -9,6 +8,7 @@ import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackEndReason;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackInfo;
+import com.xilixir.fw.utils.LogManager;
 import net.dv8tion.jda.core.EmbedBuilder;
 import net.dv8tion.jda.core.entities.*;
 
@@ -18,7 +18,7 @@ import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
-import static com.nachtraben.utils.Utils.format;
+import static com.xilixir.fw.utils.Utils.format;
 
 /**
  * Created by NachtRaben on 1/16/2017.

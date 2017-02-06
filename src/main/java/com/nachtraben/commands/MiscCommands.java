@@ -1,12 +1,13 @@
-package com.nachtraben.command.commands;
+package com.nachtraben.commands;
 
-import com.nachtraben.command.Cmd;
-import com.nachtraben.command.sender.UserCommandSender;
+import com.xilixir.fw.command.Command;
+import com.xilixir.fw.command.sender.UserCommandSender;
 
 import java.util.Map;
 import java.util.Random;
 
-import static com.nachtraben.utils.Utils.format;
+import static com.xilixir.fw.utils.Utils.format;
+
 
 /**
  * Created by NachtRaben on 2/3/2017.
@@ -42,7 +43,7 @@ public class MiscCommands {
         random = new Random();
     }
 
-    @Cmd(name = "8ball", format = "8ball {rest}", description = "Queries the magical 8 ball.")
+    @Command(name = "8ball", format = "{rest}", description = "Queries the magical 8ball to answer your question.")
     public void eightball(UserCommandSender sender, Map<String, String> args) {
         if(args.get("rest") == null) return;
         if(!args.get("rest").endsWith("?")) {
