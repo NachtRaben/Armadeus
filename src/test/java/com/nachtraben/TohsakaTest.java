@@ -47,7 +47,7 @@ public class TohsakaTest implements Runnable {
                     String command = tokens[0];
                     String[] args = tokens.length > 1 ? Arrays.copyOfRange(tokens, 1, tokens.length) : new String[]{};
                     long start = System.nanoTime();
-                    CommandResult result = commandHandler.process(new ConsoleCommandSender(), command, args);
+                    CommandResult result = commandHandler.process(ConsoleCommandSender.getInstance(), command, args);
                     long end = System.nanoTime();
                     LogManager.TOHSAKA.debug(format("%s took %sns to finish entire execution. %sms.", command.toUpperCase(), end-start, TimeUnit.NANOSECONDS.toMillis(end-start)));
                     if(!result.succeeded() && !result.getResult().equals(CommandResult.Result.UNKNOWN_COMMAND)) {

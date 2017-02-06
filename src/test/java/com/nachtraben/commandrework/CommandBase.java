@@ -16,6 +16,7 @@ import static com.nachtraben.utils.Utils.format;
 public class CommandBase {
 
     private Map<String, List<FormattedCommand>> COMMANDS = new HashMap<>();
+    private Map<String, String> ALIASES = new HashMap<>();
 
     public CommandBase() {
     }
@@ -33,7 +34,12 @@ public class CommandBase {
                     continue;
                 }
 
+                //TODO: Check for command overlaps that are probably unwanted.
                 commands.add(fmtcommand);
+                //TODO: Handle overlapping aliases for commands.
+                for(String s : command.aliases()) {
+                    ALIASES.put(s, command.name());
+                }
                 LogManager.TOHSAKA.info(format("Registered command { %s } in  { %s } >> %s", command.name(), origin.getClass().getSimpleName(), fmtcommand.toString()));
             }
         }
@@ -71,6 +77,8 @@ public class CommandBase {
         List<FormattedCommand> results2 = new ArrayList<>();
 
         List<FormattedCommand> instances = COMMANDS.get(cmd);
+        if(instances == null) instances = COMMANDS.get(ALIASES.get(cmd));
+
         if (instances != null) {
             for (FormattedCommand command : instances) {
                 int length = command.getArgCount();

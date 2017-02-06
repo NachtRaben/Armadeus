@@ -28,7 +28,7 @@ public class GuildMessageEvents extends ListenerAdapter {
                 String[] tokens = s.split(" ");
                 String command = tokens[0];
                 String[] args = tokens.length > 1 ? Arrays.copyOfRange(tokens, 1, tokens.length) : new String[] {};
-                Tohsaka.commandHandler.process(new UserCommandSender(message), command, args);
+                Tohsaka.commandHandler.process(new UserCommandSender(message, command, args), command, args);
                 if(!event.getJDA().getStatus().equals(JDA.Status.SHUTTING_DOWN));
                     //message.deleteMessage().queue();
             } else {

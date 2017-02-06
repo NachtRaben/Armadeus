@@ -57,7 +57,7 @@ public class Tohsaka {
 
         registerJDAs();
 
-        console = new Thread(new ConsoleCommandSender());
+        console = new Thread(ConsoleCommandSender.getInstance());
         console.start();
     }
 

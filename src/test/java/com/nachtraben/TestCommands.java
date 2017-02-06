@@ -11,8 +11,9 @@ import java.util.Map;
  */
 public class TestCommands {
 
-    @Command(name = "test", format = "<test> [optional]", description = "Echos the statement!", flags = { "-fbcd", "--format=", "--randomize"})
+    @Command(name = "test", aliases = { "uno", "dos" }, format = "<test> [optional]", description = "Echos the statement!", flags = { "-fbcd", "--format=", "--randomize"})
     public boolean test(CommandSender sender, Map<String, String> args, Map<String, String> flags) {
+        System.out.println("TEST was ran");
         return true;
     }
 

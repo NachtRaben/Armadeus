@@ -5,24 +5,31 @@ import com.nachtraben.command.CmdBase;
 import com.nachtraben.command.PermissionLevel;
 import com.nachtraben.log.LogManager;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.Arrays;
+import java.util.Scanner;
 
 /**
  * Created by NachtDesk on 8/30/2016.
  */
 public class ConsoleCommandSender implements CommandSender, Runnable {
-    private BufferedReader input;
 
-    public ConsoleCommandSender() {
-        input = new BufferedReader(new InputStreamReader(System.in));
+    private static ConsoleCommandSender instance;
+
+    private Scanner input;
+
+    private ConsoleCommandSender() {
+        instance = this;
+        input = new Scanner(System.in);
+    }
+
+    public static ConsoleCommandSender getInstance() {
+        if(instance == null) instance = new ConsoleCommandSender();
+        return instance;
     }
 
     @Override
     public void sendMessage(String s) {
-        System.out.println("[MESSAGE] " + s);
+        LogManager.TOHSAKA.info("[MESSAGE] " + s);
     }
 
     @Override
@@ -39,11 +46,7 @@ public class ConsoleCommandSender implements CommandSender, Runnable {
     public void run() {
         String line = null;
         while(Tohsaka.instance.running) {
-            try {
-                line = input.readLine();
-            } catch (IOException e) {
-                LogManager.TOHSAKA.info("Failed to read input from console!", e);
-            }
+            line = input.nextLine();
             if(line != null && !line.isEmpty()) {
                 if(CmdBase.COMMAND_INIT_CHARS.contains(line.charAt(0))) {
                     String s = line.substring(1);

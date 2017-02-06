@@ -72,7 +72,6 @@ public class FormattedCommand {
         }
         long end = System.nanoTime();
         LogManager.TOHSAKA.debug(format("%s took %sns to process flags and args. %sms.", command.name().toUpperCase(), end - start, TimeUnit.NANOSECONDS.toMillis(end - start)));
-        //TODO: Process CommandSender requirement
 
         try {
             Object o = null;
