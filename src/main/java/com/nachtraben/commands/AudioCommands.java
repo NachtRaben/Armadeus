@@ -44,11 +44,13 @@ public class AudioCommands {
         playerManager.source(YoutubeAudioSourceManager.class).setPlaylistPageCount(10);
     }
 
-    @Command(name = "play", format = "{target}", description = "Searches and attempts to play the provided song.")
-    public void play(UserCommandSender sender, Map<String, String> args) {
+    @Command(name = "play", format = "{target}", description = "Searches and attempts to play the provided song.", flags = {"-rp", "--random", "--randomize", "--playlist"})
+    public void play(UserCommandSender sender, Map<String, String> args, Map<String, String> flags) {
         Message message = sender.getCommandMessage().getTextChannel().sendMessage("Searching for videos! Please give me a moment.").complete();
         String trackUrl = args.get("target");
-        loadAndPlay(sender.getCommandMessage(), trackUrl);
+        boolean randomize = flags.containsKey("r") || flags.containsKey("random") || flags.containsKey("randomize");
+        boolean playlist = flags.containsKey("p") || flags.containsKey("playlist");
+        loadAndPlay(sender.getCommandMessage(), trackUrl, randomize, playlist);
     }
 
     @Command(name = "pause", format = "", description = "Toggles the pause status of the audio player.")
@@ -160,13 +162,9 @@ public class AudioCommands {
         man.scheduler.shuffle();
     }
 
-    private void loadAndPlay(final Message message, final String trackUrl) {
+    private void loadAndPlay(final Message message, final String trackUrl, boolean shuffle, boolean preserveplaylist) {
         LogManager.TOHSAKA.debug("Made it to load and play!");
         String search = trackUrl;
-        boolean randomize = trackUrl.contains("-randomize");
-        boolean preserveSearchPlaylist = trackUrl.contains("-playlist");
-        if (randomize) search = trackUrl.replace("-randomize", "");
-        if (preserveSearchPlaylist) search = trackUrl.replace("-playlist", "");
         GuildMusicManager musicManager = getGuildAudioPlayer(message.getGuild());
         playerManager.loadItemOrdered(musicManager, search, new AudioLoadResultHandler() {
             @Override
@@ -180,17 +178,17 @@ public class AudioCommands {
 
             @Override
             public void playlistLoaded(AudioPlaylist playlist) {
-                if (playlist.isSearchResult() && !preserveSearchPlaylist) {
+                if (playlist.isSearchResult() && !preserveplaylist) {
                     trackLoaded(playlist.getTracks().get(0));
                 } else {
-                    if (randomize) Collections.shuffle(playlist.getTracks());
+                    if (shuffle) Collections.shuffle(playlist.getTracks());
                     playlist.getTracks().forEach(audioTrack -> {
                         Map<String, Object> meta = musicManager.scheduler.getTrackMeta(audioTrack);
                         meta.put("tchan", message.getTextChannel().getId());
                         meta.put("requester", message.getAuthor().getId());
                         musicManager.scheduler.queue(audioTrack);
                     });
-                    message.getChannel().sendMessage(String.format("Added `%s` tracks to the queue for you from `%s`. :3 %s", playlist.getTracks().size(), playlist.getName(), randomize ? "randomized!" : "")).queue();
+                    message.getChannel().sendMessage(String.format("Added `%s` tracks to the queue for you from `%s`. :3 %s", playlist.getTracks().size(), playlist.getName(), shuffle ? "randomized!" : "")).queue();
                 }
             }
 
@@ -199,7 +197,7 @@ public class AudioCommands {
                 if (trackUrl.startsWith("ytsearch:"))
                     message.getTextChannel().sendMessage("Nothing found by `" + trackUrl.replace("ytsearch: ", "") + "`.").queue();
                 else
-                    loadAndPlay(message, "ytsearch:" + trackUrl);
+                    loadAndPlay(message, "ytsearch:" + trackUrl, shuffle, preserveplaylist);
             }
 
             @Override
