@@ -1,2 +1,2 @@
 1) Result handling when processing commands.
-2) Determine command collision based off of same number of args and same available flags
+2) Determine command collision based off of same number of providedArgs and same available providedFlags

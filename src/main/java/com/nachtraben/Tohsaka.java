@@ -4,10 +4,10 @@ import com.nachtraben.commands.AdminCommands;
 import com.nachtraben.commands.AudioCommands;
 import com.nachtraben.commands.MiscCommands;
 import com.xilixir.fw.BotFramework;
+import com.xilixir.fw.command.sender.UserCommandSender;
+import com.xilixir.fw.utils.ConsoleCommandImpl;
 import com.xilixir.fw.utils.LogManager;
-
-import static com.xilixir.fw.utils.StringUtils.format;
-
+import com.xilixir.fw.utils.StringUtils;
 
 /**
  * Created by NachtRaben on 1/19/2017.
@@ -21,32 +21,50 @@ public class Tohsaka extends BotFramework {
         BotFramework.debug = true;
         //if (BotFramework.debug) BotFramework.COMMAND_PREFIXES = Arrays.asList("-", "?");
         super.addCommandResultEvent(result -> {
-            if (!result.succeeded()) {
-                switch (result.getResult()) {
-                    case FAILURE:
-                        LOGGER.info("Failed to run " + result.getCommand());
-                        break;
-                    case INVALID_ARGS:
-                        LOGGER.info("Invalid args for " + result.getCommand());
-                        break;
-                    case INVALID_FLAGS:
-                        LOGGER.info("Invalid flags for " + result.getCommand());
-                        break;
-                    case UNKNOWN_COMMAND:
-                        LOGGER.info("Unknown command, " + result.getCommandString());
-                        break;
-                    case NO_PERMISSION:
-                        LOGGER.info("Missing permissions for " + result.getCommand());
-                        break;
-                    case EXCEPTION:
-                        LOGGER.error(format("Failed to run command { %s::%s } in { %s#%s }.", result.getCommand(), result.getArgs(), null, null), result.getStack());
-                        break;
-                }
+            switch (result.getResult()) {
+                case SUCCESS:
+                    if(result.getSender() instanceof UserCommandSender) {
+                        UserCommandSender sender = (UserCommandSender) result.getSender();
+                        LOGGER.info(StringUtils.format("{ %s#%s } issued bot command { %s::%s } in guild { %s#%s }",
+                                sender.getName(),
+                                sender.getUser().getDiscriminator(),
+                                result.getProvidedCommandString(),
+                                StringUtils.arrayToString(result.getProvidedArgs()),
+                                sender.getGuild().getName(),
+                                sender.getGuild().getId()));
+                    } else {
+                        LOGGER.info(StringUtils.format("%s issued bot command %s::%s", result.getSender().getName()));
+                    }
+                    break;
+                case EXCEPTION:
+                    LOGGER.error(StringUtils.format("{ %s } failed to run bot command { %s::%s } due to an encountered exception!",
+                            result.getSender().getName(),
+                            result.getProvidedCommandString(),
+                            StringUtils.arrayToString(result.getProvidedArgs())), result.getThrowable());
+                    break;
+                default:
+                    if (result.getSender() instanceof UserCommandSender) {
+                        UserCommandSender sender = (UserCommandSender) result.getSender();
+                        LOGGER.warn(StringUtils.format("{ %s } failed to run bot command  { %s::%s } in guild { %s#%s } due to a { %s }.",
+                                result.getSender().getName(),
+                                result.getProvidedCommandString()),
+                                StringUtils.arrayToString(result.getProvidedArgs()),
+                                sender.getGuild().getName(),
+                                sender.getGuild().getId(),
+                                result.getResult());
+                    } else {
+                        LOGGER.warn(StringUtils.format("{ %s } failed to run bot command  { %s::%s } due to a { %s }.",
+                                result.getSender().getName(),
+                                result.getProvidedCommandString(),
+                                StringUtils.arrayToString(result.getProvidedArgs()),
+                                result.getResult()));
+                    }
             }
         });
         registerCommands(new AdminCommands());
         registerCommands(new AudioCommands());
         registerCommands(new MiscCommands());
+        ConsoleCommandImpl.instance.start();
         super.initJDAs();
     }
 
