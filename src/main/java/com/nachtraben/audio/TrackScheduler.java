@@ -18,7 +18,8 @@ import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
-import static com.xilixir.fw.utils.Utils.format;
+import static com.xilixir.fw.utils.StringUtils.format;
+
 
 /**
  * Created by NachtRaben on 1/16/2017.

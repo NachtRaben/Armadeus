@@ -6,7 +6,8 @@ import com.nachtraben.commands.MiscCommands;
 import com.xilixir.fw.BotFramework;
 import com.xilixir.fw.utils.LogManager;
 
-import static com.xilixir.fw.utils.Utils.format;
+import static com.xilixir.fw.utils.StringUtils.format;
+
 
 /**
  * Created by NachtRaben on 1/19/2017.

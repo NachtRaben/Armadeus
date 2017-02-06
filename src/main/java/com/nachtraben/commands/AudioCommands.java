@@ -25,7 +25,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static com.xilixir.fw.utils.Utils.format;
+import static com.xilixir.fw.utils.StringUtils.format;
+
 
 /**
  * Created by NachtRaben on 1/18/2017.

@@ -7,7 +7,7 @@ import com.xilixir.fw.utils.LogManager;
 import java.util.Map;
 import java.util.Random;
 
-import static com.xilixir.fw.utils.Utils.format;
+import static com.xilixir.fw.utils.StringUtils.format;
 
 
 /**

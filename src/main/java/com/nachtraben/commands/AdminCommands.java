@@ -8,7 +8,8 @@ import com.xilixir.fw.command.sender.UserCommandSender;
 
 import java.util.Map;
 
-import static com.xilixir.fw.utils.Utils.format;
+import static com.xilixir.fw.utils.StringUtils.format;
+
 
 /**
  * Created by NachtRaben on 1/18/2017.
