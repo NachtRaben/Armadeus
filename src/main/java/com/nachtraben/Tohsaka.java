@@ -6,8 +6,6 @@ import com.nachtraben.commands.MiscCommands;
 import com.xilixir.fw.BotFramework;
 import com.xilixir.fw.utils.LogManager;
 
-import java.util.Collections;
-
 import static com.xilixir.fw.utils.Utils.format;
 
 /**
@@ -19,21 +17,25 @@ public class Tohsaka extends BotFramework {
 
     public Tohsaka(boolean debug) {
         super(LogManager.TOHSAKA);
-        BotFramework.debug = debug;
-        if (BotFramework.debug) BotFramework.COMMAND_PREFIXES = Collections.singletonList("-");
+        BotFramework.debug = true;
+        //if (BotFramework.debug) BotFramework.COMMAND_PREFIXES = Arrays.asList("-", "?");
         super.addCommandResultEvent(result -> {
             if (!result.succeeded()) {
                 switch (result.getResult()) {
                     case FAILURE:
+                        LOGGER.info("Failed to run " + result.getCommand());
                         break;
                     case INVALID_ARGS:
+                        LOGGER.info("Invalid args for " + result.getCommand());
                         break;
                     case INVALID_FLAGS:
+                        LOGGER.info("Invalid flags for " + result.getCommand());
                         break;
                     case UNKNOWN_COMMAND:
-                        LOGGER.info("Unknown command, " + result.getCommand());
+                        LOGGER.info("Unknown command, " + result.getCommandString());
                         break;
                     case NO_PERMISSION:
+                        LOGGER.info("Missing permissions for " + result.getCommand());
                         break;
                     case EXCEPTION:
                         LOGGER.error(format("Failed to run command { %s::%s } in { %s#%s }.", result.getCommand(), result.getArgs(), null, null), result.getStack());

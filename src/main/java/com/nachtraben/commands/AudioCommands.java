@@ -163,10 +163,8 @@ public class AudioCommands {
     }
 
     private void loadAndPlay(final Message message, final String trackUrl, boolean shuffle, boolean preserveplaylist) {
-        LogManager.TOHSAKA.debug("Made it to load and play!");
-        String search = trackUrl;
         GuildMusicManager musicManager = getGuildAudioPlayer(message.getGuild());
-        playerManager.loadItemOrdered(musicManager, search, new AudioLoadResultHandler() {
+        playerManager.loadItemOrdered(musicManager, trackUrl, new AudioLoadResultHandler() {
             @Override
             public void trackLoaded(AudioTrack track) {
                 message.getTextChannel().sendMessage(String.format("Adding to queue, `%s` by `%s`.", track.getInfo().title, track.getInfo().author)).queue();

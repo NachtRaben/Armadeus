@@ -34,4 +34,8 @@ public class AdminCommands {
         Tohsaka.getInstance().stop();
     }
 
+    @Command(name = "test", format = "", description = "")
+    public void test(UserCommandSender s) {
+    }
+
 }
