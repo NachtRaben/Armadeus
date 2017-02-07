@@ -144,7 +144,7 @@ public class TrackScheduler extends AudioEventAdapter implements TrackMetaManage
                             .setDescription(format("Title: %s\nAuthor: %s\nLength: %s", track.getInfo().title, track.getInfo().author, track.getInfo().isStream ? "Stream" : TimeUtil.millisToString(track.getInfo().length, TimeUtil.FormatType.STRING)))
                             .setFooter(format("Requested by %s.", user.getName()), user.getAvatarUrl());
                     if(track instanceof YoutubeAudioTrack) {
-                        builder.setUrl(format("https://www.youtube.com/watch?v=%s", track.getIdentifier()));
+                        builder.setAuthor("Now Playing: ", format("https://www.youtube.com/watch?v=%s", track.getIdentifier()), null);
                         builder.setThumbnail(format("https://img.youtube.com/vi/%s/default.jpg", track.getIdentifier()));
                     }
                     MessageEmbed message = builder.build();
