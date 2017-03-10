@@ -3,6 +3,7 @@ config.json
 logs/
 guilds/
 src/test/
+*.log
 
 # music
 *.mp3
@@ -14,7 +15,11 @@ src/test/
 
 # gradle
 build/
+gradle/
 .gradle/
+gradlew
+gradlew.bat
+*.gradle
 
 # eclipse
 .classpath
@@ -27,3 +32,4 @@ bin/
 *.iml
 *.iws
 *.ipr
+out/
