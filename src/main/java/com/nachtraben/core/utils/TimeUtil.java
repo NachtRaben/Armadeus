@@ -1,4 +1,4 @@
-package com.nachtraben.utils;
+package com.nachtraben.core.utils;
 
 import java.util.Arrays;
 import java.util.concurrent.TimeUnit;

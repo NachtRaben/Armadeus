@@ -1,14 +1,29 @@
-
-.gradle/
-.idea/
-Tohsaka.iws
-bot.log
-build.gradle
-build/
-gradle/
-gradlew
-gradlew.bat
+# project
+config.json
 logs/
-out/
-settings.gradle
-/src/main/java/com/nachtraben/utils/Reference.java
+guilds/
+src/test/
+
+# music
+*.mp3
+*.aac
+*.m4a
+*.wav
+*.flac
+*.ogg
+
+# gradle
+build/
+.gradle/
+
+# eclipse
+.classpath
+.project
+.settings/
+bin/
+
+# intellij
+.idea/
+*.iml
+*.iws
+*.ipr

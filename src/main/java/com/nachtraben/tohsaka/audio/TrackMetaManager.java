@@ -1,4 +1,4 @@
-package com.nachtraben.audio;
+package com.nachtraben.tohsaka.audio;
 
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 
