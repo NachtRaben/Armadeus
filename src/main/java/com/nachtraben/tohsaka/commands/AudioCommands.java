@@ -1,14 +1,15 @@
 package com.nachtraben.tohsaka.commands;
 
-import com.nachtraben.core.GuildManager;
 import com.nachtraben.core.audio.GuildMusicManager;
+import com.nachtraben.core.audio.TrackScheduler;
 import com.nachtraben.core.command.GuildCommandSender;
 import com.nachtraben.core.commandmodule.Cmd;
 import com.nachtraben.core.commandmodule.CommandSender;
+import com.nachtraben.core.managers.GuildManager;
 import com.nachtraben.core.utils.HasteBin;
-import com.nachtraben.core.utils.LogManager;
+import com.nachtraben.core.utils.MessageTargetType;
+import com.nachtraben.core.utils.MessageUtils;
 import com.nachtraben.core.utils.TimeUtil;
-import com.nachtraben.tohsaka.audio.TrackScheduler;
 import com.sedmelluq.discord.lavaplayer.player.AudioLoadResultHandler;
 import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
 import com.sedmelluq.discord.lavaplayer.track.AudioPlaylist;
@@ -16,6 +17,8 @@ import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackInfo;
 import net.dv8tion.jda.core.entities.Guild;
 import net.dv8tion.jda.core.entities.Message;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Collections;
 import java.util.List;
@@ -28,6 +31,8 @@ import static com.nachtraben.core.utils.StringUtils.format;
  * Created by NachtRaben on 1/18/2017.
  */
 public class AudioCommands {
+	
+	private static final Logger LOGGER = LoggerFactory.getLogger(AudioCommands.class);
 
     @Cmd(name = "play", format = "{target}", description = "Playes the following URL or searches youtube.", flags = { "-pr", "--randomize", "--random", "--playlist"})
     public void play(CommandSender sender, Map<String, String> args, Map<String, String> flags) {
@@ -44,8 +49,7 @@ public class AudioCommands {
     public void playLast(CommandSender sender) {
 		if(sender instanceof GuildCommandSender) {
 			GuildCommandSender sendee = (GuildCommandSender) sender;
-			GuildMusicManager musicManager = getGuildAudioPlayer(sendee.getMessage().getGuild());
-			TrackScheduler scheduler = (TrackScheduler) musicManager.getScheduler();
+			TrackScheduler scheduler = getGuildAudioPlayer(sendee.getMessage().getGuild()).getScheduler();
 			if(scheduler.lastPlayed != null) {
 				scheduler.queue(scheduler.lastPlayed);
 			}
@@ -58,6 +62,7 @@ public class AudioCommands {
 			GuildCommandSender sendee = (GuildCommandSender) sender;
 			GuildMusicManager musicManager = getGuildAudioPlayer(sendee.getMessage().getGuild());
 			musicManager.getPlayer().setPaused(!musicManager.getPlayer().isPaused());
+			MessageUtils.sendMessage(MessageTargetType.MUSIC, sendee.getChannel(), "Player is now, " + (musicManager.getPlayer().isPaused() ? "paused." : "un-paused:"));
 		}
     }
 
@@ -65,8 +70,7 @@ public class AudioCommands {
     public void stop(CommandSender sender, Map<String, String> args) {
 		if(sender instanceof GuildCommandSender) {
 			GuildCommandSender sendee = (GuildCommandSender) sender;
-			GuildMusicManager musicManager = getGuildAudioPlayer(sendee.getMessage().getGuild());
-			TrackScheduler scheduler = (TrackScheduler) musicManager.getScheduler();
+			TrackScheduler scheduler = getGuildAudioPlayer(sendee.getMessage().getGuild()).getScheduler();
 			scheduler.stop();
 		}
     }
@@ -76,14 +80,14 @@ public class AudioCommands {
 		if(sender instanceof GuildCommandSender) {
 			GuildCommandSender sendee = (GuildCommandSender) sender;
 			GuildMusicManager musicManager = getGuildAudioPlayer(sendee.getGuild());
-			Integer i = null;
+			Integer i;
 			try {
 				i = Integer.parseInt(args.get("volume"));
 			} catch (NumberFormatException e) {
 				return;
 			}
 			musicManager.getPlayer().setVolume(i);
-			sendee.getChannel().sendMessage("Volume set to " + i + "/150.").queue();
+			MessageUtils.sendMessage(MessageTargetType.MUSIC, sendee.getChannel(), "Volume set to " + i + "/150.");
 		}
     }
 
@@ -91,10 +95,7 @@ public class AudioCommands {
     public void skip(CommandSender sender, Map<String, String> args) {
 		if(sender instanceof GuildCommandSender) {
 			GuildCommandSender sendee = (GuildCommandSender) sender;
-			GuildMusicManager musicManager = getGuildAudioPlayer(sendee.getGuild());
-			TrackScheduler scheduler = (TrackScheduler) musicManager.getScheduler();
-			System.out.println("SKIPHASH: " + scheduler.hashCode());
-			scheduler.skip();
+			getGuildAudioPlayer(sendee.getGuild()).getScheduler().skip();
 		}
     }
 
@@ -106,13 +107,13 @@ public class AudioCommands {
 			if (musicManager.getPlayer().getPlayingTrack().isSeekable()) {
 				long time = TimeUtil.stringToMillis(args.get("time"));
 				if (time > musicManager.getPlayer().getPlayingTrack().getDuration()) {
-					sendee.getMessage().getTextChannel().sendMessage("You cannot buffer past " + TimeUtil.millisToString(musicManager.getPlayer().getPlayingTrack().getDuration(), TimeUtil.FormatType.STRING) + " for this track.").queue();
+					MessageUtils.sendMessage(MessageTargetType.MUSIC, sendee.getChannel(), "You cannot buffer past " + TimeUtil.millisToString(musicManager.getPlayer().getPlayingTrack().getDuration(), TimeUtil.FormatType.STRING) + " for this track.");
 					return;
 				}
-				sendee.getMessage().getTextChannel().sendMessage("Buffering to " + args.get("time") + ".").queue();
+				MessageUtils.sendMessage(MessageTargetType.MUSIC, sendee.getChannel(), "Buffering to " + args.get("time") + ".");
 				musicManager.getPlayer().getPlayingTrack().setPosition(time);
 			} else {
-				sendee.getMessage().getTextChannel().sendMessage("You cannot buffer a streamed track.").queue();
+				MessageUtils.sendMessage(MessageTargetType.MUSIC, sendee.getChannel(), "You cannot buffer a streamed track.");
 			}
 		}
     }
@@ -134,7 +135,7 @@ public class AudioCommands {
 				sb.append(i).append(") ").append(audioTrack.getInfo().title).append(" by ").append(audioTrack.getInfo().author).append(" for ").append(TimeUtil.millisToString(audioTrack.getInfo().length, TimeUtil.FormatType.STRING)).append(".\n");
 			}
 			HasteBin hastebin = new HasteBin(sb.toString());
-			sendee.getMessage().getTextChannel().sendMessage("Here's the queue for ya! " + hastebin.getHaste()).queue();
+			MessageUtils.sendMessage(MessageTargetType.MUSIC, sendee.getChannel(), "Here's the queue for ya! " + hastebin.getHaste());
 		}
     }
 
@@ -151,24 +152,23 @@ public class AudioCommands {
 				isIndex = true;
 			} catch (Exception ignored) {
 			}
-			GuildMusicManager man = getGuildAudioPlayer(sendee.getMessage().getGuild());
-			TrackScheduler scheduler = (TrackScheduler) man.getScheduler();
+			TrackScheduler scheduler = getGuildAudioPlayer(sendee.getMessage().getGuild()).getScheduler();
 
 			List<AudioTrack> queue = scheduler.getQueueList();
 			if (isIndex && index > queue.size()) return;
 			for (int i = 0; i < queue.size(); i++) {
 				AudioTrack track = queue.get(i);
 				if (isIndex && i == index) {
-					sendee.getMessage().getTextChannel().sendMessage(format("Skipping to queue index `%s`.", i)).queue();
+					MessageUtils.sendMessage(MessageTargetType.MUSIC, sendee.getChannel(), format("Skipping to queue index `%s`.", i));
 					scheduler.skipTo(track);
 					return;
 				} else if (!isIndex && track.getInfo().title.toLowerCase().contains(identifier.toLowerCase())) {
-					sendee.getMessage().getTextChannel().sendMessage(format("Skipping to queue index `%s`.", i)).queue();
+					MessageUtils.sendMessage(MessageTargetType.MUSIC, sendee.getChannel(), format("Skipping to queue index `%s`.", i));
 					scheduler.skipTo(track);
 					return;
 				}
 			}
-			sendee.getMessage().getTextChannel().sendMessage(format("`%s` wasn't found anywhere in the queue!", identifier)).queue();
+			MessageUtils.sendMessage(MessageTargetType.MUSIC, sendee.getChannel(), format("`%s` wasn't found anywhere in the queue!", identifier));
 		}
     }
 
@@ -180,7 +180,7 @@ public class AudioCommands {
 			TrackScheduler scheduler = (TrackScheduler) man.getScheduler();
 			boolean repeat = !scheduler.repeat;
 			scheduler.repeat = repeat;
-			sendee.getMessage().getTextChannel().sendMessage(format("Repeating: %s", repeat)).queue();
+			MessageUtils.sendMessage(MessageTargetType.MUSIC, sendee.getChannel(), format("Repeating: %s", repeat));
 		}
     }
 
@@ -188,24 +188,21 @@ public class AudioCommands {
     public void shuffle(CommandSender sender, Map<String, String> args) {
 		if(sender instanceof GuildCommandSender) {
 			GuildCommandSender sendee = (GuildCommandSender) sender;
-			GuildMusicManager man = getGuildAudioPlayer(sendee.getMessage().getGuild());
-			TrackScheduler scheduler = (TrackScheduler) man.getScheduler();
-			scheduler.shuffle();
+			GuildMusicManager manager = getGuildAudioPlayer(sendee.getMessage().getGuild());
+			manager.getScheduler().shuffle();
 		}
     }
 
     private void loadAndPlay(final Message message, final String trackUrl, boolean shuffle, boolean preserveplaylist) {
         GuildMusicManager musicManager = getGuildAudioPlayer(message.getGuild());
-        TrackScheduler scheduler = (TrackScheduler) musicManager.getScheduler();
-        GuildManager.DEFAULT_PLAYER_MANAGER.loadItemOrdered(musicManager, trackUrl, new AudioLoadResultHandler() {
+        GuildMusicManager.DEFAULT_PLAYER_MANAGER.loadItemOrdered(musicManager, trackUrl, new AudioLoadResultHandler() {
             @Override
             public void trackLoaded(AudioTrack track) {
-                message.getTextChannel().sendMessage(String.format("Adding to queue, `%s` by `%s`.", track.getInfo().title, track.getInfo().author)).queue();
-                Map<String, Object> meta = scheduler.getTrackMeta(track);
+                MessageUtils.sendMessage(MessageTargetType.MUSIC, message.getTextChannel(), String.format("Adding to queue, `%s` by `%s`.", track.getInfo().title, track.getInfo().author));
+                Map<String, Object> meta = musicManager.getScheduler().getTrackMeta(track);
                 meta.put("tchan", message.getTextChannel().getId());
                 meta.put("requester", message.getAuthor().getId());
-                scheduler.queue(track);
-				System.out.println("LOAD HASH: " + scheduler.hashCode());
+                musicManager.getScheduler().queue(track);
 			}
 
             @Override
@@ -215,12 +212,12 @@ public class AudioCommands {
                 } else {
                     if (shuffle) Collections.shuffle(playlist.getTracks());
                     playlist.getTracks().forEach(audioTrack -> {
-                        Map<String, Object> meta = scheduler.getTrackMeta(audioTrack);
+                        Map<String, Object> meta = musicManager.getScheduler().getTrackMeta(audioTrack);
                         meta.put("tchan", message.getTextChannel().getId());
                         meta.put("requester", message.getAuthor().getId());
-                        scheduler.queue(audioTrack);
+                        musicManager.getScheduler().queue(audioTrack);
                     });
-                    message.getChannel().sendMessage(String.format("Added `%s` tracks to the queue for you from `%s`. :3 %s", playlist.getTracks().size(), playlist.getName(), shuffle ? "randomized!" : "")).queue();
+                    MessageUtils.sendMessage(MessageTargetType.MUSIC, message.getTextChannel(), String.format("Added `%s` tracks to the queue for you from `%s`. :3 %s", playlist.getTracks().size(), playlist.getName(), shuffle ? "randomized!" : ""));
                 }
             }
 
@@ -234,20 +231,14 @@ public class AudioCommands {
 
             @Override
             public void loadFailed(FriendlyException exception) {
-                message.getTextChannel().sendMessage(format("Sorry, failed to load that track because of a { %s }", exception.getClass())).queue();
-                LogManager.TOHSAKA.error(format("Failed to load track in guild { %s#%s } due to a { %s }.", message.getGuild().getName(), message.getGuild().getId(), exception.getClass()), exception);
+                MessageUtils.sendMessage(MessageTargetType.MUSIC, message.getTextChannel(), format("Sorry, failed to load that track because of { %s }", exception.getMessage()));
+                LOGGER.error(format("Failed to load track in guild { %s#%s } due to a { %s }.", message.getGuild().getName(), message.getGuild().getId(), exception.getClass()), exception);
             }
         });
 	}
 
     private GuildMusicManager getGuildAudioPlayer(Guild guild) {
         GuildManager manager = GuildManager.getManagerFor(guild.getId());
-        if(manager == null) {
-        	System.out.println("Creating guild manager.");
-            manager = GuildManager.createManagerFor(guild);
-			TrackScheduler scheduler = new TrackScheduler(manager.getAudioManager().getPlayer(), guild);
-			manager.getAudioManager().addEventListener(scheduler);
-        }
         return manager.getAudioManager();
     }
 

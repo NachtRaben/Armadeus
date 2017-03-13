@@ -1,6 +1,5 @@
 package com.nachtraben.core.commandmodule;
 
-import com.nachtraben.core.configuration.JsonLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -64,6 +63,7 @@ public class CommandBase {
 
 	public Future<CommandEvent> execute(final CommandSender sender, final String command, final String[] arguments) {
 		return executor.submit(() -> {
+			long startTime = System.nanoTime();
 			CommandEvent event = null;
 			Map<String, String> flags = new HashMap<>();
 			ArrayList<String> processedArgs = new ArrayList<>();
@@ -80,15 +80,14 @@ public class CommandBase {
 
 			String[] args = new String[processedArgs.size()];
 			processedArgs.toArray(args);
-			logger.debug("ARGUMENTS: " + arrayToString(args));
-			logger.debug("FLAGS: " + JsonLoader.GSON_P.toJson(flags));
 
 			Command canidate = getCommandMatch(sender, command, args);
 			if (canidate != null) {
 				//TODO: Flag validation
 				//TODO: Variable conversion
+				Map<String, String> mapargs = canidate.processArgs(args);
 				try {
-					canidate.run(sender, canidate.processArgs(args), flags);
+					canidate.run(sender, mapargs, flags);
 					event = new CommandEvent(sender, canidate, CommandEvent.Result.SUCCESS);
 				} catch (Exception e) {
 					event = new CommandEvent(sender, canidate, CommandEvent.Result.EXCEPTION, e);
@@ -109,6 +108,7 @@ public class CommandBase {
 			for (Command canidate : canidates) {
 				if (canidate.pattern.matcher(arrayToString(arguments)).find())
 					return canidate;
+				else logger.debug("PROVIDED: " + arrayToString(arguments) + " MATCHING: " + canidate.pattern.pattern());
 			}
 		}
 		return null;

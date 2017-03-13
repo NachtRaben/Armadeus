@@ -1,5 +1,7 @@
 package com.nachtraben.core.command;
 
+import com.nachtraben.core.JDABot;
+import com.nachtraben.core.commandmodule.CommandEvent;
 import com.nachtraben.core.commandmodule.CommandSender;
 
 import java.util.Scanner;
@@ -39,7 +41,7 @@ public class ConsoleCommandSender implements CommandSender {
     }
 
     @Override
-    public Future<Void> runCommand(String command, String[] args) {
-        return null;
+    public Future<CommandEvent> runCommand(String command, String[] args) {
+        return JDABot.getInstance().getCommandHandler().execute(this, command, args);
     }
 }

@@ -1,6 +1,5 @@
 package com.nachtraben.tohsaka.eval;
 
-import com.nachtraben.core.utils.LogManager;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutableTriple;
 import org.apache.commons.lang3.tuple.Triple;
@@ -34,8 +33,6 @@ public enum EvalEngine {
             if(importString.length() >= 2) importString.replace(importString.length() - 2, importString.length(), "");
 
             script = "(function() { with ( new JavaImporter(" + importString.toString() + ")) {" + script + "} }) ();";
-            LogManager.ROOT.debug(script);
-
             return this.eval(fieldMap, script, manager.getEngineByName("nashorn"));
         }
     },
@@ -51,7 +48,6 @@ public enum EvalEngine {
             }
 
             script = importString.toString() + script;
-            LogManager.ROOT.debug(script);
             return this.eval(fieldMap, script, new GroovyScriptEngineImpl());
         }
     };
@@ -92,7 +88,6 @@ public enum EvalEngine {
             err.println(e.toString());
         } catch (ExecutionException e) {
             err.println(e.getCause());
-            LogManager.ROOT.debug(e.getMessage());
         }
         return new ImmutableTriple<>(result, stdout.toString(), stderr.toString());
     }

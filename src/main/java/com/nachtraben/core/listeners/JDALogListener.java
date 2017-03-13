@@ -1,12 +1,15 @@
 package com.nachtraben.core.listeners;
 
-import com.nachtraben.core.utils.LogManager;
 import net.dv8tion.jda.core.utils.SimpleLog;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Created by NachtRaben on 2/6/2017.
  */
 public class JDALogListener implements SimpleLog.LogListener {
+    
+    private static final Logger LOGGER = LoggerFactory.getLogger(JDALogListener.class);
 
     public JDALogListener() {
         SimpleLog.addListener(this);
@@ -19,19 +22,19 @@ public class JDALogListener implements SimpleLog.LogListener {
             case ALL:
                 break;
             case TRACE:
-                LogManager.JDALOGGER.trace(message.toString());
+                LOGGER.trace(message.toString());
                 break;
             case DEBUG:
-                LogManager.JDALOGGER.debug(message.toString());
+                LOGGER.debug(message.toString());
                 break;
             case INFO:
-                LogManager.JDALOGGER.info(message.toString());
+                LOGGER.info(message.toString());
                 break;
             case WARNING:
-                LogManager.JDALOGGER.warn(message.toString());
+                LOGGER.warn(message.toString());
                 break;
             case FATAL:
-                LogManager.JDALOGGER.error(message.toString());
+                LOGGER.error(message.toString());
                 break;
             case OFF:
                 break;
@@ -40,6 +43,6 @@ public class JDALogListener implements SimpleLog.LogListener {
 
     @Override
     public void onError(SimpleLog log, Throwable err) {
-        LogManager.JDALOGGER.error(err.getMessage(), err);
+        LOGGER.error(err.getMessage(), err);
     }
 }

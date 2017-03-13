@@ -1,6 +1,7 @@
 package com.nachtraben.core.command;
 
 import com.nachtraben.core.JDABot;
+import com.nachtraben.core.commandmodule.CommandEvent;
 import com.nachtraben.core.commandmodule.CommandSender;
 import net.dv8tion.jda.core.JDA;
 import net.dv8tion.jda.core.entities.*;
@@ -99,8 +100,7 @@ public class GuildCommandSender implements CommandSender {
 	}
 
 	@Override
-	public Future<Void> runCommand(String command, String[] args) {
-		JDABot.getInstance().getCommandHandler().execute(this, command, args);
-		return null;
+	public Future<CommandEvent> runCommand(String command, String[] args) {
+		return JDABot.getInstance().getCommandHandler().execute(this, command, args);
 	}
 }

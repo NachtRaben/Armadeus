@@ -21,6 +21,7 @@ public abstract class Command {
 
 	private static final String requiredRegex = "\\S+";
 	private static final String optionalRegex = "(\\s+\\S+)?";
+	private static final String firstOptionalRegex = "(\\S+)?";
 	private static final String restRegex = "(?!\\s*$).+";
 	static final Pattern flagsRegex = Pattern.compile("^-\\w+$", 0);
 	static final Pattern flagRegex = Pattern.compile("^--\\w+$");
@@ -58,7 +59,7 @@ public abstract class Command {
 					if (i != tokens.length - 1)
 						throw new CommandCreationException(this, "{} statements can only be at the end of the format.");
 				} else {
-					commandArgs[i] = new CommandArg(arg.substring(1, arg.length() - 1), false, true, false);
+					commandArgs[i] = new CommandArg(arg, false, true, false);
 				}
 			}
 		}
@@ -72,7 +73,10 @@ public abstract class Command {
 			for (int i = 0; i < commandArgs.length; i++) {
 				CommandArg arg = commandArgs[i];
 				if (!arg.isRequired)
-					sb.append(optionalRegex); // Process [] tag
+					if (i == 0)
+						sb.append(firstOptionalRegex);
+					else
+						sb.append(optionalRegex); // Process [] tag
 				else {
 					if (i > 0) sb.append("\\s+"); // Add space if not first tag
 					if (arg.isDynamic) {

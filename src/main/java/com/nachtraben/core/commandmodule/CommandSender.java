@@ -11,5 +11,5 @@ public interface CommandSender {
     boolean hasPermission();
     String getName();
 
-    Future<Void> runCommand(String command, String[] args);
+    Future<CommandEvent> runCommand(String command, String[] args);
 }

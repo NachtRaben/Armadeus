@@ -3,9 +3,12 @@ package com.nachtraben.core.configuration;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
+import com.nachtraben.core.managers.GuildManager;
+import net.dv8tion.jda.core.entities.TextChannel;
 
 import java.lang.reflect.Type;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 
 /**
@@ -13,20 +16,37 @@ import java.util.Map;
  */
 public class GuildConfig implements JsonIO {
 
+	private static HashSet<String> LOADED_CONFIGS = new HashSet<>();
+
     // Configuration objects
+	private String adminLogChannelId;
+	private String genericLogChannelId;
+	private String musicLogChannelId;
+
+	private boolean deleteCommandMessages = false;
+
     private Map<String, Object> metadata;
 
     // Config
     private String id;
+    private TextChannel adminLogChannel;
+    private TextChannel genericLogChannel;
+    private TextChannel musicLogChannel;
 
     public GuildConfig(String id) {
+    	if(LOADED_CONFIGS.contains(id)) throw new RuntimeException("Attempted to load GuildConfig for { " + id + " } but it was already loaded!");
         this.id = id;
         metadata = new HashMap<>();
+        LOADED_CONFIGS.add(id);
     }
 
     @Override
     public JsonElement write() {
         JsonObject jo = new JsonObject();
+        jo.addProperty("adminLogChannelId", adminLogChannelId);
+        jo.addProperty("genericLogChannelId", genericLogChannelId);
+        jo.addProperty("musicLogChannelId", musicLogChannelId);
+        jo.addProperty("deleteCommandMessages", deleteCommandMessages);
         jo.add("metadata", JsonLoader.GSON_P.toJsonTree(metadata));
         return jo;
     }
@@ -35,6 +55,14 @@ public class GuildConfig implements JsonIO {
     public void read(JsonElement me) {
         if(me instanceof JsonObject) {
             JsonObject jo = me.getAsJsonObject();
+            if(jo.has("adminLogChannelId"))
+            	adminLogChannelId = jo.get("adminLogChannelId").getAsString();
+            if(jo.has("genericLogChannelId"))
+            	genericLogChannelId = jo.get("genericLogChannelId").getAsString();
+            if(jo.has("musicLogChannelId"))
+            	musicLogChannelId = jo.get("musicLogChannelId").getAsString();
+            if(jo.has("deleteCommandMessages"))
+            	deleteCommandMessages = jo.get("deleteCommandMessages").getAsBoolean();
             Type type = new TypeToken<Map<String, Object>>(){}.getType();
             metadata = JsonLoader.GSON_P.fromJson(jo.get("metadata"), type);
         }
@@ -55,5 +83,66 @@ public class GuildConfig implements JsonIO {
         JsonLoader.saveFile(JsonLoader.GUILD_DIR, id + ".json", this);
         return this;
     }
+
+    /* Convenience getters for logging channels */
+    public TextChannel getAdminLogChannel() {
+    	if(adminLogChannel == null)
+    		adminLogChannel = GuildManager.getManagerFor(id).getGuild().getTextChannelById(adminLogChannelId);
+    	return adminLogChannel;
+	}
+
+	public void setAdminLogChannel(TextChannel channel) {
+    	if(channel == null) {
+    		adminLogChannel = null;
+    		adminLogChannelId = null;
+		} else {
+			adminLogChannel = channel;
+			adminLogChannelId = channel.getId();
+		}
+		save();
+	}
+
+	public TextChannel getGenericLogChannel() {
+		if(genericLogChannel == null)
+			genericLogChannel = GuildManager.getManagerFor(id).getGuild().getTextChannelById(genericLogChannelId);
+		return genericLogChannel;
+	}
+
+	public void setGenericLogChannel(TextChannel channel) {
+    	if(channel == null) {
+    		genericLogChannel = null;
+    		genericLogChannelId = null;
+		} else {
+			genericLogChannel = channel;
+			genericLogChannelId = channel.getId();
+		}
+    	save();
+	}
+
+	public TextChannel getMusicLogChannel() {
+		if(musicLogChannel == null)
+			musicLogChannel = GuildManager.getManagerFor(id).getGuild().getTextChannelById(musicLogChannelId);
+		return musicLogChannel;
+	}
+
+	public void setMusicLogChannel(TextChannel channel) {
+    	if(channel == null) {
+    		musicLogChannel = null;
+    		musicLogChannelId = null;
+		} else {
+			musicLogChannel = channel;
+			musicLogChannelId = channel.getId();
+		}
+    	save();
+	}
+
+	public boolean shouldDeleteCommandMessages() {
+    	return deleteCommandMessages;
+	}
+
+	public void setDeleteCommandMessages(boolean b) {
+    	deleteCommandMessages = b;
+    	save();
+	}
 
 }

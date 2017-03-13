@@ -2,12 +2,11 @@ package com.nachtraben.tohsaka;
 
 
 import com.nachtraben.core.JDABot;
+import com.nachtraben.core.command.GuildCommandSender;
 import com.nachtraben.core.commandmodule.CommandEvent;
+import com.nachtraben.core.managers.GuildManager;
 import com.nachtraben.core.utils.ConsoleCommandImpl;
-import com.nachtraben.tohsaka.commands.AdminCommands;
-import com.nachtraben.tohsaka.commands.AudioCommands;
-import com.nachtraben.tohsaka.commands.MiscCommands;
-import com.nachtraben.tohsaka.commands.OwnerCommands;
+import com.nachtraben.tohsaka.commands.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,6 +26,13 @@ public class Tohsaka extends JDABot {
         		logger.info(e.toString());
         		logger.info(e.getThrowable().getMessage(), e.getThrowable());
 			} else {
+        		if(e.getResult() != CommandEvent.Result.COMMAND_NOT_FOUND && e.getSender() instanceof GuildCommandSender) {
+        			GuildCommandSender sender = (GuildCommandSender) e.getSender();
+        			GuildManager manager = GuildManager.getManagerFor(sender.getGuild());
+        			if(manager.getConfig().shouldDeleteCommandMessages())
+        				sender.getMessage().delete().queue();
+
+				}
 				logger.debug(e.toString());
 			}
 		});
@@ -34,6 +40,9 @@ public class Tohsaka extends JDABot {
         super.getCommandHandler().registerCommands(new AdminCommands());
         super.getCommandHandler().registerCommands(new AudioCommands());
         super.getCommandHandler().registerCommands(new MiscCommands());
+		super.getCommandHandler().registerCommands(new LogChannelCommands());
+        super.getCommandHandler().registerCommands(new CatGirlsCommand());
+        super.getCommandHandler().registerCommands(new GuildOwnerCommands());
         ConsoleCommandImpl.instance.start();
     }
 

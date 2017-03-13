@@ -1,40 +1,57 @@
 package com.nachtraben.core.audio;
 
-import com.nachtraben.core.utils.LogManager;
+import com.nachtraben.core.managers.GuildManager;
+import com.sedmelluq.discord.lavaplayer.player.AudioConfiguration;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayer;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
-import com.sedmelluq.discord.lavaplayer.player.event.AudioEventAdapter;
+import com.sedmelluq.discord.lavaplayer.player.DefaultAudioPlayerManager;
+import com.sedmelluq.discord.lavaplayer.source.AudioSourceManagers;
+import com.sedmelluq.discord.lavaplayer.source.youtube.YoutubeAudioSourceManager;
 
 /**
  * Created by NachtRaben on 2/21/2017.
  */
 public class GuildMusicManager {
 
-    private AudioPlayer player;
-    private AudioEventAdapter listener;
+    public static AudioPlayerManager DEFAULT_PLAYER_MANAGER;
 
-    public GuildMusicManager(AudioPlayerManager manager) {
-        player = manager.createPlayer();
-        listener = new AudioEventAdapter(){};
-        player.addListener(listener);
+    static {
+        DEFAULT_PLAYER_MANAGER = new DefaultAudioPlayerManager();
+        AudioSourceManagers.registerRemoteSources(DEFAULT_PLAYER_MANAGER);
+        DEFAULT_PLAYER_MANAGER.getConfiguration().setOpusEncodingQuality(AudioConfiguration.OPUS_QUALITY_MAX);
+        DEFAULT_PLAYER_MANAGER.getConfiguration().setResamplingQuality(AudioConfiguration.ResamplingQuality.HIGH);
+        DEFAULT_PLAYER_MANAGER.source(YoutubeAudioSourceManager.class).setPlaylistPageCount(10);
+    }
+
+    private GuildManager guildManager;
+    private AudioPlayer player;
+    private TrackScheduler scheduler;
+
+    public GuildMusicManager(GuildManager guildManager, AudioPlayerManager playerManager) {
+    	this.guildManager = guildManager;
+        player = playerManager.createPlayer();
+        this.scheduler = new TrackScheduler(this);
     }
 
     public AudioPlayer getPlayer() {
         return player;
     }
 
-    public AudioEventAdapter getScheduler() {
-        return listener;
+    public TrackScheduler getScheduler() {
+        return scheduler;
     }
 
-    public void addEventListener(AudioEventAdapter eventAdapter) {
-        player.removeListener(listener);
-        this.listener = eventAdapter;
-        player.addListener(listener);
+	public GuildManager getGuildManager() {
+		return guildManager;
+	}
+
+	public void setTrackScheduler(TrackScheduler scheduler) {
+        player.removeListener(this.scheduler);
+        this.scheduler = scheduler;
+        player.addListener(this.scheduler);
     }
 
     public AudioPlayerSendHandler getSendHandler() {
-        LogManager.ROOT.debug("getSendHandler() was called.");
         return new AudioPlayerSendHandler(player);
     }
 
