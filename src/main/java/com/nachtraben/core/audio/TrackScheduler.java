@@ -154,7 +154,14 @@ public class TrackScheduler extends AudioEventAdapter implements TrackMetaManage
 				player.destroy();
 				return;
 			}
-			User user = Tohsaka.getInstance().getUser(getTrackMeta(track).get("requester").toString());
+			Object requesterID = getTrackMeta(track).get("requester");
+			Object channelID = getTrackMeta(track).get("channel");
+			if(requesterID == null) {
+				LOGGER.debug("requesterID was null!");
+				skip();
+				return;
+			}
+			User user = Tohsaka.getInstance().getUser(requesterID.toString());
 			if (user == null) {
 				LOGGER.debug("Null user in audio player, skipping track.");
 				skip();
@@ -166,22 +173,17 @@ public class TrackScheduler extends AudioEventAdapter implements TrackMetaManage
 				return;
 			}
 			playing = true;
-			TextChannel channel = guild.getTextChannelById(getTrackMeta(track).get("tchan").toString());
-			if (channel != null) {
-				if (!repeat) {
-					EmbedBuilder builder = new EmbedBuilder()
-							.setAuthor("Now Playing: ", null, null)
-							.setDescription(format("Title: %s\nAuthor: %s\nLength: %s", track.getInfo().title, track.getInfo().author, track.getInfo().isStream ? "Stream" : TimeUtil.millisToString(track.getInfo().length, TimeUtil.FormatType.STRING)))
-							.setFooter(format("Requested by %s.", user.getName()), user.getAvatarUrl());
-					if (track instanceof YoutubeAudioTrack) {
-						builder.setAuthor("Now Playing: ", format("https://www.youtube.com/watch?v=%s", track.getIdentifier()), null);
-						builder.setThumbnail(format("https://img.youtube.com/vi/%s/default.jpg", track.getIdentifier()));
-					}
-					MessageEmbed message = builder.build();
-					MessageUtils.sendMessage(MessageTargetType.MUSIC, channel, message);
+			TextChannel channel = channelID != null ? guild.getTextChannelById(channelID.toString()) : null;
+			if (!repeat) {
+				EmbedBuilder builder = new EmbedBuilder()
+						.setAuthor("Now Playing: ", track.getInfo().uri, null)
+						.setDescription(format("Title: %s\nAuthor: %s\nLength: %s", track.getInfo().title, track.getInfo().author, track.getInfo().isStream ? "Stream" : TimeUtil.millisToString(track.getInfo().length, TimeUtil.FormatType.STRING)))
+						.setFooter(format("Requested by %s.", user.getName()), user.getAvatarUrl());
+				if (track instanceof YoutubeAudioTrack) {
+					builder.setThumbnail(format("https://img.youtube.com/vi/%s/default.jpg", track.getIdentifier()));
 				}
-			} else {
-				LOGGER.warn(format("Attempted to send now playing message to a null text channel in { %s#%s }.", guild.getName(), guild.getId()));
+				MessageEmbed message = builder.build();
+				MessageUtils.sendMessage(MessageTargetType.MUSIC, channel, message);
 			}
 		}
 
@@ -206,7 +208,7 @@ public class TrackScheduler extends AudioEventAdapter implements TrackMetaManage
 						LOGGER.debug("onTrackEnd null guild!");
 						return;
 					}
-					TextChannel channel = guild.getTextChannelById(getTrackMeta(track).get("tchan").toString());
+					TextChannel channel = guild.getTextChannelById(getTrackMeta(track).get("channel").toString());
 					if (channel == null) {
 						LOGGER.debug("onTrackEnd null channel!");
 						return;

@@ -16,7 +16,6 @@ import com.sedmelluq.discord.lavaplayer.track.AudioPlaylist;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackInfo;
 import net.dv8tion.jda.core.entities.Guild;
-import net.dv8tion.jda.core.entities.Message;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,7 +40,7 @@ public class AudioCommands {
 			String trackUrl = args.get("target");
 			boolean randomize = flags.containsKey("r") || flags.containsKey("random") || flags.containsKey("randomize");
 			boolean playlist = flags.containsKey("p") || flags.containsKey("playlist");
-			loadAndPlay(sendee.getMessage(), trackUrl, randomize, playlist);
+			loadAndPlay(sendee, trackUrl, randomize, playlist);
 		}
     }
 
@@ -193,15 +192,15 @@ public class AudioCommands {
 		}
     }
 
-    private void loadAndPlay(final Message message, final String trackUrl, boolean shuffle, boolean preserveplaylist) {
-        GuildMusicManager musicManager = getGuildAudioPlayer(message.getGuild());
+    private void loadAndPlay(final GuildCommandSender sender, final String trackUrl, boolean shuffle, boolean preserveplaylist) {
+        GuildMusicManager musicManager = getGuildAudioPlayer(sender.getGuild());
         GuildMusicManager.DEFAULT_PLAYER_MANAGER.loadItemOrdered(musicManager, trackUrl, new AudioLoadResultHandler() {
             @Override
             public void trackLoaded(AudioTrack track) {
-                MessageUtils.sendMessage(MessageTargetType.MUSIC, message.getTextChannel(), String.format("Adding to queue, `%s` by `%s`.", track.getInfo().title, track.getInfo().author));
+                MessageUtils.sendMessage(MessageTargetType.MUSIC, sender.getChannel(), String.format("Adding to queue, `%s` by `%s`.", track.getInfo().title, track.getInfo().author));
                 Map<String, Object> meta = musicManager.getScheduler().getTrackMeta(track);
-                meta.put("tchan", message.getTextChannel().getId());
-                meta.put("requester", message.getAuthor().getId());
+                meta.put("channel", sender.getChannel().getId());
+                meta.put("requester", sender.getUser().getId());
                 musicManager.getScheduler().queue(track);
 			}
 
@@ -210,29 +209,33 @@ public class AudioCommands {
                 if (playlist.isSearchResult() && !preserveplaylist) {
                     trackLoaded(playlist.getTracks().get(0));
                 } else {
+                	if(sender.getUser().getId().equals("156136142218067968")) {
+                		MessageUtils.sendMessage(MessageTargetType.MUSIC, sender.getChannel(), "Fuck off there bud, not letting you queue 200 songs anymore. No playlist for you Bobby.");
+                		return;
+					}
                     if (shuffle) Collections.shuffle(playlist.getTracks());
                     playlist.getTracks().forEach(audioTrack -> {
                         Map<String, Object> meta = musicManager.getScheduler().getTrackMeta(audioTrack);
-                        meta.put("tchan", message.getTextChannel().getId());
-                        meta.put("requester", message.getAuthor().getId());
+                        meta.put("channel", sender.getChannel().getId());
+                        meta.put("requester", sender.getUser().getId());
                         musicManager.getScheduler().queue(audioTrack);
                     });
-                    MessageUtils.sendMessage(MessageTargetType.MUSIC, message.getTextChannel(), String.format("Added `%s` tracks to the queue for you from `%s`. :3 %s", playlist.getTracks().size(), playlist.getName(), shuffle ? "randomized!" : ""));
+                    MessageUtils.sendMessage(MessageTargetType.MUSIC, sender.getChannel(), String.format("Added `%s` tracks to the queue for you from `%s`. :3 %s", playlist.getTracks().size(), playlist.getName(), shuffle ? "randomized!" : ""));
                 }
             }
 
             @Override
             public void noMatches() {
                 if (trackUrl.startsWith("ytsearch:"))
-                    message.getTextChannel().sendMessage("Nothing found by `" + trackUrl.replace("ytsearch: ", "") + "`.").queue();
+                    MessageUtils.sendMessage(MessageTargetType.MUSIC, sender.getChannel(), "Nothing found by `" + trackUrl.replace("ytsearch: ", "") + "`.");
                 else
-                    loadAndPlay(message, "ytsearch:" + trackUrl, shuffle, preserveplaylist);
+                    loadAndPlay(sender, "ytsearch:" + trackUrl, shuffle, preserveplaylist);
             }
 
             @Override
             public void loadFailed(FriendlyException exception) {
-                MessageUtils.sendMessage(MessageTargetType.MUSIC, message.getTextChannel(), format("Sorry, failed to load that track because of { %s }", exception.getMessage()));
-                LOGGER.error(format("Failed to load track in guild { %s#%s } due to a { %s }.", message.getGuild().getName(), message.getGuild().getId(), exception.getClass()), exception);
+                MessageUtils.sendMessage(MessageTargetType.MUSIC, sender.getChannel(), format("Sorry, failed to load that track because of { %s }", exception.getMessage()));
+                LOGGER.error(format("Failed to load track in guild { %s#%s } due to a { %s }.", sender.getGuild().getName(), sender.getGuild().getId(), exception.getClass()), exception);
             }
         });
 	}

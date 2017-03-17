@@ -52,7 +52,7 @@ public abstract class Command {
 				} else if (arg.charAt(0) == '[' && arg.charAt(arg.length() - 1) == ']') {
 					commandArgs[i] = new CommandArg(arg.substring(1, arg.length() - 1), true, false, false);
 					if (i != tokens.length - 1) {
-						throw new CommandCreationException(this, "{} statements can only be at the end of the format.");
+						throw new CommandCreationException(this, "[] statements can only be at the end of the format.");
 					}
 				} else if (arg.charAt(0) == '{' && arg.charAt(arg.length() - 1) == '}') {
 					commandArgs[i] = new CommandArg(arg.substring(1, arg.length() - 1), true, true, true);

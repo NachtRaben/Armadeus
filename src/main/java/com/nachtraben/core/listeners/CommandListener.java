@@ -3,6 +3,7 @@ package com.nachtraben.core.listeners;
 import com.nachtraben.core.JDABot;
 import com.nachtraben.core.command.GuildCommandSender;
 import com.nachtraben.core.managers.GuildManager;
+import com.nachtraben.tohsaka.Tohsaka;
 import net.dv8tion.jda.core.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.core.events.message.priv.PrivateMessageReceivedEvent;
 import net.dv8tion.jda.core.hooks.ListenerAdapter;
@@ -28,12 +29,14 @@ public class CommandListener extends ListenerAdapter {
 			GuildCommandSender sender = new GuildCommandSender(event.getMessage());
 			GuildManager guildManager = GuildManager.getManagerFor(event.getGuild().getId());
 			String prefix = null;
+			//TODO Check guild prefixes first
 			for (String s : JDABot.getInstance().getDefaultCommandPrefixes()) {
 				if (content.startsWith(s)) {
 					prefix = s;
 					break;
 				}
 			}
+			if(Tohsaka.debug && !event.getAuthor().getId().equals("118255810613608451")) return;
 			if (prefix != null) {
 				String message = content.replaceFirst(prefix, "");
 				String[] tokens = message.split(" ");
@@ -45,7 +48,6 @@ public class CommandListener extends ListenerAdapter {
 					e.printStackTrace();
 				}
 			}
-
 		}
 	}
 
