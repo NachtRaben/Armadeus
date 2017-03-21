@@ -128,4 +128,8 @@ public class CommandBase {
 		return sb.toString();
 	}
 
+	public Map<String, List<Command>> getCommands() {
+		return new HashMap<>(COMMANDS);
+	}
+
 }

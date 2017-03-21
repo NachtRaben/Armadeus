@@ -125,6 +125,10 @@ public abstract class Command {
 
 	public abstract void run(CommandSender sender, Map<String, String> args, Map<String, String> flags);
 
+	public String helpString() {
+		return "**Name**: " + name + "\t**Usage**: " + name + format + "\t**Description**: " + description;
+	}
+
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();

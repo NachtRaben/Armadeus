@@ -7,6 +7,8 @@ import com.nachtraben.core.commandmodule.CommandEvent;
 import com.nachtraben.core.managers.GuildManager;
 import com.nachtraben.core.utils.ConsoleCommandImpl;
 import com.nachtraben.tohsaka.commands.*;
+import com.nachtraben.tohsaka.commands.admin.AdminCommands;
+import com.nachtraben.tohsaka.commands.audio.AudioCommands;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,6 +45,7 @@ public class Tohsaka extends JDABot {
 		super.getCommandHandler().registerCommands(new LogChannelCommands());
         super.getCommandHandler().registerCommands(new CatGirlsCommand());
         super.getCommandHandler().registerCommands(new GuildOwnerCommands());
+        super.getCommandHandler().registerCommands(new HelpCommand());
         ConsoleCommandImpl.instance.start();
     }
 

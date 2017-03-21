@@ -1,4 +1,4 @@
-package com.nachtraben.tohsaka.commands;
+package com.nachtraben.tohsaka.commands.admin;
 
 import com.nachtraben.core.command.GuildCommandSender;
 import com.nachtraben.core.commandmodule.Cmd;

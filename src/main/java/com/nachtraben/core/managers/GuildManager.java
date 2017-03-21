@@ -22,7 +22,8 @@ public class GuildManager {
     private GuildConfig config;
     private GuildMusicManager audioManager;
 
-    public GuildManager(Guild guild) {
+
+	public GuildManager(Guild guild) {
         if(guild == null) throw new IllegalArgumentException("Guild cannot be null!");
         this.id = guild.getId();
         config = new GuildConfig(id).load();
@@ -63,7 +64,6 @@ public class GuildManager {
 	}
 
 	/* Convenience Messages */
-
 	public TextChannel getRecommendedChannelFor(MessageTargetType type) {
 		switch(type) {
 			case GENERIC:
@@ -78,5 +78,4 @@ public class GuildManager {
 		}
 		return null;
 	}
-
 }

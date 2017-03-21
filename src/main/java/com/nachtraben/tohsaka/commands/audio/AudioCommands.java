@@ -1,4 +1,4 @@
-package com.nachtraben.tohsaka.commands;
+package com.nachtraben.tohsaka.commands.audio;
 
 import com.nachtraben.core.audio.GuildMusicManager;
 import com.nachtraben.core.audio.TrackScheduler;
@@ -10,6 +10,7 @@ import com.nachtraben.core.utils.HasteBin;
 import com.nachtraben.core.utils.MessageTargetType;
 import com.nachtraben.core.utils.MessageUtils;
 import com.nachtraben.core.utils.TimeUtil;
+import com.nachtraben.tohsaka.TrackContext;
 import com.sedmelluq.discord.lavaplayer.player.AudioLoadResultHandler;
 import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
 import com.sedmelluq.discord.lavaplayer.track.AudioPlaylist;
@@ -49,8 +50,8 @@ public class AudioCommands {
 		if(sender instanceof GuildCommandSender) {
 			GuildCommandSender sendee = (GuildCommandSender) sender;
 			TrackScheduler scheduler = getGuildAudioPlayer(sendee.getMessage().getGuild()).getScheduler();
-			if(scheduler.lastPlayed != null) {
-				scheduler.queue(scheduler.lastPlayed);
+			if(scheduler.lastTrack != null) {
+				scheduler.queue(scheduler.lastTrack.clone());
 			}
 		}
     }
@@ -128,9 +129,9 @@ public class AudioCommands {
 				AudioTrackInfo info = man.getPlayer().getPlayingTrack().getInfo();
 				sb.append("Current) ").append(info.title).append(" by ").append(info.author).append(" for ").append(TimeUtil.millisToString(info.length, TimeUtil.FormatType.STRING)).append(".\n");
 			}
-			List<AudioTrack> queue = scheduler.getQueueList();
+			List<TrackContext> queue = scheduler.getQueueList();
 			for (int i = 0; i < queue.size(); i++) {
-				AudioTrack audioTrack = queue.get(i);
+				AudioTrack audioTrack = queue.get(i).getTrack();
 				sb.append(i).append(") ").append(audioTrack.getInfo().title).append(" by ").append(audioTrack.getInfo().author).append(" for ").append(TimeUtil.millisToString(audioTrack.getInfo().length, TimeUtil.FormatType.STRING)).append(".\n");
 			}
 			HasteBin hastebin = new HasteBin(sb.toString());
@@ -153,15 +154,15 @@ public class AudioCommands {
 			}
 			TrackScheduler scheduler = getGuildAudioPlayer(sendee.getMessage().getGuild()).getScheduler();
 
-			List<AudioTrack> queue = scheduler.getQueueList();
+			List<TrackContext> queue = scheduler.getQueueList();
 			if (isIndex && index > queue.size()) return;
 			for (int i = 0; i < queue.size(); i++) {
-				AudioTrack track = queue.get(i);
+				TrackContext track = queue.get(i);
 				if (isIndex && i == index) {
 					MessageUtils.sendMessage(MessageTargetType.MUSIC, sendee.getChannel(), format("Skipping to queue index `%s`.", i));
 					scheduler.skipTo(track);
 					return;
-				} else if (!isIndex && track.getInfo().title.toLowerCase().contains(identifier.toLowerCase())) {
+				} else if (!isIndex && track.getTrack().getInfo().title.toLowerCase().contains(identifier.toLowerCase())) {
 					MessageUtils.sendMessage(MessageTargetType.MUSIC, sendee.getChannel(), format("Skipping to queue index `%s`.", i));
 					scheduler.skipTo(track);
 					return;
@@ -198,28 +199,16 @@ public class AudioCommands {
             @Override
             public void trackLoaded(AudioTrack track) {
                 MessageUtils.sendMessage(MessageTargetType.MUSIC, sender.getChannel(), String.format("Adding to queue, `%s` by `%s`.", track.getInfo().title, track.getInfo().author));
-                Map<String, Object> meta = musicManager.getScheduler().getTrackMeta(track);
-                meta.put("channel", sender.getChannel().getId());
-                meta.put("requester", sender.getUser().getId());
-                musicManager.getScheduler().queue(track);
+                musicManager.getScheduler().queue(new TrackContext(track, sender.getUser(), sender.getChannel()));
 			}
 
             @Override
             public void playlistLoaded(AudioPlaylist playlist) {
                 if (playlist.isSearchResult() && !preserveplaylist) {
-                    trackLoaded(playlist.getTracks().get(0));
+					trackLoaded(playlist.getSelectedTrack() != null ? playlist.getSelectedTrack() : playlist.getTracks().get(0));
                 } else {
-                	if(sender.getUser().getId().equals("156136142218067968")) {
-                		MessageUtils.sendMessage(MessageTargetType.MUSIC, sender.getChannel(), "Fuck off there bud, not letting you queue 200 songs anymore. No playlist for you Bobby.");
-                		return;
-					}
                     if (shuffle) Collections.shuffle(playlist.getTracks());
-                    playlist.getTracks().forEach(audioTrack -> {
-                        Map<String, Object> meta = musicManager.getScheduler().getTrackMeta(audioTrack);
-                        meta.put("channel", sender.getChannel().getId());
-                        meta.put("requester", sender.getUser().getId());
-                        musicManager.getScheduler().queue(audioTrack);
-                    });
+                    playlist.getTracks().forEach(audioTrack -> musicManager.getScheduler().queue(new TrackContext(audioTrack, sender.getUser(), sender.getChannel())));
                     MessageUtils.sendMessage(MessageTargetType.MUSIC, sender.getChannel(), String.format("Added `%s` tracks to the queue for you from `%s`. :3 %s", playlist.getTracks().size(), playlist.getName(), shuffle ? "randomized!" : ""));
                 }
             }
