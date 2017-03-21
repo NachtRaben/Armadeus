@@ -63,14 +63,14 @@ public class TrackScheduler extends AudioEventAdapter {
 		if (repeat) repeat = false;
 		queue.clear();
 		guildMusicManager.getPlayer().stopTrack();
+		MessageUtils.sendMessage(MessageTargetType.MUSIC, currentTrack.getTextChannel(), "Queue concluded.");
 		currentTrack = null;
 	}
 
 	public void skip() {
 		if(repeat) repeat = false;
 		if(queue.isEmpty()) {
-			MessageUtils.sendMessage(MessageTargetType.MUSIC, currentTrack.getTextChannel(), "Queue concluded.");
-			currentTrack = null;
+			stop();
 		} else {
 			play(queue.poll());
 		}
@@ -122,7 +122,7 @@ public class TrackScheduler extends AudioEventAdapter {
 	private boolean joinVoiceChannel() {
 		Guild guild = guildMusicManager.getGuildManager().getGuild();
 		VoiceChannel v = getVoiceChannel(guild, currentTrack.getRequester());
-		if (v != null) {
+		if (v != null && queue.isEmpty()) {
 			try {
 				guild.getAudioManager().openAudioConnection(v);
 				return true;
@@ -186,6 +186,7 @@ public class TrackScheduler extends AudioEventAdapter {
 		public void onTrackException (AudioPlayer player, AudioTrack track, FriendlyException exception){
 			currentTrack = null;
 			Guild guild = guildMusicManager.getGuildManager().getGuild();
+			MessageUtils.sendMessage(MessageTargetType.MUSIC, currentTrack.getTextChannel(), format("Failed to play { %s } because of an exception, %s", currentTrack.getTrack().getInfo().title, exception.getMessage()));
 			LOGGER.error(format("Failed to play { %s } in { %s#%s } due to a { %s }.", track.getInfo().title, guild.getName(), guild.getId(), exception.getClass().getSimpleName()), exception);
 			skip();
 		}
