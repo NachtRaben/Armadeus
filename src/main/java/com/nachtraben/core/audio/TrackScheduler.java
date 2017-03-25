@@ -196,8 +196,8 @@ public class TrackScheduler extends AudioEventAdapter {
 
 		@Override
 		public void onTrackStuck (AudioPlayer player, AudioTrack track,long thresholdMs){
-			currentTrack = null;
 			Guild guild = guildMusicManager.getGuildManager().getGuild();
+			MessageUtils.sendMessage(MessageTargetType.MUSIC, currentTrack.getTextChannel(), "Failed to play the song, track got stuck loading.");
 			LOGGER.warn(format("Player for { %s#%s } got stuck playing track { %s }. Skipping the track.", guild.getName(), guild.getId(), track.getInfo().title));
 			skip();
 		}
