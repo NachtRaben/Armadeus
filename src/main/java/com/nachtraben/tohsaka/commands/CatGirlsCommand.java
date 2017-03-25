@@ -39,7 +39,7 @@ public class CatGirlsCommand extends Command {
 					response = Unirest.get(BASEURL).asJson().getBody().getObject();
 
 				if(response.has("url"))
-					MessageUtils.sendMessage(MessageTargetType.GENERIC, s.getChannel(), new EmbedBuilder().setImage(response.get("url").toString()).build());
+					MessageUtils.sendMessage(MessageTargetType.GENERIC, s.getChannel(), new EmbedBuilder().setImage(response.get("url").toString()).setFooter("Requested by " + s.getMember().getEffectiveName(), s.getUser().getAvatarUrl()).build());
 			} catch (UnirestException e) {
 				LOGGER.warn("Failed to query catgirls api!", e);
 			}

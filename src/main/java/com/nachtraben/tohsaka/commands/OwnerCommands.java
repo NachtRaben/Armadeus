@@ -42,7 +42,7 @@ public class OwnerCommands {
 
     }
 
-    @Cmd(name = "eval", format = "{script}", description = "Evaluates the commandmodule as js.", flags = { "--js", "--groovy", "--sc"})
+    @Cmd(name = "eval", format = "{script}", description = "Evaluates the command as js.", flags = { "--js", "--groovy", "--sc"})
     public void eval(CommandSender sender, Map<String, String> args, Map<String, String> flags) {
         if(sender instanceof GuildCommandSender) {
             GuildCommandSender sendee = (GuildCommandSender) sender;
