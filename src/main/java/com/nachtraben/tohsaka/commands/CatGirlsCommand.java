@@ -2,9 +2,9 @@ package com.nachtraben.tohsaka.commands;
 
 import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;
+import com.nachtraben.commandapi.Command;
+import com.nachtraben.commandapi.CommandSender;
 import com.nachtraben.core.command.GuildCommandSender;
-import com.nachtraben.core.commandmodule.Command;
-import com.nachtraben.core.commandmodule.CommandSender;
 import com.nachtraben.core.utils.MessageTargetType;
 import com.nachtraben.core.utils.MessageUtils;
 import net.dv8tion.jda.core.EmbedBuilder;

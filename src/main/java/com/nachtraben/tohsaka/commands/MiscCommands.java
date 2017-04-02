@@ -1,8 +1,8 @@
 package com.nachtraben.tohsaka.commands;
 
+import com.nachtraben.commandapi.Cmd;
+import com.nachtraben.commandapi.CommandSender;
 import com.nachtraben.core.command.GuildCommandSender;
-import com.nachtraben.core.commandmodule.Cmd;
-import com.nachtraben.core.commandmodule.CommandSender;
 import com.nachtraben.core.utils.MessageTargetType;
 import com.nachtraben.core.utils.MessageUtils;
 import org.slf4j.Logger;

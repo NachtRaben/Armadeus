@@ -1,4 +1,4 @@
-package com.nachtraben.core.commandmodule;
+package com.nachtraben.commandapi;
 
 import com.nachtraben.core.utils.StringUtils;
 
@@ -111,7 +111,7 @@ public abstract class Command {
 		for (int i = 0; i < args.length; i++) {
 			CommandArg cmdarg = commandArgs[i];
 			if (cmdarg.isDynamic) {
-				/* Checks if the next CommandArgument requires the rest of the commandmodule. */
+				/* Checks if the next CommandArgument requires the rest of the commandapi. */
 				if (cmdarg.isRest) {
 					result.put(cmdarg.name.toLowerCase(), StringUtils.arrayToString(Arrays.copyOfRange(args, i, args.length)));
 					return result;

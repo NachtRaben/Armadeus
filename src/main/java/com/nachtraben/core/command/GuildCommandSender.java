@@ -1,8 +1,8 @@
 package com.nachtraben.core.command;
 
+import com.nachtraben.commandapi.CommandEvent;
+import com.nachtraben.commandapi.CommandSender;
 import com.nachtraben.core.JDABot;
-import com.nachtraben.core.commandmodule.CommandEvent;
-import com.nachtraben.core.commandmodule.CommandSender;
 import net.dv8tion.jda.core.JDA;
 import net.dv8tion.jda.core.entities.*;
 import org.apache.http.util.Asserts;

@@ -1,10 +1,10 @@
 package com.nachtraben.tohsaka.commands.audio;
 
+import com.nachtraben.commandapi.Cmd;
+import com.nachtraben.commandapi.CommandSender;
 import com.nachtraben.core.audio.GuildMusicManager;
 import com.nachtraben.core.audio.TrackScheduler;
 import com.nachtraben.core.command.GuildCommandSender;
-import com.nachtraben.core.commandmodule.Cmd;
-import com.nachtraben.core.commandmodule.CommandSender;
 import com.nachtraben.core.managers.GuildManager;
 import com.nachtraben.core.utils.HasteBin;
 import com.nachtraben.core.utils.MessageTargetType;
@@ -39,6 +39,7 @@ public class AudioCommands {
 		if(sender instanceof GuildCommandSender) {
 			GuildCommandSender sendee = (GuildCommandSender) sender;
 			String trackUrl = args.get("target");
+			LOGGER.debug("Attempting to play track: " + trackUrl);
 			boolean randomize = flags.containsKey("r") || flags.containsKey("random") || flags.containsKey("randomize");
 			boolean playlist = flags.containsKey("p") || flags.containsKey("playlist");
 			loadAndPlay(sendee, trackUrl, randomize, playlist);
@@ -123,13 +124,12 @@ public class AudioCommands {
 		if(sender instanceof GuildCommandSender) {
 			GuildCommandSender sendee = (GuildCommandSender) sender;
 			GuildMusicManager man = getGuildAudioPlayer(sendee.getMessage().getGuild());
-			TrackScheduler scheduler = (TrackScheduler) man.getScheduler();
 			StringBuilder sb = new StringBuilder();
 			if (man.getPlayer().getPlayingTrack() != null) {
 				AudioTrackInfo info = man.getPlayer().getPlayingTrack().getInfo();
 				sb.append("Current) ").append(info.title).append(" by ").append(info.author).append(" for ").append(TimeUtil.millisToString(info.length, TimeUtil.FormatType.STRING)).append(".\n");
 			}
-			List<TrackContext> queue = scheduler.getQueueList();
+			List<TrackContext> queue = man.getScheduler().getQueueList();
 			for (int i = 0; i < queue.size(); i++) {
 				AudioTrack audioTrack = queue.get(i).getTrack();
 				sb.append(i).append(") ").append(audioTrack.getInfo().title).append(" by ").append(audioTrack.getInfo().author).append(" for ").append(TimeUtil.millisToString(audioTrack.getInfo().length, TimeUtil.FormatType.STRING)).append(".\n");
@@ -177,9 +177,8 @@ public class AudioCommands {
 		if(sender instanceof GuildCommandSender) {
 			GuildCommandSender sendee = (GuildCommandSender) sender;
 			GuildMusicManager man = getGuildAudioPlayer(sendee.getMessage().getGuild());
-			TrackScheduler scheduler = (TrackScheduler) man.getScheduler();
-			boolean repeat = !scheduler.repeat;
-			scheduler.repeat = repeat;
+			boolean repeat = !man.getScheduler().repeat;
+			man.getScheduler().repeat = repeat;
 			MessageUtils.sendMessage(MessageTargetType.MUSIC, sendee.getChannel(), format("Repeating: %s", repeat));
 		}
     }

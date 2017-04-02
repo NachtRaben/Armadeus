@@ -1,9 +1,9 @@
 package com.nachtraben.tohsaka.commands;
 
+import com.nachtraben.commandapi.Command;
+import com.nachtraben.commandapi.CommandSender;
 import com.nachtraben.core.JDABot;
 import com.nachtraben.core.command.GuildCommandSender;
-import com.nachtraben.core.commandmodule.Command;
-import com.nachtraben.core.commandmodule.CommandSender;
 import com.nachtraben.core.utils.HasteBin;
 import com.nachtraben.core.utils.MessageTargetType;
 import com.nachtraben.core.utils.MessageUtils;

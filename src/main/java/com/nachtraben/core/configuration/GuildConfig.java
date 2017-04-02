@@ -7,9 +7,7 @@ import com.nachtraben.core.managers.GuildManager;
 import net.dv8tion.jda.core.entities.TextChannel;
 
 import java.lang.reflect.Type;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Created by NachtRaben on 2/20/2017.
@@ -22,6 +20,9 @@ public class GuildConfig implements JsonIO {
 	private String adminLogChannelId;
 	private String genericLogChannelId;
 	private String musicLogChannelId;
+
+	// Custom prefixes
+	private List<String> guildPrefixes;
 
 	private boolean deleteCommandMessages = false;
 
@@ -36,6 +37,7 @@ public class GuildConfig implements JsonIO {
     public GuildConfig(String id) {
     	if(LOADED_CONFIGS.contains(id)) throw new RuntimeException("Attempted to load GuildConfig for { " + id + " } but it was already loaded!");
         this.id = id;
+        guildPrefixes = new ArrayList<>();
         metadata = new HashMap<>();
         LOADED_CONFIGS.add(id);
     }
@@ -47,6 +49,7 @@ public class GuildConfig implements JsonIO {
         jo.addProperty("genericLogChannelId", genericLogChannelId);
         jo.addProperty("musicLogChannelId", musicLogChannelId);
         jo.addProperty("deleteCommandMessages", deleteCommandMessages);
+        jo.add("guildPrefixes", JsonLoader.GSON_P.toJsonTree(guildPrefixes));
         jo.add("metadata", JsonLoader.GSON_P.toJsonTree(metadata));
         return jo;
     }
@@ -63,8 +66,12 @@ public class GuildConfig implements JsonIO {
             	musicLogChannelId = jo.get("musicLogChannelId").getAsString();
             if(jo.has("deleteCommandMessages"))
             	deleteCommandMessages = jo.get("deleteCommandMessages").getAsBoolean();
-            Type type = new TypeToken<Map<String, Object>>(){}.getType();
-            metadata = JsonLoader.GSON_P.fromJson(jo.get("metadata"), type);
+            Type type = new TypeToken<List<String>>(){}.getType();
+            if(jo.has("guildPrefixes"))
+            	guildPrefixes = JsonLoader.GSON_P.fromJson(jo.get("guildPrefixes"), type);
+            type = new TypeToken<Map<String, Object>>(){}.getType();
+            if(jo.has("metadata"))
+            	metadata = JsonLoader.GSON_P.fromJson(jo.get("metadata"), type);
         }
     }
 
@@ -145,4 +152,16 @@ public class GuildConfig implements JsonIO {
     	save();
 	}
 
+	public void setCommandPrefixes(String[] commandPrefixes) {
+		guildPrefixes.clear();
+		if(commandPrefixes != null)
+			guildPrefixes.addAll(Arrays.asList(commandPrefixes));
+		else
+			guildPrefixes = null;
+		save();
+	}
+
+	public List<String> getGuildPrefixes() {
+		return new ArrayList<>(guildPrefixes);
+	}
 }

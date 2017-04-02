@@ -6,7 +6,6 @@ import com.sedmelluq.discord.lavaplayer.player.AudioPlayer;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
 import com.sedmelluq.discord.lavaplayer.player.DefaultAudioPlayerManager;
 import com.sedmelluq.discord.lavaplayer.source.AudioSourceManagers;
-import com.sedmelluq.discord.lavaplayer.source.youtube.YoutubeAudioSourceManager;
 
 /**
  * Created by NachtRaben on 2/21/2017.
@@ -20,7 +19,6 @@ public class GuildMusicManager {
         AudioSourceManagers.registerRemoteSources(DEFAULT_PLAYER_MANAGER);
         DEFAULT_PLAYER_MANAGER.getConfiguration().setOpusEncodingQuality(AudioConfiguration.OPUS_QUALITY_MAX);
         DEFAULT_PLAYER_MANAGER.getConfiguration().setResamplingQuality(AudioConfiguration.ResamplingQuality.HIGH);
-        DEFAULT_PLAYER_MANAGER.source(YoutubeAudioSourceManager.class).setPlaylistPageCount(10);
     }
 
     private GuildManager guildManager;

@@ -1,8 +1,8 @@
 package com.nachtraben.core.command;
 
+import com.nachtraben.commandapi.CommandEvent;
+import com.nachtraben.commandapi.CommandSender;
 import com.nachtraben.core.JDABot;
-import com.nachtraben.core.commandmodule.CommandEvent;
-import com.nachtraben.core.commandmodule.CommandSender;
 
 import java.util.Scanner;
 import java.util.concurrent.Future;

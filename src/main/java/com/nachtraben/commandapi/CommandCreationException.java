@@ -1,4 +1,4 @@
-package com.nachtraben.core.commandmodule;
+package com.nachtraben.commandapi;
 
 /**
  * Created by NachtRaben on 3/8/2017.

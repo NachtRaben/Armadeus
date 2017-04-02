@@ -1,4 +1,4 @@
-package com.nachtraben.core.commandmodule;
+package com.nachtraben.commandapi;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;

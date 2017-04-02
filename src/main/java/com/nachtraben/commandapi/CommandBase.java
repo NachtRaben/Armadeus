@@ -1,4 +1,4 @@
-package com.nachtraben.core.commandmodule;
+package com.nachtraben.commandapi;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -63,8 +63,7 @@ public class CommandBase {
 
 	public Future<CommandEvent> execute(final CommandSender sender, final String command, final String[] arguments) {
 		return executor.submit(() -> {
-			long startTime = System.nanoTime();
-			CommandEvent event = null;
+			CommandEvent event;
 			Map<String, String> flags = new HashMap<>();
 			ArrayList<String> processedArgs = new ArrayList<>();
 
@@ -108,7 +107,6 @@ public class CommandBase {
 			for (Command canidate : canidates) {
 				if (canidate.pattern.matcher(arrayToString(arguments)).find())
 					return canidate;
-				else logger.debug("PROVIDED: " + arrayToString(arguments) + " MATCHING: " + canidate.pattern.pattern());
 			}
 		}
 		return null;

@@ -1,6 +1,6 @@
 package com.nachtraben.core;
 
-import com.nachtraben.core.commandmodule.CommandBase;
+import com.nachtraben.commandapi.CommandBase;
 import com.nachtraben.core.configuration.BotConfig;
 import com.nachtraben.core.listeners.CommandListener;
 import com.nachtraben.core.listeners.JDALogListener;

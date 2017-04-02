@@ -64,14 +64,16 @@ public class TrackScheduler extends AudioEventAdapter {
 		guildMusicManager.getPlayer().setPaused(false);
 		queue.clear();
 		guildMusicManager.getPlayer().stopTrack();
-		MessageUtils.sendMessage(MessageTargetType.MUSIC, currentTrack.getTextChannel(), "Queue concluded.");
-		currentTrack = null;
+		if(currentTrack != null) {
+			MessageUtils.sendMessage(MessageTargetType.MUSIC, currentTrack.getTextChannel(), "Queue concluded.");
+			currentTrack = null;
+		}
 	}
 
 	public void skip() {
 		LOGGER.debug("Skipping with " + queue.size() + " songs in queue.");
 		if(repeat) repeat = false;
-		if(queue.isEmpty() /*&& (currentTrack.getTrack().getState().equals(AudioTrackState.INACTIVE) || currentTrack.getTrack().getState().equals(AudioTrackState.FINISHED))*/) {
+		if(queue.isEmpty()) {
 			LOGGER.debug("Queue was empty, stopping.");
 			stop();
 		} else {
@@ -164,7 +166,7 @@ public class TrackScheduler extends AudioEventAdapter {
 			}
 			if (!repeat) {
 				EmbedBuilder builder = new EmbedBuilder()
-						.setAuthor("Now Playing: ", track.getInfo().uri, null)
+						.setAuthor("Now Playing: ", null, null)
 						.setDescription(format("Title: %s\nAuthor: %s\nLength: %s", track.getInfo().title, track.getInfo().author, track.getInfo().isStream ? "Stream" : TimeUtil.millisToString(track.getInfo().length, TimeUtil.FormatType.STRING)))
 						.setFooter(format("Requested by %s.", guild.getMember(currentTrack.getRequester()).getEffectiveName()), currentTrack.getRequester().getAvatarUrl());
 				if (track instanceof YoutubeAudioTrack) {

@@ -10,7 +10,9 @@ import java.net.URLConnection;
  * Created by NachtRaben on 1/19/2017.
  */
 public class HasteBin {
+    private static final String HASTE_URL = "https://haste.nachtraben.com/documents";
     private String url;
+
 
     public HasteBin(String content) {
         this(content, "");
@@ -20,7 +22,7 @@ public class HasteBin {
         Assert.assertFalse("Haste cannot exceed 40k characters", content.length() > 40000);
         this.url = null;
         try {
-            URL url = new URL("https://haste.nachtraben.com/documents");
+            URL url = new URL(HASTE_URL);
             URLConnection connection = url.openConnection();
             connection.setDoInput(true);
             connection.setDoOutput(true);
@@ -45,7 +47,7 @@ public class HasteBin {
             is.close();
             String str = sb.toString();
             //System.out.println(sb.toString());
-            this.url = "https://haste.nachtraben.com/" + str.substring(8, str.length() - 2);
+            this.url = HASTE_URL.replace("document", "") + str.substring(8, str.length() - 2);
             if(extension != null && !extension.isEmpty()) this.url = this.url + (extension.startsWith(".") ? extension : "." + extension);
             System.out.println(this.url);
         } catch (Exception ex) {
