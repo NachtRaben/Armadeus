@@ -39,11 +39,11 @@ public class GuildMusicManager {
         return scheduler;
     }
 
-	public GuildManager getGuildManager() {
-		return guildManager;
-	}
+    public GuildManager getGuildManager() {
+	return guildManager;
+    }
 
-	public void setTrackScheduler(TrackScheduler scheduler) {
+    public void setTrackScheduler(TrackScheduler scheduler) {
         player.removeListener(this.scheduler);
         this.scheduler = scheduler;
         player.addListener(this.scheduler);
@@ -52,5 +52,4 @@ public class GuildMusicManager {
     public AudioPlayerSendHandler getSendHandler() {
         return new AudioPlayerSendHandler(player);
     }
-
 }
