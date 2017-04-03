@@ -28,14 +28,13 @@ public class CommandListener extends ListenerAdapter {
 		String content = event.getMessage().getRawContent();
 		List<User> mentions = event.getMessage().getMentionedUsers();
 
-		if (content != null && content.length() > 0) {
+		if (!event.getAuthor().isBot() && content != null && content.length() > 0) {
 			GuildCommandSender sender = new GuildCommandSender(event.getMessage());
 			GuildManager guildManager = GuildManager.getManagerFor(event.getGuild().getId());
 			String prefix = null;
 			if (!mentions.isEmpty() && mentions.get(0).equals(event.getJDA().getSelfUser())) {
 				prefix = mentions.get(0).getAsMention() + " ";
-			}
-			if (guildManager.getConfig().getGuildPrefixes() != null && !guildManager.getConfig().getGuildPrefixes().isEmpty()) {
+			} else if (guildManager.getConfig().getGuildPrefixes() != null && !guildManager.getConfig().getGuildPrefixes().isEmpty()) {
 				for (String s : guildManager.getConfig().getGuildPrefixes()) {
 					if (content.startsWith(s)) {
 						prefix = s;
@@ -52,10 +51,12 @@ public class CommandListener extends ListenerAdapter {
 			}
 			//TODO Check guild prefixes first
 
-			if (Tohsaka.debug && !event.getAuthor().getId().equals("118255810613608451")) return;
+			if (Tohsaka.debug && !event.getAuthor().getId().equals("118255810613608451"))
+				return;
+
 			if (prefix != null) {
 				String message = content.replaceFirst(prefix, "");
-				String[] tokens = message.split(" ");
+				String[] tokens = message.split("\\s+");
 				String command = tokens[0];
 				String[] args = tokens.length > 1 ? Arrays.copyOfRange(tokens, 1, tokens.length) : new String[]{};
 				try {

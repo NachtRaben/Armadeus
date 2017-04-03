@@ -69,18 +69,22 @@ public class CommandBase {
 
 			for (String s : arguments) {
 				if (Command.flagsRegex.matcher(s).find()) {
-					for (char c : s.substring(1).toCharArray()) flags.put(String.valueOf(c), null);
+					for (char c : s.substring(1).toCharArray()) {
+						flags.put(String.valueOf(c), null);
+					}
 				} else if (Command.flagRegex.matcher(s).find()) {
 					flags.put(s.substring(2), null);
 				} else if (Command.flagWithValue.matcher(s).find()) {
 					flags.put(s.substring(2, s.indexOf("=")), s.substring(s.indexOf("=")));
-				} else processedArgs.add(s);
+				} else {
+					processedArgs.add(s);
+				}
 			}
 
 			String[] args = new String[processedArgs.size()];
 			processedArgs.toArray(args);
-
 			Command canidate = getCommandMatch(sender, command, args);
+
 			if (canidate != null) {
 				//TODO: Flag validation
 				//TODO: Variable conversion
@@ -94,21 +98,26 @@ public class CommandBase {
 			} else {
 				event = new CommandEvent(sender, null, CommandEvent.Result.COMMAND_NOT_FOUND);
 			}
+
 			for(CommandEventHandler handler : eventHandlers) {
 				handler.handle(event);
 			}
+
 			return event;
 		});
 	}
 
 	private Command getCommandMatch(CommandSender sender, String command, String[] arguments) {
 		List<Command> canidates = this.COMMANDS.get(command);
+
 		if (canidates != null) {
 			for (Command canidate : canidates) {
-				if (canidate.pattern.matcher(arrayToString(arguments)).find())
+				if (canidate.pattern.matcher(arrayToString(arguments)).find()) {
 					return canidate;
+				}
 			}
 		}
+
 		return null;
 	}
 
@@ -117,12 +126,18 @@ public class CommandBase {
 	}
 
 	private String arrayToString(String[] args) {
-		if (args.length == 0) return "";
+		if (args.length == 0) {
+			return "";
+		}
+
 		StringBuilder sb = new StringBuilder();
+
 		for (String s : args) {
 			sb.append(s).append(" ");
 		}
+
 		sb.replace(sb.length() - 1, sb.length(), "");
+
 		return sb.toString();
 	}
 

@@ -162,6 +162,9 @@ public class GuildConfig implements JsonIO {
 	}
 
 	public List<String> getGuildPrefixes() {
-		return new ArrayList<>(guildPrefixes);
+    	if(guildPrefixes != null)
+			return new ArrayList<>(guildPrefixes);
+    	else
+    		return null;
 	}
 }
