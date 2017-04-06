@@ -32,9 +32,10 @@ public class CommandListener extends ListenerAdapter {
 			GuildCommandSender sender = new GuildCommandSender(event.getMessage());
 			GuildManager guildManager = GuildManager.getManagerFor(event.getGuild().getId());
 			String prefix = null;
+
 			if (!mentions.isEmpty() && mentions.get(0).equals(event.getJDA().getSelfUser())) {
 				prefix = mentions.get(0).getAsMention() + " ";
-			} else if (guildManager.getConfig().getGuildPrefixes() != null && !guildManager.getConfig().getGuildPrefixes().isEmpty()) {
+			} else if (!Tohsaka.debug && guildManager.getConfig().getGuildPrefixes() != null && !guildManager.getConfig().getGuildPrefixes().isEmpty()) {
 				for (String s : guildManager.getConfig().getGuildPrefixes()) {
 					if (content.startsWith(s)) {
 						prefix = s;
@@ -49,6 +50,7 @@ public class CommandListener extends ListenerAdapter {
 					}
 				}
 			}
+
 			//TODO Check guild prefixes first
 
 			if (Tohsaka.debug && !event.getAuthor().getId().equals("118255810613608451"))

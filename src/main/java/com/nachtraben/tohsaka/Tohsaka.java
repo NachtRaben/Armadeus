@@ -24,19 +24,20 @@ public class Tohsaka extends JDABot {
     public Tohsaka(boolean debug) {
         super.loadJDAs();
         Tohsaka.debug = debug;
-        getCommandHandler().addEventListener((e) -> {
-        	if(e.getResult().equals(CommandEvent.Result.EXCEPTION)) {
-        		logger.info(e.toString());
-        		logger.info(e.getThrowable().getMessage(), e.getThrowable());
+        getCommandHandler().addEventListener((event) -> {
+        	if(event.getResult().equals(CommandEvent.Result.EXCEPTION)) {
+        		logger.info(event.toString());
+        		logger.info(event.getThrowable().getMessage(), event.getThrowable());
 			} else {
-        		if(e.getResult() != CommandEvent.Result.COMMAND_NOT_FOUND && e.getSender() instanceof GuildCommandSender) {
-        			GuildCommandSender sender = (GuildCommandSender) e.getSender();
+        		if(event.getResult() != CommandEvent.Result.COMMAND_NOT_FOUND && event.getSender() instanceof GuildCommandSender) {
+        			GuildCommandSender sender = (GuildCommandSender) event.getSender();
         			GuildManager manager = GuildManager.getManagerFor(sender.getGuild());
         			if(manager.getConfig().shouldDeleteCommandMessages())
         				sender.getMessage().delete().queue();
 
+				} else {
+					logger.debug(event.toString());
 				}
-				logger.debug(e.toString());
 			}
 		});
         super.getCommandHandler().registerCommands(new OwnerCommands());

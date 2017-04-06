@@ -1,10 +1,8 @@
 package com.nachtraben.core.utils;
 
+import com.mashape.unirest.http.Unirest;
 import junit.framework.Assert;
-
-import java.io.*;
-import java.net.URL;
-import java.net.URLConnection;
+import org.json.JSONObject;
 
 /**
  * Created by NachtRaben on 1/19/2017.
@@ -22,34 +20,12 @@ public class HasteBin {
         Assert.assertFalse("Haste cannot exceed 40k characters", content.length() > 40000);
         this.url = null;
         try {
-            URL url = new URL(HASTE_URL);
-            URLConnection connection = url.openConnection();
-            connection.setDoInput(true);
-            connection.setDoOutput(true);
-
-            connection.addRequestProperty("user-agent", "Tohsaka");
-            connection.addRequestProperty("content-length", content.length() + "");
-            connection.addRequestProperty("content-type", "application/json; charset=UTF-8");
-            connection.connect();
-
-            OutputStream os = connection.getOutputStream();
-            PrintWriter pw = new PrintWriter(new OutputStreamWriter(os));
-            pw.write(content);
-            pw.close();
-
-            InputStream is = connection.getInputStream();
-            BufferedReader reader = new BufferedReader(new InputStreamReader(is));
-            String line = null;
-            StringBuilder sb = new StringBuilder();
-            while ((line = reader.readLine()) != null) {
-                sb.append(line);
+            JSONObject repsonse = Unirest.post(HASTE_URL).body(content).asJson().getBody().getObject();
+            if(repsonse.has("key")) {
+                url = HASTE_URL.replace("documents", "") + repsonse.get("key");
+                if(extension != null && !extension.isEmpty())
+                    url = url + (extension.startsWith(".") ? extension : "." + extension);
             }
-            is.close();
-            String str = sb.toString();
-            //System.out.println(sb.toString());
-            this.url = HASTE_URL.replace("document", "") + str.substring(8, str.length() - 2);
-            if(extension != null && !extension.isEmpty()) this.url = this.url + (extension.startsWith(".") ? extension : "." + extension);
-            System.out.println(this.url);
         } catch (Exception ex) {
             ex.printStackTrace();
         }

@@ -41,7 +41,7 @@ public class CommandEvent {
 	public String toString() {
 		return "CommandEvent(" +
 				"sender=" + sender.getName() + "#" + sender.getClass().getSimpleName() +
-				", command=" + command.toString() +
+				", command=" + (command != null ? command.toString() : "NULL") +
 				", result=" + result.toString() +
 				", throwable=" + (throwable != null ? throwable.getMessage() : "NULL") +
 				")";
