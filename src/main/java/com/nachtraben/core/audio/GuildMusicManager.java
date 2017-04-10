@@ -26,7 +26,7 @@ public class GuildMusicManager {
     private TrackScheduler scheduler;
 
     public GuildMusicManager(GuildManager guildManager, AudioPlayerManager playerManager) {
-    	this.guildManager = guildManager;
+        this.guildManager = guildManager;
         player = playerManager.createPlayer();
         this.scheduler = new TrackScheduler(this);
     }
@@ -40,7 +40,7 @@ public class GuildMusicManager {
     }
 
     public GuildManager getGuildManager() {
-	return guildManager;
+    return guildManager;
     }
 
     public void setTrackScheduler(TrackScheduler scheduler) {

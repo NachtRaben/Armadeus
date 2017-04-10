@@ -9,30 +9,30 @@ import net.dv8tion.jda.core.entities.User;
  */
 public class TrackContext {
 
-	private AudioTrack track;
-	private User requester;
-	private TextChannel textChannel;
+    private AudioTrack track;
+    private User requester;
+    private TextChannel textChannel;
 
-	public TrackContext(AudioTrack track, User user, TextChannel channel) {
-		this.track = track;
-		this.requester = user;
-		this.textChannel = channel;
-	}
+    public TrackContext(AudioTrack track, User user, TextChannel channel) {
+        this.track = track;
+        this.requester = user;
+        this.textChannel = channel;
+    }
 
-	public AudioTrack getTrack() {
-		return track;
-	}
+    public AudioTrack getTrack() {
+        return track;
+    }
 
-	public User getRequester() {
-		return requester;
-	}
+    public User getRequester() {
+        return requester;
+    }
 
-	public TextChannel getTextChannel() {
-		return textChannel;
-	}
+    public TextChannel getTextChannel() {
+        return textChannel;
+    }
 
-	public TrackContext clone() {
-		return new TrackContext(track.makeClone(), requester, textChannel);
-	}
-	
+    public TrackContext clone() {
+        return new TrackContext(track.makeClone(), requester, textChannel);
+    }
+
 }

@@ -17,35 +17,33 @@ import java.util.Map;
  */
 public class ConfCommands {
 
-	@Cmd(name = "conf", format = "conf set prefixes (prefixes)", description = "Sets the command prefixes for this guild")
-	public void setPrefixes(CommandSender sender, Map<String, String> args, Map<String, String> flags) {
-			if(sender instanceof GuildCommandSender) {
-				GuildCommandSender sendee = (GuildCommandSender) sender;
-				if(verifySender(sendee)) {
-					String prefixes = args.get("prefixes");
-					String[] tokens = null;
-					if(prefixes != null) {
-						tokens = prefixes.split("\\s+");
-						tokens = Arrays.stream(tokens).filter(s -> (!s.isEmpty())).toArray(String[]::new);
-					}
-					GuildManager manager = GuildManager.getManagerFor(sendee.getGuild());
-					manager.getConfig().setCommandPrefixes(tokens);
-					if(manager.getConfig().getGuildPrefixes() != null) {
-						MessageUtils.sendMessage(MessageTargetType.GENERIC, sendee.getChannel(), "The prefixes for this guild are now `" + manager.getConfig().getGuildPrefixes().toString() + "`.");
-					} else {
-						MessageUtils.sendMessage(MessageTargetType.GENERIC, sendee.getChannel(), "The prefixes for this guild are now `" + JDABot.getInstance().getDefaultCommandPrefixes() + "`.");
-					}
-				} else {
-					MessageUtils.sendMessage(MessageTargetType.GENERIC, sendee.getChannel(), "You do not have the Administrative permissions required for this command.");
-				}
-			}
-	}
+    @Cmd(name = "conf", format = "conf set prefixes (prefixes)", description = "Sets the command prefixes for this guild")
+    public void setPrefixes(CommandSender sender, Map<String, String> args, Map<String, String> flags) {
+            if(sender instanceof GuildCommandSender) {
+                GuildCommandSender sendee = (GuildCommandSender) sender;
+                if(verifySender(sendee)) {
+                    String prefixes = args.get("prefixes");
+                    String[] tokens = null;
+                    if(prefixes != null) {
+                        tokens = prefixes.split("\\s+");
+                        tokens = Arrays.stream(tokens).filter(s -> (!s.isEmpty())).toArray(String[]::new);
+                    }
+                    GuildManager manager = GuildManager.getManagerFor(sendee.getGuild());
+                    manager.getConfig().setCommandPrefixes(tokens);
+                    if(manager.getConfig().getGuildPrefixes() != null) {
+                        MessageUtils.sendMessage(MessageTargetType.GENERIC, sendee.getChannel(), "The prefixes for this guild are now `" + manager.getConfig().getGuildPrefixes().toString() + "`.");
+                    } else {
+                        MessageUtils.sendMessage(MessageTargetType.GENERIC, sendee.getChannel(), "The prefixes for this guild are now `" + JDABot.getInstance().getDefaultCommandPrefixes() + "`.");
+                    }
+                } else {
+                    MessageUtils.sendMessage(MessageTargetType.GENERIC, sendee.getChannel(), "You do not have the Administrative permissions required for this command.");
+                }
+            }
+    }
 
-	private boolean verifySender(GuildCommandSender sendee) {
-		if(sendee.getMember().isOwner() || sendee.getMember().hasPermission(Permission.ADMINISTRATOR) || sendee.getUser().getId().equals("118255810613608451"))
-			return true;
-		return false;
-	}
+    private boolean verifySender(GuildCommandSender sendee) {
+        return sendee.getMember().isOwner() || sendee.getMember().hasPermission(Permission.ADMINISTRATOR) || sendee.getUser().getId().equals("118255810613608451");
+    }
 
 
 }

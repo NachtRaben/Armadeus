@@ -18,37 +18,39 @@ import org.slf4j.LoggerFactory;
  */
 public class Tohsaka extends JDABot {
 
-	private static final Logger logger = LoggerFactory.getLogger(Tohsaka.class);
+    private static final Logger logger = LoggerFactory.getLogger(Tohsaka.class);
     public static boolean debug;
 
     public Tohsaka(boolean debug) {
         super.loadJDAs();
         Tohsaka.debug = debug;
         getCommandHandler().addEventListener((event) -> {
-        	if(event.getResult().equals(CommandEvent.Result.EXCEPTION)) {
-        		logger.info(event.toString());
-        		logger.info(event.getThrowable().getMessage(), event.getThrowable());
-			} else {
-        		if(event.getResult() != CommandEvent.Result.COMMAND_NOT_FOUND && event.getSender() instanceof GuildCommandSender) {
-        			GuildCommandSender sender = (GuildCommandSender) event.getSender();
-        			GuildManager manager = GuildManager.getManagerFor(sender.getGuild());
-        			if(manager.getConfig().shouldDeleteCommandMessages())
-        				sender.getMessage().delete().queue();
+            if(event.getResult().equals(CommandEvent.Result.EXCEPTION)) {
+                logger.info(event.toString());
+                logger.info(event.getThrowable().getMessage(), event.getThrowable());
+            } else {
+                if(event.getResult() != CommandEvent.Result.COMMAND_NOT_FOUND && event.getSender() instanceof GuildCommandSender) {
+                    GuildCommandSender sender = (GuildCommandSender) event.getSender();
+                    logger.debug(String.format("%s#%s executed command { %s } in { %s#%s }.", sender.getName(), sender.getUser().getDiscriminator(), event.getCommand().getName(), sender.getGuild().getName(), sender.getGuild().getId()));
+                    GuildManager manager = GuildManager.getManagerFor(sender.getGuild());
+                    if(manager.getConfig().shouldDeleteCommandMessages())
+                        sender.getMessage().delete().queue();
+                } else {
+                    logger.debug(event.toString());
+                }
+            }
+        });
 
-				} else {
-					logger.debug(event.toString());
-				}
-			}
-		});
         super.getCommandHandler().registerCommands(new OwnerCommands());
         super.getCommandHandler().registerCommands(new AdminCommands());
         super.getCommandHandler().registerCommands(new AudioCommands());
         super.getCommandHandler().registerCommands(new MiscCommands());
-		super.getCommandHandler().registerCommands(new LogChannelCommands());
+        super.getCommandHandler().registerCommands(new LogChannelCommands());
         super.getCommandHandler().registerCommands(new CatGirlsCommand());
         super.getCommandHandler().registerCommands(new GuildOwnerCommands());
         super.getCommandHandler().registerCommands(new HelpCommand());
         super.getCommandHandler().registerCommands(new ConfCommands());
+
         ConsoleCommandImpl.instance.start();
     }
 

@@ -28,13 +28,13 @@ public abstract class JDABot {
     private static JDABot instance;
 
     private CommandBase cmdBase;
-	private BotConfig config;
-	private List<JDA> jdas;
+    private BotConfig config;
+    private List<JDA> jdas;
 
-	private TextChannel globalLogChannel;
+    private TextChannel globalLogChannel;
 
-	protected JDABot() {
-		// TODO: Phase this out at some point for multiple bots from 1 program?
+    protected JDABot() {
+        // TODO: Phase this out at some point for multiple bots from 1 program?
         if(instance != null) throw new RuntimeException("There may only be 1 instance of JDABot!");
         instance = this;
         new JDALogListener();
@@ -46,15 +46,15 @@ public abstract class JDABot {
         jdas = new ArrayList<>();
         if(config.getShardCount() == 1) {
             try {
-                jdas.add(0, new JDABuilder(AccountType.BOT).setToken(config.getToken()).addListener(CommandListener.instance).addListener(listeners).buildAsync());
+                jdas.add(0, new JDABuilder(AccountType.BOT).setToken(config.getToken()).addEventListener(CommandListener.instance).addEventListener(listeners).buildAsync());
             } catch (LoginException | RateLimitedException e) {
                 e.printStackTrace();
             }
         } else {
-            JDABuilder builder = new JDABuilder(AccountType.BOT).setToken(config.getToken()).addListener(CommandListener.instance);
+            JDABuilder builder = new JDABuilder(AccountType.BOT).setToken(config.getToken()).addEventListener(CommandListener.instance);
             for(int i = 0; i < config.getShardCount(); i++) {
                 try {
-                    jdas.add(i, builder.useSharding(i, config.getShardCount()).addListener(listeners).setGame(Game.of(i + "/" + config.getShardCount())).buildAsync());
+                    jdas.add(i, builder.useSharding(i, config.getShardCount()).addEventListener(listeners).setGame(Game.of(i + "/" + config.getShardCount())).buildAsync());
                 } catch (LoginException | RateLimitedException e) {
                     e.printStackTrace();
                 }
@@ -87,7 +87,7 @@ public abstract class JDABot {
     }
 
     public void shutdown() {
-		config.save();
+        config.save();
         for(JDA jda : jdas) {
             jda.shutdown();
         }
@@ -113,9 +113,9 @@ public abstract class JDABot {
     }
 
     public List<String> getDefaultCommandPrefixes() {
-		if(Tohsaka.debug) return Collections.singletonList("-");
-		return config.getDefaultCommandPrefixes();
-	}
+        if(Tohsaka.debug) return Collections.singletonList("-");
+        return config.getDefaultCommandPrefixes();
+    }
 
     public void setGlobalLogChannel(TextChannel channel) {
         config.setGlobalLogChannel(channel.getId());

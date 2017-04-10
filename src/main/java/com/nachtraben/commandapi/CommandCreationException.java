@@ -5,21 +5,21 @@ package com.nachtraben.commandapi;
  */
 public class CommandCreationException extends RuntimeException {
 
-	private Command command;
-	private String message;
+    private Command command;
+    private String message;
 
-	public CommandCreationException(Command command, String message) {
-		super(message);
-		this.command = command;
-		this.message = message;
-	}
+    public CommandCreationException(Command command, String message) {
+        super(message);
+        this.command = command;
+        this.message = message;
+    }
 
-	public Command getCommand() {
-		return command;
-	}
+    public Command getCommand() {
+        return command;
+    }
 
-	@Override
-	public String getMessage() {
-		return message;
-	}
+    @Override
+    public String getMessage() {
+        return message;
+    }
 }

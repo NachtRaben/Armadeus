@@ -8,7 +8,7 @@ import org.slf4j.LoggerFactory;
  * Created by NachtRaben on 2/6/2017.
  */
 public class JDALogListener implements SimpleLog.LogListener {
-    
+
     private static final Logger LOGGER = LoggerFactory.getLogger(JDALogListener.class);
 
     public JDALogListener() {

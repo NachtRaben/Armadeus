@@ -14,17 +14,17 @@ import java.util.*;
  */
 public class GuildConfig implements JsonIO {
 
-	private static HashSet<String> LOADED_CONFIGS = new HashSet<>();
+    private static HashSet<String> LOADED_CONFIGS = new HashSet<>();
 
     // Configuration objects
-	private String adminLogChannelId;
-	private String genericLogChannelId;
-	private String musicLogChannelId;
+    private String adminLogChannelId;
+    private String genericLogChannelId;
+    private String musicLogChannelId;
 
-	// Custom prefixes
-	private List<String> guildPrefixes;
+    // Custom prefixes
+    private List<String> guildPrefixes;
 
-	private boolean deleteCommandMessages = false;
+    private boolean deleteCommandMessages = false;
 
     private Map<String, Object> metadata;
 
@@ -35,7 +35,7 @@ public class GuildConfig implements JsonIO {
     private TextChannel musicLogChannel;
 
     public GuildConfig(String id) {
-    	if(LOADED_CONFIGS.contains(id)) throw new RuntimeException("Attempted to load GuildConfig for { " + id + " } but it was already loaded!");
+        if(LOADED_CONFIGS.contains(id)) throw new RuntimeException("Attempted to load GuildConfig for { " + id + " } but it was already loaded!");
         this.id = id;
         guildPrefixes = new ArrayList<>();
         metadata = new HashMap<>();
@@ -59,19 +59,19 @@ public class GuildConfig implements JsonIO {
         if(me instanceof JsonObject) {
             JsonObject jo = me.getAsJsonObject();
             if(jo.has("adminLogChannelId"))
-            	adminLogChannelId = jo.get("adminLogChannelId").getAsString();
+                adminLogChannelId = jo.get("adminLogChannelId").getAsString();
             if(jo.has("genericLogChannelId"))
-            	genericLogChannelId = jo.get("genericLogChannelId").getAsString();
+                genericLogChannelId = jo.get("genericLogChannelId").getAsString();
             if(jo.has("musicLogChannelId"))
-            	musicLogChannelId = jo.get("musicLogChannelId").getAsString();
+                musicLogChannelId = jo.get("musicLogChannelId").getAsString();
             if(jo.has("deleteCommandMessages"))
-            	deleteCommandMessages = jo.get("deleteCommandMessages").getAsBoolean();
+                deleteCommandMessages = jo.get("deleteCommandMessages").getAsBoolean();
             Type type = new TypeToken<List<String>>(){}.getType();
             if(jo.has("guildPrefixes"))
-            	guildPrefixes = JsonLoader.GSON_P.fromJson(jo.get("guildPrefixes"), type);
+                guildPrefixes = JsonLoader.GSON_P.fromJson(jo.get("guildPrefixes"), type);
             type = new TypeToken<Map<String, Object>>(){}.getType();
             if(jo.has("metadata"))
-            	metadata = JsonLoader.GSON_P.fromJson(jo.get("metadata"), type);
+                metadata = JsonLoader.GSON_P.fromJson(jo.get("metadata"), type);
         }
     }
 
@@ -93,78 +93,78 @@ public class GuildConfig implements JsonIO {
 
     /* Convenience getters for logging channels */
     public TextChannel getAdminLogChannel() {
-    	if(adminLogChannel == null)
-    		adminLogChannel = GuildManager.getManagerFor(id).getGuild().getTextChannelById(adminLogChannelId);
-    	return adminLogChannel;
-	}
+        if(adminLogChannel == null && adminLogChannelId != null)
+            adminLogChannel = GuildManager.getManagerFor(id).getGuild().getTextChannelById(adminLogChannelId);
+        return adminLogChannel;
+    }
 
-	public void setAdminLogChannel(TextChannel channel) {
-    	if(channel == null) {
-    		adminLogChannel = null;
-    		adminLogChannelId = null;
-		} else {
-			adminLogChannel = channel;
-			adminLogChannelId = channel.getId();
-		}
-		save();
-	}
+    public void setAdminLogChannel(TextChannel channel) {
+        if(channel == null) {
+            adminLogChannel = null;
+            adminLogChannelId = null;
+        } else {
+            adminLogChannel = channel;
+            adminLogChannelId = channel.getId();
+        }
+        save();
+    }
 
-	public TextChannel getGenericLogChannel() {
-		if(genericLogChannel == null)
-			genericLogChannel = GuildManager.getManagerFor(id).getGuild().getTextChannelById(genericLogChannelId);
-		return genericLogChannel;
-	}
+    public TextChannel getGenericLogChannel() {
+        if(genericLogChannel == null && genericLogChannelId != null)
+            genericLogChannel = GuildManager.getManagerFor(id).getGuild().getTextChannelById(genericLogChannelId);
+        return genericLogChannel;
+    }
 
-	public void setGenericLogChannel(TextChannel channel) {
-    	if(channel == null) {
-    		genericLogChannel = null;
-    		genericLogChannelId = null;
-		} else {
-			genericLogChannel = channel;
-			genericLogChannelId = channel.getId();
-		}
-    	save();
-	}
+    public void setGenericLogChannel(TextChannel channel) {
+        if(channel == null) {
+            genericLogChannel = null;
+            genericLogChannelId = null;
+        } else {
+            genericLogChannel = channel;
+            genericLogChannelId = channel.getId();
+        }
+        save();
+    }
 
-	public TextChannel getMusicLogChannel() {
-		if(musicLogChannel == null)
-			musicLogChannel = GuildManager.getManagerFor(id).getGuild().getTextChannelById(musicLogChannelId);
-		return musicLogChannel;
-	}
+    public TextChannel getMusicLogChannel() {
+        if(musicLogChannel == null && musicLogChannelId != null)
+            musicLogChannel = GuildManager.getManagerFor(id).getGuild().getTextChannelById(musicLogChannelId);
+        return musicLogChannel;
+    }
 
-	public void setMusicLogChannel(TextChannel channel) {
-    	if(channel == null) {
-    		musicLogChannel = null;
-    		musicLogChannelId = null;
-		} else {
-			musicLogChannel = channel;
-			musicLogChannelId = channel.getId();
-		}
-    	save();
-	}
+    public void setMusicLogChannel(TextChannel channel) {
+        if(channel == null) {
+            musicLogChannel = null;
+            musicLogChannelId = null;
+        } else {
+            musicLogChannel = channel;
+            musicLogChannelId = channel.getId();
+        }
+        save();
+    }
 
-	public boolean shouldDeleteCommandMessages() {
-    	return deleteCommandMessages;
-	}
+    public boolean shouldDeleteCommandMessages() {
+        return deleteCommandMessages;
+    }
 
-	public void setDeleteCommandMessages(boolean b) {
-    	deleteCommandMessages = b;
-    	save();
-	}
+    public void setDeleteCommandMessages(boolean b) {
+        deleteCommandMessages = b;
+        save();
+    }
 
-	public void setCommandPrefixes(String[] commandPrefixes) {
-		guildPrefixes.clear();
-		if(commandPrefixes != null)
-			guildPrefixes.addAll(Arrays.asList(commandPrefixes));
-		else
-			guildPrefixes = null;
-		save();
-	}
+    public void setCommandPrefixes(String[] commandPrefixes) {
+        guildPrefixes.clear();
+        if(commandPrefixes != null)
+            guildPrefixes.addAll(Arrays.asList(commandPrefixes));
+        else
+            guildPrefixes = null;
+        save();
+    }
 
-	public List<String> getGuildPrefixes() {
-    	if(guildPrefixes != null)
-			return new ArrayList<>(guildPrefixes);
-    	else
-    		return null;
-	}
+    public List<String> getGuildPrefixes() {
+        if(guildPrefixes != null)
+            return new ArrayList<>(guildPrefixes);
+        else
+            return null;
+    }
 }
