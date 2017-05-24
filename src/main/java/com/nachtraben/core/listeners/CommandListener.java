@@ -53,7 +53,7 @@ public class CommandListener extends ListenerAdapter {
 
             //TODO Check guild prefixes first
 
-            if (Tohsaka.debug && !event.getAuthor().getId().equals("118255810613608451"))
+            if (Tohsaka.debug && !(event.getAuthor().getIdLong() == 118255810613608451L || event.getAuthor().getIdLong() == 293884638101897216L))
                 return;
 
             if (prefix != null) {
@@ -67,7 +67,7 @@ public class CommandListener extends ListenerAdapter {
                     e.printStackTrace();
                 }
             }
-            LOGGER.info(String.format("[%s#%s][%s#%s] %s", event.getGuild().getName(), event.getGuild().getId(), event.getMember().getEffectiveName(), event.getAuthor().getId(), content));
+            //LOGGER.info(String.format("[%s#%s][%s#%s] %s", event.getGuild().getName(), event.getGuild().getId(), event.getMember().getEffectiveName(), event.getAuthor().getId(), content));
         }
     }
 

@@ -7,6 +7,7 @@ import com.nachtraben.commandapi.CommandSender;
 import com.nachtraben.core.command.GuildCommandSender;
 import com.nachtraben.core.utils.MessageTargetType;
 import com.nachtraben.core.utils.MessageUtils;
+import com.vdurmont.emoji.EmojiParser;
 import net.dv8tion.jda.core.EmbedBuilder;
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -29,16 +30,20 @@ public class CatGirlsCommand extends Command {
 
     @Override
     public void run(CommandSender sender, Map<String, String> args, Map<String, String> flags) {
-        if(sender instanceof GuildCommandSender) {
+        if (sender instanceof GuildCommandSender) {
             GuildCommandSender s = (GuildCommandSender) sender;
             try {
                 JSONObject response;
-                if(args.get("optional") != null && args.get("optional").toLowerCase().equals("nsfw"))
+                if (args.get("optional") != null && args.get("optional").toLowerCase().equals("nsfw")) {
+                    if (!s.getChannel().isNSFW()) {
+                        s.getChannel().sendMessage("Sorry, " + s.getMember().getAsMention() + " but I can't satisfy that desire in here. " + EmojiParser.parseToUnicode(":cry:")).queue();
+                        return;
+                    }
                     response = Unirest.get(NSFWURL).asJson().getBody().getObject();
-                else
+                } else {
                     response = Unirest.get(BASEURL).asJson().getBody().getObject();
-
-                if(response.has("url"))
+                }
+                if (response.has("url"))
                     MessageUtils.sendMessage(MessageTargetType.GENERIC, s.getChannel(), new EmbedBuilder().setImage(response.get("url").toString()).setFooter("Requested by " + s.getMember().getEffectiveName(), s.getUser().getAvatarUrl()).build());
             } catch (UnirestException e) {
                 LOGGER.warn("Failed to query catgirls api!", e);

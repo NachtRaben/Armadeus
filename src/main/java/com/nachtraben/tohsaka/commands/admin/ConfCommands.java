@@ -17,7 +17,7 @@ import java.util.Map;
  */
 public class ConfCommands {
 
-    @Cmd(name = "conf", format = "conf set prefixes (prefixes)", description = "Sets the command prefixes for this guild")
+    @Cmd(name = "conf", format = "set prefixes (prefixes)", description = "Sets the command prefixes for this guild")
     public void setPrefixes(CommandSender sender, Map<String, String> args, Map<String, String> flags) {
             if(sender instanceof GuildCommandSender) {
                 GuildCommandSender sendee = (GuildCommandSender) sender;

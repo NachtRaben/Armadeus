@@ -3,6 +3,7 @@ package com.nachtraben.tohsaka.commands.audio;
 import com.nachtraben.commandapi.Cmd;
 import com.nachtraben.commandapi.CommandSender;
 import com.nachtraben.core.audio.GuildMusicManager;
+import com.nachtraben.core.audio.TrackContext;
 import com.nachtraben.core.audio.TrackScheduler;
 import com.nachtraben.core.command.GuildCommandSender;
 import com.nachtraben.core.managers.GuildManager;
@@ -10,7 +11,6 @@ import com.nachtraben.core.utils.HasteBin;
 import com.nachtraben.core.utils.MessageTargetType;
 import com.nachtraben.core.utils.MessageUtils;
 import com.nachtraben.core.utils.TimeUtil;
-import com.nachtraben.tohsaka.TrackContext;
 import com.sedmelluq.discord.lavaplayer.player.AudioLoadResultHandler;
 import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
 import com.sedmelluq.discord.lavaplayer.track.AudioPlaylist;
@@ -54,6 +54,14 @@ public class AudioCommands {
             if(scheduler.lastTrack != null) {
                 scheduler.queue(scheduler.lastTrack.clone());
             }
+        }
+    }
+
+    @Cmd(name = "radio", format = "", description = "Plays spotify.")
+    public void radio(CommandSender sender) {
+        if(sender instanceof GuildCommandSender) {
+            GuildCommandSender sendee = (GuildCommandSender) sender;
+            loadAndPlay(sendee, "http://localhost:13375", false, false);
         }
     }
 

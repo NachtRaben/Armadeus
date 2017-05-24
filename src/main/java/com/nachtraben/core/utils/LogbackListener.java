@@ -11,6 +11,8 @@ public class LogbackListener<E> extends AppenderBase<E> {
     @Override
     protected void append(E eventObject) {
         if(eventObject instanceof ILoggingEvent) {
+            ILoggingEvent event = (ILoggingEvent) eventObject;
+            System.out.println(event.getFormattedMessage());
         }
     }
 

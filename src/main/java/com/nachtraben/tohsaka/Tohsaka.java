@@ -50,6 +50,7 @@ public class Tohsaka extends JDABot {
         super.getCommandHandler().registerCommands(new GuildOwnerCommands());
         super.getCommandHandler().registerCommands(new HelpCommand());
         super.getCommandHandler().registerCommands(new ConfCommands());
+        super.getCommandHandler().registerCommands(new WebTest());
 
         ConsoleCommandImpl.instance.start();
     }

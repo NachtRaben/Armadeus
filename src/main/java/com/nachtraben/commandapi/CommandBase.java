@@ -75,7 +75,7 @@ public class CommandBase {
                 } else if (Command.flagRegex.matcher(s).find()) {
                     flags.put(s.substring(2), null);
                 } else if (Command.flagWithValue.matcher(s).find()) {
-                    flags.put(s.substring(2, s.indexOf("=")), s.substring(s.indexOf("=")));
+                    flags.put(s.substring(2, s.indexOf("=")), s.substring(s.indexOf("=") + 1));
                 } else {
                     processedArgs.add(s);
                 }

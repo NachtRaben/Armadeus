@@ -1,5 +1,6 @@
 package com.nachtraben.tohsaka.eval;
 
+import groovy.lang.GroovyClassLoader;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutableTriple;
 import org.apache.commons.lang3.tuple.Triple;
@@ -54,14 +55,17 @@ public enum EvalEngine {
 
     public static List<String> DEFAULT_IMPORTS = Arrays.asList(
             "java.lang", "java.io", "java.util", "java.math", "java.util.concurrent", "net.dv8tion.jda.core", //Java Imports
-            "net.dv8tion.jda.core", "net.dv8tion.jda.core.entities", "net.dv8tion.core.entities.impl"); //JDA Imports
+            "net.dv8tion.jda.core", "net.dv8tion.jda.core.entities", "net.dv8tion.core.entities.impl",  //JDA Imports
+            "com.nachtraben.core", "com.nachtraben.core.audio", "com.nachtraben.core.command", "com.nachtraben.core.configuration", "com.nachtraben.core.listeners", "com.nachtraben.core.managers", "com.nachtraben.core.utils", // Core
+            "com.nachtraben.commandapi", "com.nachtraben.tohsaka"
+    );
 
     private static ScheduledExecutorService service = Executors.newScheduledThreadPool(1, factory -> new Thread(factory, "Eval-Thread"));
 
     public abstract Triple<Object, String, String> eval(Map<String, Object> fields, final Collection<String> classes, final Collection<String> packages, String script);
 
     protected Triple<Object, String, String> eval(final Map<String, Object> fields, final String script, final ScriptEngine engine) {
-
+        ((GroovyScriptEngineImpl)engine).setClassLoader(new GroovyClassLoader());
         // Set fields
         for(Map.Entry<String, Object> field : fields.entrySet()) {
             engine.put(field.getKey(), field.getValue());
@@ -85,6 +89,8 @@ public enum EvalEngine {
             result = future.get(15, TimeUnit.SECONDS);
         } catch (InterruptedException | TimeoutException e) {
             future.cancel(true);
+            service.shutdown();
+            service = Executors.newScheduledThreadPool(1, factory -> new Thread(factory, "Eval-Thread"));
             err.println(e.toString());
         } catch (ExecutionException e) {
             err.println(e.getCause());

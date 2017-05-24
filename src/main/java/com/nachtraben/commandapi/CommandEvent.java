@@ -51,5 +51,3 @@ public class CommandEvent {
         SUCCESS, COMMAND_NOT_FOUND, EXCEPTION, INVALID_FLAGS
     }
 }
-
-

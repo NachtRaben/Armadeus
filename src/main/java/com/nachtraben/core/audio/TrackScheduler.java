@@ -3,7 +3,6 @@ package com.nachtraben.core.audio;
 import com.nachtraben.core.utils.MessageTargetType;
 import com.nachtraben.core.utils.MessageUtils;
 import com.nachtraben.core.utils.TimeUtil;
-import com.nachtraben.tohsaka.TrackContext;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayer;
 import com.sedmelluq.discord.lavaplayer.player.event.AudioEventAdapter;
 import com.sedmelluq.discord.lavaplayer.source.youtube.YoutubeAudioTrack;
@@ -94,10 +93,12 @@ public class TrackScheduler extends AudioEventAdapter {
     }
 
     public void shuffle() {
-        List<TrackContext> tracks = new ArrayList<>();
-        queue.drainTo(tracks);
-        Collections.shuffle(tracks);
-        queue.addAll(tracks);
+        synchronized (queue) {
+            List<TrackContext> tracks = new ArrayList<>();
+            queue.drainTo(tracks);
+            Collections.shuffle(tracks);
+            queue.addAll(tracks);
+        }
     }
 
     /**
@@ -178,7 +179,7 @@ public class TrackScheduler extends AudioEventAdapter {
         }
 
         @Override
-        public void onTrackEnd (AudioPlayer player, AudioTrack track, AudioTrackEndReason endReason){
+        public void onTrackEnd (AudioPlayer player, AudioTrack track, AudioTrackEndReason endReason) {
                 if (endReason.mayStartNext) {
                     if(repeat)
                         play(currentTrack.clone());
@@ -189,10 +190,10 @@ public class TrackScheduler extends AudioEventAdapter {
 
         @Override
         public void onTrackException (AudioPlayer player, AudioTrack track, FriendlyException exception){
-            currentTrack = null;
             Guild guild = guildMusicManager.getGuildManager().getGuild();
             MessageUtils.sendMessage(MessageTargetType.MUSIC, currentTrack.getTextChannel(), format("Failed to play { %s } because of an exception, %s", currentTrack.getTrack().getInfo().title, exception.getMessage()));
             LOGGER.error(format("Failed to play { %s } in { %s#%s } due to a { %s }.", track.getInfo().title, guild.getName(), guild.getId(), exception.getClass().getSimpleName()), exception);
+            currentTrack = null;
             skip();
         }
 

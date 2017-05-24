@@ -1,4 +1,4 @@
-package com.nachtraben.tohsaka;
+package com.nachtraben.core.audio;
 
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import net.dv8tion.jda.core.entities.TextChannel;
