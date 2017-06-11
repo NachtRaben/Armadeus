@@ -1,106 +1,43 @@
 package com.nachtraben.core.command;
 
-import com.nachtraben.commandapi.CommandEvent;
-import com.nachtraben.commandapi.CommandSender;
-import com.nachtraben.core.JDABot;
-import net.dv8tion.jda.core.JDA;
-import net.dv8tion.jda.core.entities.*;
-import org.apache.http.util.Asserts;
+import com.nachtraben.core.DiscordBot;
+import net.dv8tion.jda.core.entities.Guild;
+import net.dv8tion.jda.core.entities.Member;
+import net.dv8tion.jda.core.entities.Message;
+import net.dv8tion.jda.core.entities.TextChannel;
 
-import java.util.concurrent.Future;
+public class GuildCommandSender extends DiscordCommandSender {
 
-/**
- * Created by NachtRaben on 3/9/2017.
- */
-public class GuildCommandSender implements CommandSender {
-
-    private JDA jda;
-
-    private Message message;
-    private User user;
-    private Member member;
     private Guild guild;
-    private TextChannel channel;
+    private Member member;
+    private TextChannel textChannel;
 
-    private String userID;
-    private String messageID;
-    private String guildID;
-    private String channelID;
+    private long guildId;
+    private long textChannelId;
 
-    public GuildCommandSender(Message message) {
-        Asserts.notNull(message, "Message cannot be null.");
-        Asserts.check(message.isFromType(ChannelType.TEXT), "Message was not a guild message.");
-
-        /* Objects */
-        this.message = message;
-        this.jda = message.getJDA();
-        this.user = message.getAuthor();
-        this.member = message.getGuild().getMember(user);
-        this.channel = message.getTextChannel();
+    public GuildCommandSender(DiscordBot dbot, Message message) {
+        super(dbot, message);
         this.guild = message.getGuild();
-
-        /* IDs */
-        this.userID = user.getId();
-        this.messageID = message.getId();
-        this.guildID = guild.getId();
-        this.channelID = channel.getId();
-    }
-
-    /* Getters */
-    public JDA getJDA() {
-        return jda;
-    }
-
-    public Message getMessage() {
-        if(message == null) message = getChannel().getMessageById(messageID).complete();
-        return message;
-    }
-
-    public User getUser() {
-        if(user == null) user = getJDA().getUserById(userID);
-        return user;
-    }
-
-    public Member getMember() {
-        if(member == null) member = getGuild().getMember(getUser());
-        return member;
+        this.member = guild.getMember(message.getAuthor());
+        this.textChannel = message.getTextChannel();
+        this.guildId = guild.getIdLong();
     }
 
     public Guild getGuild() {
-        if(guild == null) guild = getJDA().getGuildById(guildID);
         return guild;
     }
 
-    public TextChannel getChannel() {
-        if(channel == null) channel = getGuild().getTextChannelById(channelID);
-        return channel;
+    public Member getMember() {
+        return member;
     }
 
-    /* Utilities */
-
-    public void sendPrivateMessage(String message) {
-        PrivateChannel pc = getUser().openPrivateChannel().complete();
-        pc.sendMessage(message).queue();
+    public TextChannel getTextChannel() {
+        if(textChannel == null) textChannel = getDbot().getShardManager().getTextChannelById(textChannelId);
+        return textChannel;
     }
 
-    /* Overrides */
     @Override
     public void sendMessage(String message) {
-        getChannel().sendMessage(message).queue();
-    }
-
-    @Override
-    public boolean hasPermission() {
-        return false;
-    }
-
-    @Override
-    public String getName() {
-        return getUser().getName();
-    }
-
-    @Override
-    public Future<CommandEvent> runCommand(String command, String[] args) {
-        return JDABot.getInstance().getCommandHandler().execute(this, command, args);
+        getTextChannel().sendMessage(message).queue();
     }
 }

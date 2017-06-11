@@ -1,78 +1,91 @@
 package com.nachtraben.core.configuration;
 
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.nachtraben.core.JDABot;
+import com.nachtraben.lemonslice.JsonProperties;
+import com.nachtraben.lemonslice.Property;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
-/**
- * Created by NachtRaben on 2/17/2017.
- */
-public class BotConfig implements JsonIO {
+public class BotConfig extends JsonProperties {
 
-    private int shardCount = 1;
-    private String token = "";
-    private List<String> defaultCommandPrefixes = Arrays.asList(".", ",");
-    private String globalLogChannel;
+    private static final Logger LOGGER = LoggerFactory.getLogger(BotConfig.class);
 
-    @Override
-    public JsonElement write() {
-        JsonObject jo = new JsonObject();
-        jo.addProperty("Shards", 1);
-        jo.addProperty("ClientToken", token);
-        jo.add("DefaultCommandPrefixes", JsonLoader.GSON_P.toJsonTree(defaultCommandPrefixes));
-        jo.addProperty("GlobalLogChannel", globalLogChannel);
-        return jo;
-    }
+    @Property(name = "botToken")
+    private String botToken = "plzchange";
 
-    @Override
-    public void read(JsonElement me) {
-        if(me instanceof JsonObject) {
-            JsonObject jo = me.getAsJsonObject();
-            shardCount = jo.get("Shards").getAsInt();
-            token = jo.get("ClientToken").getAsString();
-            defaultCommandPrefixes = new ArrayList<>();
-            jo.getAsJsonArray("DefaultCommandPrefixes").forEach(jsonElement -> defaultCommandPrefixes.add(jsonElement.getAsString()));
-            if(jo.has("GlobalLogChannel")) globalLogChannel = jo.get("GlobalLogChannel").getAsString();
-        }
-    }
+    @Property(name = "shardCount")
+    private int shardCount = -1;
 
-    @Override
-    public void onCreate() {
-        System.out.println("Please change your bot token.");
-        JDABot.getInstance().shutdown();
-    }
+    @Property(name = "ownerIDs")
+    private List<Long> ownerIDs = Collections.singletonList(1L);
 
-    public BotConfig load() {
-        JsonLoader.loadFile(JsonLoader.BASE_DIR, "config.json", this);
-        return this;
-    }
+    @Property(name = "developerIDs")
+    private List<Long> developerIDs = Collections.singletonList(1L);
 
-    public BotConfig save() {
-        JsonLoader.saveFile(JsonLoader.BASE_DIR, "config.json", this);
-        return this;
+    @Property(name = "defaultPrefixes")
+    private List<String> defaultPrefixes = Collections.singletonList("-");
+
+    @Property(name = "errorLogChannelId")
+    private Long errorLogChannelId = -1L;
+
+    @Property(name = "useRedis")
+    private boolean useRedis = false;
+
+    @Property(name = "redisHost")
+    private String redisHost = "localhost";
+
+    @Property(name = "redisPort")
+    private int redisPort = 6379;
+
+    @Property(name = "redisPassword")
+    private String redisPassword = "changeplz";
+
+    @Property(name = "redisTimeout")
+    private int redisTimeout = 10000;
+
+    public String getBotToken() {
+        return botToken;
     }
 
     public int getShardCount() {
         return shardCount;
     }
 
-    public String getToken() {
-        return token;
+    public List<Long> getOwnerIDs() {
+        return ownerIDs;
     }
 
-    public List<String> getDefaultCommandPrefixes() {
-        return defaultCommandPrefixes;
+    public List<Long> getDeveloperIDs() {
+        return developerIDs;
     }
 
-    public String getGlobalLogChannel() {
-        return globalLogChannel;
+    public List<String> getDefaultPrefixes() {
+        return defaultPrefixes;
     }
 
-    public void setGlobalLogChannel(String globalLogChannel) {
-        this.globalLogChannel = globalLogChannel;
+    public Long getErrorLogChannelId() {
+        return errorLogChannelId;
+    }
+
+    public boolean isUseRedis() {
+        return useRedis;
+    }
+
+    public String getRedisHost() {
+        return redisHost;
+    }
+
+    public int getRedisPort() {
+        return redisPort;
+    }
+
+    public String getRedisPassword() {
+        return redisPassword;
+    }
+
+    public int getRedisTimeout() {
+        return redisTimeout;
     }
 }
