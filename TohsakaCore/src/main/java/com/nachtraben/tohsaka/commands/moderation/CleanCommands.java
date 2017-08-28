@@ -31,7 +31,7 @@ public class CleanCommands {
                 return;
             }
 
-            if (!sendee.getMember().hasPermission(Permission.MESSAGE_MANAGE) || !config.getOwnerIDs().contains(id) || !config.getDeveloperIDs().contains(id)) {
+            if (!sendee.getMember().hasPermission(Permission.MESSAGE_MANAGE) && !config.getOwnerIDs().contains(id) && !config.getDeveloperIDs().contains(id)) {
                 sendee.sendMessage(ChannelTarget.GENERIC, "Sorry but you aren't privvy enough for that command.");
                 return;
             }
@@ -58,7 +58,7 @@ public class CleanCommands {
             long id = sendee.getUser().getIdLong();
             BotConfig config = Tohsaka.getInstance().getConfig();
 
-            if (!sendee.getMember().hasPermission(Permission.MESSAGE_MANAGE) || !config.getOwnerIDs().contains(id) || !config.getDeveloperIDs().contains(id)) {
+            if (!sendee.getMember().hasPermission(Permission.MESSAGE_MANAGE) && !config.getOwnerIDs().contains(id) && !config.getDeveloperIDs().contains(id)) {
                 sendee.sendMessage(ChannelTarget.GENERIC, "Sorry but you aren't privvy enough for that command.");
                 return;
             }

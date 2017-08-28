@@ -10,6 +10,8 @@ import com.nachtraben.orangeslice.command.Command;
 import com.nachtraben.tohsaka.Tohsaka;
 import net.dv8tion.jda.bot.entities.ApplicationInfo;
 import net.dv8tion.jda.core.EmbedBuilder;
+import net.dv8tion.jda.core.Permission;
+import net.dv8tion.jda.core.entities.SelfUser;
 
 import java.util.Map;
 
@@ -25,10 +27,14 @@ public class AboutCommand extends Command {
             DiscordCommandSender sendee = (DiscordCommandSender) sender;
             EmbedBuilder builder = new EmbedBuilder();
             ApplicationInfo info = sendee.getUser().getJDA().asBot().getApplicationInfo().complete();
-            builder.setAuthor("Tohsaka", "https://tohsaka.nachtraben.com", sendee.getUser().getJDA().getSelfUser().getAvatarUrl());
+            SelfUser bot = sendee.getUser().getJDA().getSelfUser();
+            builder.setAuthor(bot.getName(), "https://tohsaka.nachtraben.com", bot.getAvatarUrl());
             builder.setThumbnail(info.getIconUrl());
             builder.setTitle("About Tohsaka:", null);
             builder.setDescription(info.getDescription());
+            builder.addField("Links:","Invite me: [Invite](" + bot.getJDA().asBot().getInviteUrl(Permission.ADMINISTRATOR) + ")" +
+                    "\nSupport: [Discord](https://discord.gg/mmYZGGB)" +
+                    "\nDonations: [PayPal](https://paypal.me/nachtraben)", false);
             builder.setFooter(String.format("Author: %s#%s", info.getOwner().getName(), info.getOwner().getDiscriminator()), info.getOwner().getAvatarUrl());
 
             StringBuilder sb = new StringBuilder();
