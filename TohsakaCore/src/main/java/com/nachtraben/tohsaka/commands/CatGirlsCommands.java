@@ -58,7 +58,7 @@ public class CatGirlsCommands {
                 eb.setImage(response.getString("url"));
                 if(sender instanceof GuildCommandSender) {
                     GuildCommandSender sendee = (GuildCommandSender) sender;
-                    eb.setFooter("Requeted by " + sendee.getMember().getEffectiveName(), sendee.getUser().getAvatarUrl());
+                    eb.setFooter("Requested by " + sendee.getMember().getEffectiveName(), sendee.getUser().getAvatarUrl());
                 }
                 sender.sendMessage(eb.build());
             } else {
