@@ -23,6 +23,7 @@ public class ShutdownCommand extends Command {
             BotConfig config = Tohsaka.getInstance().getConfig();
             if (!config.getOwnerIDs().contains(id) && !config.getDeveloperIDs().contains(id)) {
                 sendee.sendMessage(ChannelTarget.GENERIC, "Sorry but you can't shut me down.");
+                return;
             }
             sendee.sendMessage(ChannelTarget.GENERIC, "Goodbye!");
             Tohsaka.getInstance().shutdown();
