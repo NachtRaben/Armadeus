@@ -19,6 +19,10 @@ import java.util.Map;
 
 public class CleanCommands {
 
+    // TODO: Clean [amount] --date=date --time=time --silent// bot messages only
+    // TODO: Clear/Purge [amount] --date=date --time=time --silent
+    // TODO: Clear/Purge <amount> { users } --date=date --time=time --silent
+
     @Cmd(name = "clean", format = "[amount]", description = "Cleans the chat of bot messages", aliases = {"clear"})
     public void clean(CommandSender sender, Map<String, String> args, Map<String, String> flags) {
         if (sender instanceof GuildCommandSender) {

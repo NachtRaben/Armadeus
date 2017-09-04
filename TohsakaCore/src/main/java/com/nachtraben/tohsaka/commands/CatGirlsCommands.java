@@ -64,7 +64,7 @@ public class CatGirlsCommands {
             }
         } catch (UnirestException e) {
             LOGGER.warn ("Failed to query catgirls api!", e);
+            sender.sendMessage("Sorry but I was unable to query the website.");
         }
-        sender.sendMessage("Sorry but I was unable to query the website.");
     }
 }

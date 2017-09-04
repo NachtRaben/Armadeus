@@ -14,6 +14,8 @@ import java.util.concurrent.TimeUnit;
 
 public class RedisBotConfig extends BotConfig implements RedisConfig {
 
+    // TODO: Move this over to synchronized query function.
+
     private static final Logger LOGGER = LoggerFactory.getLogger(RedisBotConfig.class);
     private static final Gson GSON = new GsonBuilder().disableHtmlEscaping().create();
 
@@ -24,7 +26,6 @@ public class RedisBotConfig extends BotConfig implements RedisConfig {
         super(bot);
         this.provider = provider;
     }
-
 
     @Override
     public BotConfig load() {

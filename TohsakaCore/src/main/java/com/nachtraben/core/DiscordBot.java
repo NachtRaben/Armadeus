@@ -92,10 +92,6 @@ public abstract class DiscordBot {
             ((RedisBotConfig)config).setDebugging(debugging);
     }
 
-    public Logger getLogger() {
-        return logger;
-    }
-
     public void shutdown() {
         running = false;
         try {
