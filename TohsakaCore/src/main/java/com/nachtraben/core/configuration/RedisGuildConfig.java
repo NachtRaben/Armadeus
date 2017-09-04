@@ -13,6 +13,7 @@ import java.util.HashSet;
 import java.util.Map;
 
 public class RedisGuildConfig extends GuildConfig implements RedisConfig {
+
     private static final Logger LOGGER = LoggerFactory.getLogger(RedisGuildConfig.class);
     private static final Gson GSON = new GsonBuilder().disableHtmlEscaping().create();
 
@@ -76,4 +77,5 @@ public class RedisGuildConfig extends GuildConfig implements RedisConfig {
         result.put("metadata", GSON.toJson(getMetadata()));
         return result;
     }
+
 }

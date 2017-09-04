@@ -53,8 +53,6 @@ public class AboutCommand extends Command {
 
             builder.addField("Prefixes", sb.toString(), false);
             sendee.sendMessage(ChannelTarget.GENERIC, builder.build());
-        } else {
-            sender.sendMessage("Sorry but that command is only available in guilds I'm a part of.");
         }
     }
 }

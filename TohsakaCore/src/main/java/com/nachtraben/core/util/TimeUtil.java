@@ -55,7 +55,7 @@ public class TimeUtil {
     public static String millisToString(Long t, FormatType format) {
         boolean neg = t < 0;
         if (neg) t = t * -1;
-        int size = t > WEEK ? 5 : (t > DAY ? 4 : (t > HOUR ? 3 : (t >= MINUTE ? 2 : 1)));
+        int size = t >= WEEK ? 5 : (t >= DAY ? 4 : (t >= HOUR ? 3 : (t >= MINUTE ? 2 : 1)));
         long weeks = 0;
         long days = 0;
         long hours = 0;
