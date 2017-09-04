@@ -11,9 +11,12 @@ import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 public class GuildManager {
 
+    private static final Object CONNECTION_LOCK = new Object();
     private static final Logger LOGGER = LoggerFactory.getLogger(GuildManager.class);
 
     private DiscordBot dbot;
@@ -60,7 +63,7 @@ public class GuildManager {
         return dbot;
     }
 
-    public Redis getConnection() {
+    private Redis getConnection() {
         if(provider == null)
             throw new IllegalStateException("RedisProvider cannot be null!");
 
@@ -69,5 +72,17 @@ public class GuildManager {
         }
         return connection;
     }
+
+    public <T> T runQuery(Function<Redis, T> query) {
+        synchronized (CONNECTION_LOCK) {
+            return query.apply(getConnection());
+        }
+    }
+
+//    public void runQuery(Consumer<Redis> query) {
+//        synchronized (CONNECTION_LOCK) {
+//            query.accept(getConnection());
+//        }
+//    }
 
 }

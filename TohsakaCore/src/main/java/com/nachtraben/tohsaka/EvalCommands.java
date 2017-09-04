@@ -38,7 +38,10 @@ public class EvalCommands {
             vars.put("bot", sendee.getUser().getJDA().getSelfUser());
 
             Eval eval = new Eval(args.get("script"), vars);
-            sendee.sendMessage(ChannelTarget.GENERIC, eval.run());
+            String response = eval.run();
+            if(response != null && !response.isEmpty()) {
+                sendee.sendMessage(ChannelTarget.GENERIC, response);
+            }
         }
     }
 

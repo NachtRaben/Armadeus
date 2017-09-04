@@ -29,7 +29,7 @@ public class CatGirlsCommands {
         }
     }
 
-    @Cmd(name = "nsfwneko", format = "", description = "Sends a lew cat for your other pleasures.")
+    @Cmd(name = "nsfwneko", format = "", description = "Sends a lewd cat for your other pleasures.")
     public void nsfwNeko(CommandSender sender, Map<String, String> args, Map<String, String> flags) {
         if(sender instanceof DiscordCommandSender) {
             if(sender instanceof GuildCommandSender) {
@@ -61,11 +61,10 @@ public class CatGirlsCommands {
                     eb.setFooter("Requested by " + sendee.getMember().getEffectiveName(), sendee.getUser().getAvatarUrl());
                 }
                 sender.sendMessage(eb.build());
-            } else {
-                sender.sendMessage("Sorry but I was unable to query the website.");
             }
         } catch (UnirestException e) {
-            LOGGER.warn("Failed to query catgirls api!", e);
+            LOGGER.warn ("Failed to query catgirls api!", e);
         }
+        sender.sendMessage("Sorry but I was unable to query the website.");
     }
 }

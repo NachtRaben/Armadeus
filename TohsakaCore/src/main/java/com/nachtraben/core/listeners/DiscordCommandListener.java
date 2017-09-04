@@ -46,7 +46,6 @@ public class DiscordCommandListener extends ListenerAdapter {
                     return;
 
                 if (!mentions.isEmpty() && mentions.get(0).equals(jda.getSelfUser()) && content.startsWith(mentions.get(0).getAsMention())) {
-                    LOGGER.debug("User mention.");
                     if(bot.getConfig() instanceof RedisBotConfig && !bot.isDebugging() && ((RedisBotConfig) bot.getConfig()).isDebugging()) {
                         LOGGER.warn("Ignoring user mention prefix as a developer instance is running.");
                     } else {
@@ -59,7 +58,6 @@ public class DiscordCommandListener extends ListenerAdapter {
                     if(prefix == null) {
                         Member botMember = message.getGuild().getMember(jda.getSelfUser());
                         if(!mentions.isEmpty() && mentions.get(0).equals(jda.getSelfUser()) && content.startsWith(botMember.getAsMention())) {
-                            LOGGER.debug("Member mention.");
                             if(bot.getConfig() instanceof RedisBotConfig && !bot.isDebugging() && ((RedisBotConfig) bot.getConfig()).isDebugging()) {
                                 LOGGER.warn("Ignoring member mention prefix as a developer instance is running.");
                             } else {

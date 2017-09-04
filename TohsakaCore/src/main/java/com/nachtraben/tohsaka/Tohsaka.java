@@ -2,7 +2,9 @@ package com.nachtraben.tohsaka;
 
 import com.nachtraben.core.DiscordBot;
 import com.nachtraben.core.command.ConsoleCommandSender;
+import com.nachtraben.core.command.DiscordCommandSender;
 import com.nachtraben.core.command.GuildCommandSender;
+import com.nachtraben.orangeslice.CommandSender;
 import com.nachtraben.orangeslice.command.Cmd;
 import com.nachtraben.orangeslice.command.Command;
 import com.nachtraben.orangeslice.event.CommandEventListener;
@@ -32,6 +34,13 @@ public class Tohsaka extends DiscordBot {
     public Tohsaka(String[] args, boolean debugging) {
         super(args);
         instance = this;
+
+        Runtime.getRuntime().addShutdownHook(new Thread(this::shutdown));
+        Thread.setDefaultUncaughtExceptionHandler((t, e) -> {
+            System.err.println("Uncaught exception in { " + t.getName() + " }.");
+            e.printStackTrace();
+        });
+
         setDebugging(debugging);
         new ConsoleCommandSender();
         getShardManager().connectAllShards();
@@ -55,6 +64,7 @@ public class Tohsaka extends DiscordBot {
             @Override
             public void onCommandException(CommandExceptionEvent e) {
                 e.getSender().sendMessage("Unfortunately an error has occurred with your request. The bot author has been notified.");
+                //LOGGER.error("An error occurred during command execution.", e.getException());
             }
         });
     }
@@ -74,7 +84,7 @@ public class Tohsaka extends DiscordBot {
                 try {
                     getCommandBase().registerCommands(m.getDeclaringClass().newInstance());
                 } catch (InstantiationException | IllegalAccessException e) {
-                    e.printStackTrace();
+                    LOGGER.error("Failed to register command class, " + m.getDeclaringClass() + ".", e);
                 }
             }
         }
@@ -85,9 +95,6 @@ public class Tohsaka extends DiscordBot {
                 e.printStackTrace();
             }
         }
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            getInstance().getShardManager().shutdownAllShards();
-        }));
     }
 
     public static Tohsaka getInstance() {

@@ -13,16 +13,15 @@ TODO:
         - Implement command modules to seperate functionality.
         - DiscordCommandSender.hasPermission(Permission)
         - Implement Command permission processing.
-        - Move aliases over to a separate map.
 
     Guild configuration:
         - Add ability to blacklist/whitelist command modules as a whole.
         - Store logs per message type that can be recalled by command.
-        - Metadata support.
+        - General cleanup.
 
     Commands:
         - Moderation commands.
-        - Improve chat clearing commands.
+        *** Improve chat clearing commands.
         - Clean command to purge bot messages
         - Implement eval/script commands
         - Implement owner/developer add/remove commands

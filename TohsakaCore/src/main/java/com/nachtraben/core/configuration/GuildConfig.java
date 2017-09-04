@@ -23,6 +23,9 @@ import java.util.Map;
 import java.util.Set;
 
 public class GuildConfig implements CustomJsonIO {
+
+    // TODO: Don't hold on to JDA Objects.
+
     private transient static Logger LOGGER = LoggerFactory.getLogger(GuildConfig.class);
     private transient static final File GUILD_DIR = new File("guilds");
     private transient static final Gson GSON = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
@@ -32,12 +35,11 @@ public class GuildConfig implements CustomJsonIO {
             GUILD_DIR.mkdirs();
     }
 
-    transient GuildManager guildManager;
-    transient GuildMusicManager musicManager;
-    transient File configFile;
-    transient Long guildID;
-    transient Guild guild;
-    transient Map<ChannelTarget, TextChannel> channelCache;
+    private transient GuildManager guildManager;
+    private transient GuildMusicManager musicManager;
+    private transient File configFile;
+    private transient Long guildID;
+    private transient Map<ChannelTarget, TextChannel> channelCache;
     
     boolean deleteCommands = false;
 
@@ -45,7 +47,7 @@ public class GuildConfig implements CustomJsonIO {
     Set<String> disabledCommands;
     Set<Long> blacklistedIDs;
     Map<String, Long> logChannels;
-    boolean debugging;
+    Map<String, String> metadata;
 
     public GuildConfig(GuildManager manager, Long guild) {
         this.guildManager = manager;
@@ -64,11 +66,6 @@ public class GuildConfig implements CustomJsonIO {
 
     @Override
     public void read(JsonElement jsonElement) {
-        if(logChannels == null)
-            logChannels = new HashMap<>();
-        if(channelCache == null)
-            channelCache = new HashMap<>();
-
         if(jsonElement instanceof JsonObject) {
             JsonObject jo = jsonElement.getAsJsonObject();
             if(jo.has("deleteCommands"))
@@ -85,6 +82,9 @@ public class GuildConfig implements CustomJsonIO {
                 logChannels.put(ChannelTarget.GENERIC.toString().toLowerCase(), jo.get("genericLogChannelID").getAsLong());
             if(jo.has("musicLogChannelID"))
                 logChannels.put(ChannelTarget.MUSIC.toString().toLowerCase(), jo.get("musicLogChannelID").getAsLong());
+            if(jo.has("metadata"))
+                metadata = GSON.fromJson(jo.get("metadata"), TypeToken.getParameterized(HashMap.class, String.class, String.class).getType());
+            postInit();
         }
     }
 
@@ -113,9 +113,11 @@ public class GuildConfig implements CustomJsonIO {
     }
 
     public Guild getGuild() {
-        if(guild == null)
-            guild = Tohsaka.getInstance().getShardManager().getGuildByID(guildID);
-        return guild;
+        return Tohsaka.getInstance().getShardManager().getGuildByID(guildID);
+    }
+
+    public Map<ChannelTarget, TextChannel> getChannelCache() {
+        return channelCache;
     }
 
     public boolean shouldDeleteCommands() {
@@ -209,7 +211,34 @@ public class GuildConfig implements CustomJsonIO {
         }
     }
 
+    public Map<String, String> getMetadata() {
+        return metadata;
+    }
+
     public File getConfigFile() {
         return configFile;
+    }
+
+    protected void preInit() {
+        if(logChannels == null)
+            logChannels = new HashMap<>();
+        if(channelCache == null)
+            channelCache = new HashMap<>();
+        if(metadata == null)
+            metadata = new HashMap<>();
+    }
+
+    protected void postInit() {
+        if(metadata.containsKey("volume")) {
+            try {
+                int volume = Integer.parseInt(metadata.get("volume"));
+                volume = Math.min(Math.max(volume, 0), 150);
+                getMusicManager().getPlayer().setVolume(volume);
+                LOGGER.info("Setting resume volume of { " + getGuild().getName() + " } to " + volume + ".");
+            } catch (NumberFormatException e) {
+                metadata.remove("volume");
+                save();
+            }
+        }
     }
 }

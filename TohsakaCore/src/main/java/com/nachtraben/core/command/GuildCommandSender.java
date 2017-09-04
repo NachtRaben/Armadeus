@@ -3,17 +3,14 @@ package com.nachtraben.core.command;
 import com.nachtraben.core.DiscordBot;
 import com.nachtraben.core.configuration.GuildConfig;
 import com.nachtraben.core.util.ChannelTarget;
+import net.dv8tion.jda.core.MessageBuilder;
 import net.dv8tion.jda.core.entities.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@SuppressWarnings("Duplicates")
 public class GuildCommandSender extends DiscordCommandSender {
-    private static final Logger LOGGER = LoggerFactory.getLogger(GuildCommandSender.class);
 
-    private Guild guild;
-    private Member member;
-    private TextChannel textChannel;
+    private static final Logger LOGGER = LoggerFactory.getLogger(GuildCommandSender.class);
 
     private long guildId;
     private long textChannelId;
@@ -22,31 +19,30 @@ public class GuildCommandSender extends DiscordCommandSender {
         super(dbot, message);
         if(!message.isFromType(ChannelType.TEXT))
             throw new IllegalArgumentException("Message must be from type " + ChannelType.TEXT + ".");
-        this.guild = message.getGuild();
-        this.member = guild.getMember(message.getAuthor());
-        this.textChannel = message.getTextChannel();
-        this.guildId = guild.getIdLong();
-        this.textChannelId = textChannel.getIdLong();
+
+        this.guildId = message.getGuild().getIdLong();
+        this.textChannelId = message.getChannel().getIdLong();
     }
 
     public Guild getGuild() {
-        return guild;
+        return getJDA().getGuildById(guildId);
     }
 
     public Member getMember() {
-        return member;
+        Guild guild = getGuild();
+        if(guild != null)
+            return guild.getMemberById(getUserID());
+        return null;
     }
 
     public TextChannel getTextChannel() {
-        if(textChannel == null) textChannel = getDbot().getShardManager().getTextChannelByID(textChannelId);
-        return textChannel;
+        return getJDA().getTextChannelById(textChannelId);
     }
 
     public VoiceChannel getVoiceChannel() {
         Member m = getMember();
-        if(m != null) {
+        if(m != null)
             return m.getVoiceState().getChannel();
-        }
         return null;
     }
 
@@ -61,17 +57,7 @@ public class GuildCommandSender extends DiscordCommandSender {
 
     @Override
     public void sendMessage(ChannelTarget target, String message) {
-        TextChannel channel = getTargetChannel(target);
-        if(channel == null)
-            channel = getTextChannel();
-
-        if(channel != null && channel.canTalk()) {
-            channel.sendMessage(message).queue();
-        } else if(channel == null) {
-            LOGGER.warn("Attempted to send a message to " + getUser() + " but couldn't find a valid destination.");
-        } else if(!channel.canTalk()) {
-            LOGGER.warn("Attempted to send a message to " + getUser() + " but I do not have permission to talk in " + channel + ".");
-        }
+        sendMessage(target, new MessageBuilder().append(message).build());
     }
 
     @Override
@@ -80,13 +66,8 @@ public class GuildCommandSender extends DiscordCommandSender {
         if(channel == null)
             channel = getTextChannel();
 
-        if(channel != null && channel.canTalk()) {
+        if(channel != null && channel.canTalk())
             channel.sendMessage(message).queue();
-        } else if(channel == null) {
-            LOGGER.warn("Attempted to send a message to " + getUser() + " but couldn't find a valid destination.");
-        } else if(!channel.canTalk()) {
-            LOGGER.warn("Attempted to send a message to " + getUser() + " but I do not have permission to talk in " + channel + ".");
-        }
     }
 
     @Override
@@ -95,17 +76,11 @@ public class GuildCommandSender extends DiscordCommandSender {
         if(channel == null)
             channel = getTextChannel();
 
-        if(channel != null && channel.canTalk()) {
+        if(channel != null && channel.canTalk())
             channel.sendMessage(embed).queue();
-        } else if(channel == null) {
-            LOGGER.warn("Attempted to send a message to " + getUser() + " but couldn't find a valid destination.");
-        } else if(!channel.canTalk()) {
-            LOGGER.warn("Attempted to send a message to " + getUser() + " but I do not have permission to talk in " + channel + ".");
-        }
     }
 
     private TextChannel getTargetChannel(ChannelTarget target) {
-        System.out.println("Target: " + target.toString());
         TextChannel result = null;
         GuildConfig config = getGuildConfig();
          switch (target) {

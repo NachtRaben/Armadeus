@@ -10,6 +10,7 @@ import ch.qos.logback.core.AppenderBase;
 import com.nachtraben.core.DiscordBot;
 import net.dv8tion.jda.core.EmbedBuilder;
 import net.dv8tion.jda.core.MessageBuilder;
+import net.dv8tion.jda.core.entities.MessageEmbed;
 import net.dv8tion.jda.core.entities.TextChannel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,16 +33,22 @@ public class LogbackListener<E> extends AppenderBase<E> {
         if (eventObject instanceof ILoggingEvent) {
             ILoggingEvent event = (ILoggingEvent) eventObject;
             Level level = event.getLevel();
-            if(level.isGreaterOrEqual(Level.ERROR)) {
+            if (level.isGreaterOrEqual(Level.ERROR)) {
+                System.err.println("Logging an error.");
                 TextChannel channel = bot.getConfig().getErrorLogChannel();
-                if(channel != null) {
-                    EmbedBuilder eb = new EmbedBuilder();
-                    eb.setTitle(String.format("[%s]: %s", level.levelStr, event.getMessage()));
-                    if(event.getThrowableProxy() != null) {
-                        eb.addField("Stack:", getStackTrace(event), false);
+                if (channel != null) {
+                    try {
+                        EmbedBuilder eb = new EmbedBuilder();
+                        eb.setTitle(String.format("[%s]: %s", level.levelStr, event.getMessage()));
+                        if (event.getThrowableProxy() != null) {
+                            String throwable = getStackTrace(event);
+                            eb.addField("Stack:", throwable.substring(0, Math.min(throwable.length(), MessageEmbed.VALUE_MAX_LENGTH)), false);
+                        }
+                        eb.setFooter(new Date(event.getTimeStamp()).toString(), null);
+                        channel.sendMessage(eb.build()).queue();
+                    } catch (Exception e) {
+                        e.printStackTrace();
                     }
-                    eb.setFooter(new Date(event.getTimeStamp()).toString(), null);
-                    channel.sendMessage(eb.build()).queue();
                 }
             }
         }
@@ -64,7 +71,7 @@ public class LogbackListener<E> extends AppenderBase<E> {
         LogbackListener<ILoggingEvent> listener = new LogbackListener<>(bot);
         listener.setContext(lc);
         listener.start();
-        ((ch.qos.logback.classic.Logger)LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME)).addAppender(listener);
+        ((ch.qos.logback.classic.Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME)).addAppender(listener);
     }
 
 }

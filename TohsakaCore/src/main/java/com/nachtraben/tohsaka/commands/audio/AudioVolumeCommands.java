@@ -1,6 +1,7 @@
 package com.nachtraben.tohsaka.commands.audio;
 
 import com.nachtraben.core.command.GuildCommandSender;
+import com.nachtraben.core.configuration.GuildConfig;
 import com.nachtraben.core.managers.GuildMusicManager;
 import com.nachtraben.core.util.ChannelTarget;
 import com.nachtraben.orangeslice.CommandSender;
@@ -26,7 +27,8 @@ public class AudioVolumeCommands {
     public void volumeSet(CommandSender sender, Map<String, String> args, Map<String, String> flags) {
         if (sender instanceof GuildCommandSender) {
             GuildCommandSender sendee = (GuildCommandSender) sender;
-            GuildMusicManager manager = Tohsaka.getInstance().getGuildManager().getConfigurationFor(sendee.getGuild().getIdLong()).getMusicManager();
+            GuildConfig config = Tohsaka.getInstance().getGuildManager().getConfigurationFor(sendee.getGuild());
+            GuildMusicManager manager = config.getMusicManager();
             int vol = -1;
             try {
                 vol = Integer.parseInt(args.get("vol"));
@@ -36,6 +38,8 @@ public class AudioVolumeCommands {
             }
             if (vol != -1) {
                 manager.getPlayer().setVolume(vol);
+                config.getMetadata().put("volume", String.valueOf(vol));
+                config.save();
                 sendee.sendMessage(ChannelTarget.GENERIC, "Volume set to `" + manager.getPlayer().getVolume() + "/150`.");
             }
         } else {

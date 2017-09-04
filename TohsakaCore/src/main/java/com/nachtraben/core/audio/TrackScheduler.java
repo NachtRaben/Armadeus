@@ -3,8 +3,10 @@ package com.nachtraben.core.audio;
 import com.nachtraben.core.command.GuildCommandSender;
 import com.nachtraben.core.managers.GuildMusicManager;
 import com.nachtraben.core.util.ChannelTarget;
+import com.nachtraben.core.util.Radio;
 import com.nachtraben.core.util.TimeUtil;
 import com.nachtraben.core.util.Utils;
+import com.sedmelluq.discord.lavaplayer.player.AudioLoadResultHandler;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayer;
 import com.sedmelluq.discord.lavaplayer.player.event.AudioEventAdapter;
 import com.sedmelluq.discord.lavaplayer.source.youtube.YoutubeAudioTrack;
@@ -36,6 +38,7 @@ public class TrackScheduler extends AudioEventAdapter {
 
     private AudioTrack lastTrack;
     private AudioTrack currentTrack;
+    private Radio currentStation;
 
     private boolean repeatTrack;
     private boolean repeatQueue;
@@ -49,7 +52,7 @@ public class TrackScheduler extends AudioEventAdapter {
 
     public void queue(AudioTrack track) {
         synchronized (queue) {
-            LOGGER.debug("Queue");
+            LOGGER.debug("Queue.");
             synchronized (queue) {
                 queue.offer(track);
             }
@@ -73,7 +76,6 @@ public class TrackScheduler extends AudioEventAdapter {
             queue.clear();
             if (isPlaying()) {
                 currentTrack.getUserData(GuildCommandSender.class).sendMessage(ChannelTarget.MUSIC, "Queue concluded.");
-                //manager.getGuild().getAudioManager().closeAudioConnection();
                 currentChannel = null;
                 currentTrack = null;
             }
@@ -91,7 +93,7 @@ public class TrackScheduler extends AudioEventAdapter {
             }
             lastTrack = currentTrack;
             if (queue.isEmpty() && isPlaying()) {
-                LOGGER.debug("Stopping!");
+                LOGGER.debug("Queue ended.");
                 stop();
             } else if (!queue.isEmpty())
                 play(queue.poll());
@@ -115,14 +117,6 @@ public class TrackScheduler extends AudioEventAdapter {
         return currentTrack != null && currentChannel != null;
     }
 
-    private VoiceChannel getVoiceChannel(GuildCommandSender requestor) {
-        Member member = requestor.getMember();
-        if (member != null && member.getVoiceState().inVoiceChannel()) {
-            return member.getVoiceState().getChannel();
-        }
-        return null;
-    }
-
     private boolean joinVoiceChannel(GuildCommandSender requestor) {
         if (manager.getGuild() != null) {
             AudioManager audioManager = manager.getGuild().getAudioManager();
@@ -130,7 +124,7 @@ public class TrackScheduler extends AudioEventAdapter {
                 LOGGER.debug("Already connected.");
                 currentChannel = audioManager.getConnectedChannel();
                 return true;            } else {
-                VoiceChannel channel = getVoiceChannel(requestor);
+                VoiceChannel channel = requestor.getVoiceChannel();
                 if (channel != null) {
                     try {
                         LOGGER.debug("Connecting.");
@@ -162,8 +156,7 @@ public class TrackScheduler extends AudioEventAdapter {
                 return;
             }
             if (!joinVoiceChannel(requestor)) {
-                LOGGER.warn("Failed to join the users voice currentChannel, no action will be performed.");
-                // TODO: Warn user.
+                requestor.sendMessage(ChannelTarget.MUSIC, "Sorry but I was unable to join `" + requestor.getVoiceChannel() + "`.");
                 stop();
                 return;
             }
@@ -171,7 +164,8 @@ public class TrackScheduler extends AudioEventAdapter {
                 sendEmbed(track, requestor);
             }
         } else {
-            LOGGER.debug("Null requestor!!");
+            LOGGER.debug("Null requester. Skipping.");
+            skip();
         }
     }
 
@@ -260,5 +254,9 @@ public class TrackScheduler extends AudioEventAdapter {
 
     public void setRepeatQueue(boolean repeatQueue) {
         this.repeatQueue = repeatQueue;
+    }
+
+    public void playRadio(Radio audioLoadResultHandler, AudioTrack track) {
+
     }
 }

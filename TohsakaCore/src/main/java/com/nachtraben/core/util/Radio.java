@@ -1,6 +1,5 @@
 package com.nachtraben.core.util;
 
-import com.nachtraben.core.audio.MusicRequestor;
 import com.nachtraben.core.command.GuildCommandSender;
 import com.nachtraben.core.managers.GuildMusicManager;
 import com.sedmelluq.discord.lavaplayer.player.AudioLoadResultHandler;

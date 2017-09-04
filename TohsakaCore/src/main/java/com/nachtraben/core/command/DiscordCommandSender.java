@@ -7,17 +7,18 @@ import com.nachtraben.orangeslice.CommandResult;
 import com.nachtraben.orangeslice.CommandSender;
 import net.dv8tion.jda.core.JDA;
 import net.dv8tion.jda.core.entities.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.Future;
 
 public class DiscordCommandSender implements CommandSender {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(DiscordCommandSender.class);
+
     private DiscordBot dbot;
 
     private JDA jda;
-    private User user;
-    private Message message;
-    private MessageChannel messageChannel;
 
     private long userID;
     private long messageID;
@@ -26,33 +27,47 @@ public class DiscordCommandSender implements CommandSender {
     public DiscordCommandSender(DiscordBot dbot, Message message) {
         this.dbot = dbot;
         this.jda = message.getJDA();
-        this.user = message.getAuthor();
-        this.message = message;
-        this.messageChannel = message.getChannel();
-
-        this.userID = user.getIdLong();
+        this.userID = message.getAuthor().getIdLong();
         this.messageID = message.getIdLong();
-        this.messageChannelID = messageChannel.getIdLong();
+        this.messageChannelID = message.getChannel().getIdLong();
     }
 
     public DiscordBot getDbot() {
         return dbot;
     }
 
+    public JDA getJDA() {
+        return jda;
+    }
+
+    public long getUserID() {
+        return userID;
+    }
+
     public User getUser() {
-        if(user == null) user = dbot.getShardManager().getUserByID(userID);
-        return user;
+        return jda.getUserById(userID);
+    }
+
+    public long getMessageID() {
+        return messageID;
     }
 
     public Message getMessage() {
-        if(message == null) message = getMessageChannel().getMessageById(messageID).complete();
-        return message;
+        MessageChannel channel = getMessageChannel();
+        if (channel != null) {
+            return channel.getMessageById(messageID).complete();
+        }
+        return null;
+    }
+
+    public long getMessageChannelID() {
+        return messageChannelID;
     }
 
     public MessageChannel getMessageChannel() {
-        if(messageChannel == null) messageChannel = dbot.getShardManager().getTextChannelByID(messageChannelID);
-        if(messageChannel == null) messageChannel = dbot.getShardManager().getPrivateChannelByID(messageChannelID);
-        return messageChannel;
+        MessageChannel channel = dbot.getShardManager().getTextChannelByID(messageChannelID);
+        if (channel == null) channel = dbot.getShardManager().getPrivateChannelByID(messageChannelID);
+        return channel;
     }
 
     public void sendPrivateMessage(String message) {
@@ -69,15 +84,21 @@ public class DiscordCommandSender implements CommandSender {
 
     @Override
     public void sendMessage(String message) {
-        messageChannel.sendMessage(message).queue();
+        MessageChannel channel = getMessageChannel();
+        if (channel != null)
+            channel.sendMessage(message).queue();
     }
 
     public void sendMessage(MessageEmbed embed) {
-        messageChannel.sendMessage(embed).queue();
+        MessageChannel channel = getMessageChannel();
+        if (channel != null)
+            channel.sendMessage(embed).queue();
     }
 
     public void sendMessage(Message message) {
-        messageChannel.sendMessage(message).queue();
+        MessageChannel channel = getMessageChannel();
+        if (channel != null)
+            channel.sendMessage(message).queue();
     }
 
     public boolean hasPermission() {
@@ -86,7 +107,12 @@ public class DiscordCommandSender implements CommandSender {
 
     @Override
     public String getName() {
-        return user.getName();
+        User user = getUser();
+        if(user != null) {
+            return user.getName();
+        } else {
+            return "UNKNOWN_USER";
+        }
     }
 
     @Override
