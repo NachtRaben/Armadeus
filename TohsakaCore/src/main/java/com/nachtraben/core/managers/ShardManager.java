@@ -20,6 +20,7 @@ import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 public class ShardManager {
 
@@ -29,6 +30,7 @@ public class ShardManager {
     private List<JDA> shards;
     private Set<EventListener> defaultListeners;
     private int shardCount;
+    private long nextRestart = System.currentTimeMillis();
 
     public ShardManager(DiscordBot bot) {
         this.bot = bot;
@@ -48,6 +50,17 @@ public class ShardManager {
     public void connectShard(int shard) {
         if(shard < 0 || shard >= shardCount)
             throw new IllegalArgumentException("Invalid shard count provided!");
+
+        long wait = nextRestart - System.currentTimeMillis();
+        if(wait > 0) {
+            try {
+                LOGGER.warn("Waiting { " + wait + " }ms before starting next shard.");
+                Thread.sleep(wait);
+                nextRestart = System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(5);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
 
         if(shard < shards.size()) {
             JDA jda = shards.get(shard);
@@ -73,7 +86,7 @@ public class ShardManager {
             try {
                 LOGGER.warn(String.format("Failed to login shard { %s } due to rate-limiting, waiting { %s } ms before retrying.", shard, e.getRetryAfter()));
                 Thread.sleep(e.getRetryAfter());
-                shards.add(shard, builder.buildAsync());
+                shards.add(shard, builder.buildBlocking());
             } catch (InterruptedException | LoginException | RateLimitedException e1) {
                 LOGGER.error("Failed to login to discord.", e1);
             }

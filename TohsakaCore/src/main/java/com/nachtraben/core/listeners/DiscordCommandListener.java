@@ -65,10 +65,11 @@ public class DiscordCommandListener extends ListenerAdapter {
                             }
                         }
                     }
-                    GuildConfig config = bot.getGuildManager().getConfigurationFor(message.getGuild().getIdLong());
+                    GuildConfig config = bot.getGuildManager().getConfigurationFor(message.getGuild());
                     if (!bot.isDebugging() && prefix == null && !config.getPrefixes().isEmpty()) {
                         for (String pref : config.getPrefixes()) {
                             if (content.startsWith(pref)) {
+                                LOGGER.debug("Matched guild prefix: " + pref);
                                 prefix = pref;
                                 break;
                             }
@@ -81,6 +82,9 @@ public class DiscordCommandListener extends ListenerAdapter {
                 }
 
                 if (!bot.isDebugging() && prefix == null) {
+                    if(sender instanceof GuildCommandSender && !((GuildCommandSender) sender).getGuildConfig().getPrefixes().isEmpty())
+                        return;
+
                     for (String pref : bot.getConfig().getPrefixes()) {
                         if (content.startsWith(pref)) {
                             prefix = pref;

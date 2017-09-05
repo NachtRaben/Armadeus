@@ -7,6 +7,7 @@ import com.nachtraben.core.listeners.LogbackListener;
 import com.nachtraben.core.listeners.SimpleLogListener;
 import com.nachtraben.core.managers.GuildManager;
 import com.nachtraben.core.managers.ShardManager;
+import com.nachtraben.core.util.DiscordMetrics;
 import com.nachtraben.lemonslice.ConfigurationUtils;
 import com.nachtraben.orangeslice.CommandBase;
 import com.nachtraben.pineappleslice.redis.RedisModule;
@@ -30,6 +31,7 @@ public abstract class DiscordBot {
     private BotConfig config;
     private DiscordCommandListener commandListener;
     private Thread shutdownHandler;
+    private DiscordMetrics dmetrics;
 
     private boolean running = false;
     private boolean debugging = false;
@@ -66,6 +68,10 @@ public abstract class DiscordBot {
         shardManager = new ShardManager(this);
         shardManager.addDefaultListener(new DiscordCommandListener(this));
         LogbackListener.install(this);
+    }
+
+    protected void postStart() {
+        dmetrics = new DiscordMetrics(this);
     }
 
     public ShardManager getShardManager() {
@@ -109,6 +115,7 @@ public abstract class DiscordBot {
         } catch (InterruptedException ignored) {
         }
         shardManager.shutdownAllShards();
+        DiscordMetrics.shutdown();
         System.exit(0);
     }
 

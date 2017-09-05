@@ -13,6 +13,7 @@ import com.nachtraben.orangeslice.event.CommandPostProcessEvent;
 import com.nachtraben.orangeslice.event.CommandPreProcessEvent;
 import net.dv8tion.jda.core.Permission;
 import net.dv8tion.jda.core.entities.Member;
+import net.dv8tion.jda.core.exceptions.ErrorResponseException;
 import org.reflections.Reflections;
 import org.reflections.scanners.MethodAnnotationsScanner;
 import org.reflections.scanners.SubTypesScanner;
@@ -37,7 +38,10 @@ public class Tohsaka extends DiscordBot {
 
         setDebugging(debugging);
         new ConsoleCommandSender();
+        long start = System.currentTimeMillis();
         getShardManager().connectAllShards();
+        LOGGER.debug("Took " + (System.currentTimeMillis() - start) + "ms to load all shards.");
+        postStart();
         registerCommands();
         getCommandBase().registerEventListener(new CommandEventListener() {
             @Override
@@ -46,12 +50,18 @@ public class Tohsaka extends DiscordBot {
             }
 
             @Override
-            public void onCommandPostProcess(CommandPostProcessEvent event) {
-                if(event.getSender() instanceof GuildCommandSender) {
-                    GuildCommandSender sender = (GuildCommandSender) event.getSender();
+            public void onCommandPostProcess(CommandPostProcessEvent e) {
+                LOGGER.debug(String.format("CommandPostProcess >> Sender: %s, Args: %s, Flags:%s, Command: %s", e.getSender().getName(), e.getArgs(), e.getFlags(), e.getCommand().getName()));
+                if(e.getSender() instanceof GuildCommandSender) {
+                    GuildCommandSender sender = (GuildCommandSender) e.getSender();
                     Member bot = sender.getGuild().getMember(sender.getGuild().getJDA().getSelfUser());
-                    if(getGuildManager().getConfigurationFor(sender.getGuild()).shouldDeleteCommands() && bot.hasPermission(Permission.MESSAGE_MANAGE))
-                        sender.getMessage().delete().reason("Command message.").queue();
+                    if(getGuildManager().getConfigurationFor(sender.getGuild()).shouldDeleteCommands() && bot.hasPermission(Permission.MESSAGE_MANAGE)) {
+                        if(sender.getMessage() != null) {
+                            try {
+                                sender.getMessage().delete().reason("Command message.").complete();
+                            } catch (ErrorResponseException ignored){}
+                        }
+                    }
                 }
             }
 

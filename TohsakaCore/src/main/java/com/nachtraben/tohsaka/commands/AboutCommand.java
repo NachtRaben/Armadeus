@@ -5,6 +5,7 @@ import com.nachtraben.core.command.GuildCommandSender;
 import com.nachtraben.core.configuration.GuildConfig;
 import com.nachtraben.core.managers.GuildManager;
 import com.nachtraben.core.util.ChannelTarget;
+import com.nachtraben.core.util.Utils;
 import com.nachtraben.orangeslice.CommandSender;
 import com.nachtraben.orangeslice.command.Command;
 import com.nachtraben.tohsaka.Tohsaka;
@@ -26,6 +27,7 @@ public class AboutCommand extends Command {
         if (sender instanceof DiscordCommandSender) {
             DiscordCommandSender sendee = (DiscordCommandSender) sender;
             EmbedBuilder builder = new EmbedBuilder();
+            builder.setColor(Utils.randomColor());
             ApplicationInfo info = sendee.getUser().getJDA().asBot().getApplicationInfo().complete();
             SelfUser bot = sendee.getUser().getJDA().getSelfUser();
             builder.setAuthor(bot.getName(), "https://tohsaka.nachtraben.com", bot.getAvatarUrl());
