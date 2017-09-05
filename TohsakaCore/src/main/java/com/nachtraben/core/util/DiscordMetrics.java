@@ -56,9 +56,13 @@ public class DiscordMetrics implements Runnable {
              BufferedWriter bw = new BufferedWriter(fw);
              PrintWriter out = new PrintWriter(bw)) {
             ZonedDateTime zdt = ZonedDateTime.now();
-            out.write(String.format("date:%s\tguilds:%s\tusers:%s\ttchannels:%s\tvchannels:%s\n",
+            String toWrite = String.format("date:%s\tguilds:%s\tusers:%s\ttchannels:%s\tvchannels:%s\n",
                     zdt.format(DateTimeFormatter.ofPattern("MM-dd-yyyy_HH:mm:ss")),
-                    dbot.getGuildCount(), dbot.getUserCount(), dbot.getTextChannels(), dbot.getVoiceChannels()));
+                    dbot.getGuildCount(), dbot.getUserCount(), dbot.getTextChannels(), dbot.getVoiceChannels());
+            if(!dbot.isDebugging())
+                out.write(toWrite);
+            else
+                LOGGER.debug("[Metrics] >> " + toWrite);
         } catch (IOException e) {
             LOGGER.error(e.getMessage(), e);
         }

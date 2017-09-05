@@ -23,7 +23,7 @@ public class InviteCommand extends Command {
             DiscordCommandSender sendee = (DiscordCommandSender) sender;
             EmbedBuilder embedBuilder = new EmbedBuilder();
             SelfUser bot = sendee.getMessage().getJDA().getSelfUser();
-            embedBuilder.setAuthor(bot.getName(), "https://tohsaka.nachtraben.com", bot.getAvatarUrl());
+            embedBuilder.setAuthor(bot.getName(), "https://tohsakabot.com", bot.getAvatarUrl());
             embedBuilder.setDescription("Invite me: [link](" + sendee.getMessage().getJDA().asBot().getInviteUrl(Permission.ADMINISTRATOR) + ")" +
                     "\nSupport: [link](https://discord.gg/mmYZGGB)");
             sendee.sendMessage(ChannelTarget.GENERIC, embedBuilder.build());

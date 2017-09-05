@@ -89,7 +89,7 @@ public class HelpCommands {
                 }
             }
             if (hasNext)
-                eb.setFooter("To see more do try `help " + (page + 1) + "`", null);
+                eb.setFooter("To see more try `help " + (page + 1) + "`", null);
             sendee.sendMessage(ChannelTarget.GENERIC, eb.build());
         }
     }

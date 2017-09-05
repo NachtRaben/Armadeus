@@ -30,7 +30,7 @@ public class AboutCommand extends Command {
             builder.setColor(Utils.randomColor());
             ApplicationInfo info = sendee.getUser().getJDA().asBot().getApplicationInfo().complete();
             SelfUser bot = sendee.getUser().getJDA().getSelfUser();
-            builder.setAuthor(bot.getName(), "https://tohsaka.nachtraben.com", bot.getAvatarUrl());
+            builder.setAuthor(bot.getName(), "https://tohsakabot.com", bot.getAvatarUrl());
             builder.setThumbnail(info.getIconUrl());
             builder.setTitle("About Tohsaka:", null);
             builder.setDescription(info.getDescription());

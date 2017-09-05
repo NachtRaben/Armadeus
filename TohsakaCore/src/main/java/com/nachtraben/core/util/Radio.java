@@ -23,7 +23,8 @@ public enum Radio {
             new EmbedBuilder().setColor(Color.YELLOW)
                     .setTitle("Radio provided by Hive365.", "https://hive365.co.uk/")
                     .setDescription("Non-stop music guaranteed to get ya buzzin'")
-                    .build());
+                    .build()),
+    MOE("LISTEN.moe", "LISTEN.moe", "http://listen.moe/stream.m3u", null);
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Radio.class);
     private static Field titleField;
