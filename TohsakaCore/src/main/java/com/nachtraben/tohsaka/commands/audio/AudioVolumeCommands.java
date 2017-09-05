@@ -17,7 +17,7 @@ public class AudioVolumeCommands {
         if (sender instanceof GuildCommandSender) {
             GuildCommandSender sendee = (GuildCommandSender) sender;
             GuildMusicManager manager = Tohsaka.getInstance().getGuildManager().getConfigurationFor(sendee.getGuild().getIdLong()).getMusicManager();
-            sender.sendMessage("The volume is currently `" + manager.getPlayer().getVolume() + "/150`.");
+            sendee.sendMessage(ChannelTarget.MUSIC, "The volume is currently `" + manager.getPlayer().getVolume() + "/150`.");
         } else {
             sender.sendMessage("Sorry but that command is only available in guilds I'm a part of.");
         }

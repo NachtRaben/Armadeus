@@ -3,6 +3,7 @@ package com.nachtraben.tohsaka.commands;
 import com.nachtraben.core.command.DiscordCommandSender;
 import com.nachtraben.core.command.GuildCommandSender;
 import com.nachtraben.core.util.ChannelTarget;
+import com.nachtraben.core.util.Utils;
 import com.nachtraben.orangeslice.CommandSender;
 import com.nachtraben.orangeslice.command.Command;
 import com.nachtraben.tohsaka.Tohsaka;
@@ -24,6 +25,7 @@ public class StatsCommand extends Command {
             DiscordCommandSender sendee = (DiscordCommandSender) sender;
             Runtime rt = Runtime.getRuntime();
             EmbedBuilder eb = new EmbedBuilder();
+            eb.setColor(Utils.randomColor());
             String stats = String.join("\n",
                     "__**Statistics**__",
                     "Server: [OS Name/Arch/Version] [" + System.getProperty("os.name") + "/" + System.getProperty("os.arch") + "/" + System.getProperty("os.version") + "]",

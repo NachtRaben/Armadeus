@@ -4,6 +4,7 @@ import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;
 import com.nachtraben.core.command.DiscordCommandSender;
 import com.nachtraben.core.command.GuildCommandSender;
+import com.nachtraben.core.util.Utils;
 import com.nachtraben.orangeslice.CommandSender;
 import com.nachtraben.orangeslice.command.Cmd;
 import com.nachtraben.orangeslice.command.Command;
@@ -56,6 +57,7 @@ public class CatGirlsCommands {
             if (response.has("url")) {
                 EmbedBuilder eb = new EmbedBuilder();
                 eb.setImage(response.getString("url"));
+                eb.setColor(Utils.randomColor());
                 if(sender instanceof GuildCommandSender) {
                     GuildCommandSender sendee = (GuildCommandSender) sender;
                     eb.setFooter("Requested by " + sendee.getMember().getEffectiveName(), sendee.getUser().getAvatarUrl());

@@ -8,6 +8,7 @@ import ch.qos.logback.classic.spi.StackTraceElementProxy;
 import ch.qos.logback.classic.spi.ThrowableProxy;
 import ch.qos.logback.core.AppenderBase;
 import com.nachtraben.core.DiscordBot;
+import com.nachtraben.core.util.Utils;
 import net.dv8tion.jda.core.EmbedBuilder;
 import net.dv8tion.jda.core.MessageBuilder;
 import net.dv8tion.jda.core.entities.MessageEmbed;
@@ -40,6 +41,7 @@ public class LogbackListener<E> extends AppenderBase<E> {
                     try {
                         EmbedBuilder eb = new EmbedBuilder();
                         eb.setTitle(String.format("[%s]: %s", level.levelStr, event.getMessage()));
+                        eb.setColor(Utils.randomColor());
                         if (event.getThrowableProxy() != null) {
                             String throwable = getStackTrace(event);
                             eb.addField("Stack:", throwable.substring(0, Math.min(throwable.length(), MessageEmbed.VALUE_MAX_LENGTH)), false);

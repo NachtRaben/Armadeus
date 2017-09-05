@@ -50,6 +50,11 @@ public class HelpCommands {
                 }
             }
 
+            if((page * RESULTS_LIMIT) > commands.size()) {
+                sendee.sendMessage(ChannelTarget.GENERIC, "There are no commands on page `" + page + "`.");
+                return;
+            }
+
             if (commands.isEmpty() && var != null) {
                 sendee.sendMessage(ChannelTarget.GENERIC, "Sorry but no commands were found for `" + var + "`.");
                 return;
@@ -77,7 +82,8 @@ public class HelpCommands {
                             break;
                         }
                     }
-                } else {
+                }
+                if(i == commands.size() - 1){
                     hasNext = false;
                     break;
                 }
