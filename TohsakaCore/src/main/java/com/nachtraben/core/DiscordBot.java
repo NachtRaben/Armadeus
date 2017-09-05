@@ -29,18 +29,21 @@ public abstract class DiscordBot {
     private CommandBase commandBase;
     private BotConfig config;
     private DiscordCommandListener commandListener;
+    private Thread shutdownHandler;
 
     private boolean running = false;
     private boolean debugging = false;
 
     public DiscordBot(String[] args) {
         PROGRAM_ARGS = args;
+        shutdownHandler = new Thread(this::shutdown);
+        Runtime.getRuntime().addShutdownHook(shutdownHandler);
         running = true;
         logger = LoggerFactory.getLogger(this.getClass());
         logger.info("Loading configuration from file.");
         config = new BotConfig(this).load();
 
-        if(config.isUseRedis()) {
+        if (config.isUseRedis()) {
             logger.info("Using redis backend.");
             redisModule = new RedisModule(new RedisProperties(config.getRedisHost(), config.getRedisPort(), config.getRedisPassword(), config.getRedisTimeout()));
             config = new RedisBotConfig(this, redisModule.getProvider()).load();
@@ -53,7 +56,7 @@ public abstract class DiscordBot {
         commandBase = new CommandBase();
         commandListener = new DiscordCommandListener(this);
 
-        if(!SimpleLogListener.isInitialized())
+        if (!SimpleLogListener.isInitialized())
             SimpleLogListener.init();
 
         shardManager = new ShardManager(this);
@@ -88,11 +91,14 @@ public abstract class DiscordBot {
     public void setDebugging(boolean debugging) {
         logger.info("Debugging is now set to { " + debugging + " }.");
         this.debugging = debugging;
-        if(config instanceof RedisBotConfig)
-            ((RedisBotConfig)config).setDebugging(debugging);
+        if (config instanceof RedisBotConfig)
+            ((RedisBotConfig) config).setDebugging(debugging);
     }
 
     public void shutdown() {
+        if(shutdownHandler != null)
+            Runtime.getRuntime().removeShutdownHook(shutdownHandler);
+
         running = false;
         try {
             Thread.sleep(4000);
@@ -104,7 +110,7 @@ public abstract class DiscordBot {
 
     public int getTotalChannels() {
         int i = 0;
-        for(JDA jda : getShardManager().getShards()) {
+        for (JDA jda : getShardManager().getShards()) {
             i += jda.getTextChannels().size();
             i += jda.getVoiceChannels().size();
             i += jda.getPrivateChannels().size();
@@ -114,7 +120,7 @@ public abstract class DiscordBot {
 
     public int getTextChannels() {
         int i = 0;
-        for(JDA jda : getShardManager().getShards()) {
+        for (JDA jda : getShardManager().getShards()) {
             i += jda.getTextChannels().size();
         }
         return i;
@@ -122,7 +128,7 @@ public abstract class DiscordBot {
 
     public int getVoiceChannels() {
         int i = 0;
-        for(JDA jda : getShardManager().getShards()) {
+        for (JDA jda : getShardManager().getShards()) {
             i += jda.getVoiceChannels().size();
         }
         return i;
@@ -130,7 +136,7 @@ public abstract class DiscordBot {
 
     public int getPrivateChannels() {
         int i = 0;
-        for(JDA jda : getShardManager().getShards()) {
+        for (JDA jda : getShardManager().getShards()) {
             i += jda.getPrivateChannels().size();
         }
         return i;
@@ -138,7 +144,7 @@ public abstract class DiscordBot {
 
     public int getGuildCount() {
         int i = 0;
-        for(JDA jda : getShardManager().getShards()) {
+        for (JDA jda : getShardManager().getShards()) {
             i += jda.getGuilds().size();
         }
         return i;
@@ -146,7 +152,7 @@ public abstract class DiscordBot {
 
     public int getUserCount() {
         int i = 0;
-        for(JDA jda : getShardManager().getShards()) {
+        for (JDA jda : getShardManager().getShards()) {
             i += jda.getUsers().size();
         }
         return i;

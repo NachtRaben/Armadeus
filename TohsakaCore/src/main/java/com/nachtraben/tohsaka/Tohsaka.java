@@ -35,7 +35,6 @@ public class Tohsaka extends DiscordBot {
         super(args);
         instance = this;
 
-        Runtime.getRuntime().addShutdownHook(new Thread(this::shutdown));
         Thread.setDefaultUncaughtExceptionHandler((t, e) -> {
             System.err.println("Uncaught exception in { " + t.getName() + " }.");
             e.printStackTrace();
