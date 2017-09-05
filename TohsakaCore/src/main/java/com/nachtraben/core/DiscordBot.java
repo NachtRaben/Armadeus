@@ -38,6 +38,10 @@ public abstract class DiscordBot {
         PROGRAM_ARGS = args;
         shutdownHandler = new Thread(this::shutdown);
         Runtime.getRuntime().addShutdownHook(shutdownHandler);
+        Thread.setDefaultUncaughtExceptionHandler((t, e) -> {
+            System.err.println("Uncaught exception in { " + t.getName() + " }.");
+            e.printStackTrace();
+        });
         running = true;
         logger = LoggerFactory.getLogger(this.getClass());
         logger.info("Loading configuration from file.");
