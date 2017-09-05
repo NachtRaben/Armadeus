@@ -49,6 +49,12 @@ public class CleanCommands {
             int amount = 100;
             Date date = null;
 
+            if(!sendee.getGuild().getMember(sendee.getJDA().getSelfUser()).hasPermission(Permission.MESSAGE_MANAGE)) {
+                if(!isSilent)
+                    sendee.sendMessage(ChannelTarget.GENERIC, "Sorry, but I don't have permission to delete messages here.");
+                return;
+            }
+
             // Can run
             if (!canRun(sendee)) {
                 if (!isSilent)
@@ -98,6 +104,12 @@ public class CleanCommands {
             int amount = 100;
             Date date = null;
 
+            if(!sendee.getGuild().getMember(sendee.getJDA().getSelfUser()).hasPermission(Permission.MESSAGE_MANAGE)) {
+                if(!isSilent)
+                    sendee.sendMessage(ChannelTarget.GENERIC, "Sorry, but I don't have permission to delete messages here.");
+                return;
+            }
+
             // Can run
             if (!canRun(sendee)) {
                 if (!isSilent)
@@ -146,6 +158,12 @@ public class CleanCommands {
 
             int amount = 100;
             Date date = null;
+
+            if(!sendee.getGuild().getMember(sendee.getJDA().getSelfUser()).hasPermission(Permission.MESSAGE_MANAGE)) {
+                if(!isSilent)
+                    sendee.sendMessage(ChannelTarget.GENERIC, "Sorry, but I don't have permission to delete messages here.");
+                return;
+            }
 
             // Can run
             if (!canRun(sendee)) {
@@ -256,6 +274,7 @@ public class CleanCommands {
         // TODO: Limit how far date can go back
         purges.add(sender.getGuild().getIdLong());
         MessageHistory history = new MessageHistory(sender.getTextChannel());
+        boolean ignore = sender.getGuildConfig().shouldDeleteCommands();
         if (date != null) {
             // Deal with a specified date.
             OffsetDateTime time = OffsetDateTime.ofInstant(date.toInstant(), ZoneId.systemDefault());
@@ -277,6 +296,8 @@ public class CleanCommands {
 
                 for (Message m : messages) {
                     if (m.getCreationTime().isAfter(time)) {
+                        if(m.equals(sender.getMessage()) && ignore)
+                            continue;
                         if (ids.contains(m.getAuthor().getIdLong()) || ids.isEmpty()) {
                             LOGGER.debug("Deleting message: " + m.getIdLong() + " from " + m.getCreationTime());
                             if (!m.getCreationTime().isBefore(OffsetDateTime.now().minusWeeks(2)))
@@ -321,6 +342,8 @@ public class CleanCommands {
                 List<Message> singlePurge = new ArrayList<>();
                 boolean finished = true;
                 for (Message m : history.retrievePast(Math.min(count, 100)).complete()) {
+                    if(m.equals(sender.getMessage()) && ignore)
+                        continue;
                     if (ids.contains(m.getAuthor().getIdLong()) || ids.isEmpty()) {
                         LOGGER.debug("Deleting message: " + m.getIdLong());
                         finished = false;

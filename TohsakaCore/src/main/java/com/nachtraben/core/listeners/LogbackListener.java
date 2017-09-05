@@ -40,7 +40,7 @@ public class LogbackListener<E> extends AppenderBase<E> {
                 if (channel != null) {
                     try {
                         EmbedBuilder eb = new EmbedBuilder();
-                        eb.setTitle(String.format("[%s]: %s", level.levelStr, event.getMessage()));
+                        eb.setDescription(String.format("***[%s]: %s***", level.levelStr, event.getMessage()));
                         eb.setColor(Utils.randomColor());
                         if (event.getThrowableProxy() != null) {
                             String throwable = getStackTrace(event);

@@ -43,9 +43,6 @@ public class HelpCommands {
                 }
             }
 
-            System.out.println(commands);
-            System.out.println(page * RESULTS_LIMIT);
-
             if (commands == null) {
                 commands = new ArrayList<>();
                 for (List<Command> cmds : Tohsaka.getInstance().getCommandBase().getCommands().values()) {
@@ -73,7 +70,6 @@ public class HelpCommands {
                 if( i < commands.size()) {
                     Command c = commands.get(i);
                     if (c != null) {
-                        String s = c.getName();
                         MessageEmbed.Field f = new MessageEmbed.Field(c.getName() + (!c.getFormat().isEmpty() ? (" " + c.getFormat() + ":") : ":"), c.getDescription() + (c.getFlags().isEmpty() ? "" : " >> ***Flags:*** " + c.getFlags()), false);
                         eb.addField(f);
                         try {
