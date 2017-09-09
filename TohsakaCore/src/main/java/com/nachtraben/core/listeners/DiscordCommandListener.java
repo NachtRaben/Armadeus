@@ -6,6 +6,7 @@ import com.nachtraben.core.command.GuildCommandSender;
 import com.nachtraben.core.command.PrivateCommandSender;
 import com.nachtraben.core.configuration.GuildConfig;
 import com.nachtraben.core.configuration.RedisBotConfig;
+import com.nachtraben.core.util.ChannelTarget;
 import net.dv8tion.jda.core.JDA;
 import net.dv8tion.jda.core.entities.ChannelType;
 import net.dv8tion.jda.core.entities.Member;
@@ -65,7 +66,7 @@ public class DiscordCommandListener extends ListenerAdapter {
                             }
                         }
                     }
-                    GuildConfig config = bot.getGuildManager().getConfigurationFor(message.getGuild());
+                    GuildConfig config = ((GuildCommandSender)sender).getGuildConfig();
                     if (!bot.isDebugging() && prefix == null && !config.getPrefixes().isEmpty()) {
                         for (String pref : config.getPrefixes()) {
                             if (content.startsWith(pref)) {
@@ -105,10 +106,10 @@ public class DiscordCommandListener extends ListenerAdapter {
                 }
 
             } catch (Exception e) {
+                if(sender != null)
+                    sender.sendMessage(ChannelTarget.GENERIC, "I was unable to process your command, please try again later.");
                 LOGGER.error("An exception occurred while trying to query the database.", e);
             }
-
-
         }
     }
 }

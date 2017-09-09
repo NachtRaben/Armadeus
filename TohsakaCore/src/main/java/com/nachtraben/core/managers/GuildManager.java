@@ -11,7 +11,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.function.Consumer;
 import java.util.function.Function;
 
 public class GuildManager {
@@ -78,11 +77,5 @@ public class GuildManager {
             return query.apply(getConnection());
         }
     }
-
-//    public void runQuery(Consumer<Redis> query) {
-//        synchronized (CONNECTION_LOCK) {
-//            query.accept(getConnection());
-//        }
-//    }
 
 }

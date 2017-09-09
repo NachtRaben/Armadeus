@@ -4,23 +4,27 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import com.nachtraben.core.DiscordBot;
+import com.nachtraben.core.util.Utils;
 import com.nachtraben.pineappleslice.redis.Redis;
 import com.nachtraben.pineappleslice.redis.RedisProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 
 public class RedisBotConfig extends BotConfig implements RedisConfig {
 
-    // TODO: Move this over to synchronized query function.
-
+    private static final Object CONNECTION_LOCK = new Object();
     private static final Logger LOGGER = LoggerFactory.getLogger(RedisBotConfig.class);
     private static final Gson GSON = new GsonBuilder().disableHtmlEscaping().create();
 
     private RedisProvider provider;
     private Redis connection;
+    private ScheduledFuture<?> debugFuture;
 
     public RedisBotConfig(DiscordBot bot, RedisProvider provider) {
         super(bot);
@@ -34,7 +38,7 @@ public class RedisBotConfig extends BotConfig implements RedisConfig {
         if (arguments.contains("--reconfigure")) {
             reconfigure();
         }
-        Map<String, String> config = getConnection().hgetall("config");
+        Map<String, String> config = runQuery(redis -> redis.hgetall("config"));
         botToken = config.get("botToken");
         shardCount = Integer.parseInt(config.get("shardCount"));
         prefixes = GSON.fromJson(config.get("prefixes"), TypeToken.getParameterized(HashSet.class, String.class).getType());
@@ -46,7 +50,10 @@ public class RedisBotConfig extends BotConfig implements RedisConfig {
 
     @Override
     public BotConfig save() {
-        getConnection().hmset("config", toMap());
+        runQuery(redis -> {
+            redis.hmset("config", toMap());
+            return null;
+        });
         return this;
     }
 
@@ -69,8 +76,8 @@ public class RedisBotConfig extends BotConfig implements RedisConfig {
         yn = response.matches("[Yy]");
         if (yn) {
             LOGGER.info("Exporting config to provider...");
-            getConnection().del("config");
-            getConnection().hmset("config", toMap());
+            runQuery(redis -> redis.del("config"));
+            save();
             LOGGER.info("Export finished!");
         } else {
             LOGGER.info("Skipping reconfiguration.");
@@ -92,17 +99,35 @@ public class RedisBotConfig extends BotConfig implements RedisConfig {
 
     public boolean isDebugging() {
         try {
-            return Boolean.parseBoolean(connection.get("debug"));
-        } catch (Exception ignored){};
+            return runQuery(redis -> redis.get("debug") != null);
+        } catch (Exception ignored){}
         return false;
     }
 
     public void setDebugging(boolean debugging) {
         try {
-            connection.set("debug", String.valueOf(debugging));
-            connection.expire("debug", Math.toIntExact(TimeUnit.MINUTES.toSeconds(10)));
+            if(debugging && debugFuture == null) {
+                LOGGER.debug("Starting debug update task for redis.");
+                debugFuture = Utils.getScheduler().scheduleAtFixedRate(() -> {
+                    runQuery(redis -> {
+                        redis.getJedis().setnx("debug", String.valueOf(true));
+                        redis.expire("debug", 10);
+                        return null;
+                    });
+                }, 0L, 5L, TimeUnit.SECONDS);
+            } else if(!debugging && debugFuture != null) {
+                LOGGER.debug("Stopping debug update task for redis.");
+                debugFuture.cancel(false);
+                debugFuture = null;
+            }
         } catch (Exception e) {
             LOGGER.warn("Failed to set debugging state.", e);
+        }
+    }
+
+    private <T> T runQuery(Function<Redis, T> query) {
+        synchronized (CONNECTION_LOCK) {
+            return query.apply(getConnection());
         }
     }
 

@@ -20,6 +20,7 @@ public class InviteCommand extends Command {
     @Override
     public void run(CommandSender sender, Map<String, String> args, Map<String, String> flags) {
         if (sender instanceof DiscordCommandSender) {
+            ((DiscordCommandSender) sender).getJDA().asBot().getApplicationInfo().complete().getCreationTime();
             DiscordCommandSender sendee = (DiscordCommandSender) sender;
             EmbedBuilder embedBuilder = new EmbedBuilder();
             SelfUser bot = sendee.getMessage().getJDA().getSelfUser();

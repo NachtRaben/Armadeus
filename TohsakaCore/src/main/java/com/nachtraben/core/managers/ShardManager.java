@@ -7,6 +7,7 @@ import net.dv8tion.jda.core.JDABuilder;
 import net.dv8tion.jda.core.entities.*;
 import net.dv8tion.jda.core.exceptions.RateLimitedException;
 import net.dv8tion.jda.core.hooks.EventListener;
+import net.dv8tion.jda.core.requests.SessionReconnectQueue;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -26,6 +27,7 @@ public class ShardManager {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ShardManager.class);
 
+    private SessionReconnectQueue queue;
     private DiscordBot bot;
     private List<JDA> shards;
     private Set<EventListener> defaultListeners;
@@ -35,6 +37,7 @@ public class ShardManager {
     public ShardManager(DiscordBot bot) {
         this.bot = bot;
         shards = new ArrayList<>();
+        queue = new SessionReconnectQueue();
         defaultListeners = new HashSet<>();
         shardCount = bot.getConfig().getShardCount();
         if(shardCount == -1) {
@@ -118,6 +121,7 @@ public class ShardManager {
     private JDABuilder initBuilder() {
         JDABuilder builder = new JDABuilder(AccountType.BOT).setToken(bot.getConfig().getBotToken());
         builder.setEventManager(new ExecutorServiceEventManager());
+        builder.setReconnectQueue(queue);
         defaultListeners.forEach(builder::addEventListener);
         return builder;
     }

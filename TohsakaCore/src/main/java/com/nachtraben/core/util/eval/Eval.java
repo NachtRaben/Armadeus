@@ -1,5 +1,6 @@
-package com.nachtraben.core.util;
+package com.nachtraben.core.util.eval;
 
+import com.nachtraben.core.util.HasteBin;
 import groovy.lang.Binding;
 import groovy.lang.GroovyShell;
 

@@ -13,6 +13,9 @@ import com.nachtraben.orangeslice.CommandBase;
 import com.nachtraben.pineappleslice.redis.RedisModule;
 import com.nachtraben.pineappleslice.redis.RedisProperties;
 import net.dv8tion.jda.core.JDA;
+import net.dv8tion.jda.core.entities.Guild;
+import net.dv8tion.jda.webhook.WebhookClient;
+import net.dv8tion.jda.webhook.WebhookClientBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -169,4 +172,13 @@ public abstract class DiscordBot {
         return i;
     }
 
+    public int getConnectedVoiceChannels() {
+        int i = 0;
+        for(JDA jda : getShardManager().getShards()) {
+            for(Guild g : jda.getGuilds())
+                if(g.getAudioManager().isConnected())
+                    i++;
+        }
+        return i;
+    }
 }

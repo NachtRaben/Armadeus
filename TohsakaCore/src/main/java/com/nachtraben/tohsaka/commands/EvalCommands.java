@@ -1,10 +1,10 @@
-package com.nachtraben.tohsaka;
+package com.nachtraben.tohsaka.commands;
 
 import com.nachtraben.core.command.DiscordCommandSender;
 import com.nachtraben.core.command.GuildCommandSender;
 import com.nachtraben.core.configuration.BotConfig;
 import com.nachtraben.core.util.ChannelTarget;
-import com.nachtraben.core.util.Eval;
+import com.nachtraben.core.util.eval.Eval;
 import com.nachtraben.orangeslice.CommandSender;
 import com.nachtraben.orangeslice.command.Cmd;
 

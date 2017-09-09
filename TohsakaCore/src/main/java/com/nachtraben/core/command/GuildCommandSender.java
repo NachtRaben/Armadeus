@@ -85,7 +85,7 @@ public class GuildCommandSender extends DiscordCommandSender {
         GuildConfig config = getGuildConfig();
          switch (target) {
              case GENERIC:
-                 result = config.getLogChannel(target);
+                    result = config.getLogChannel(target);
                  break;
              case MUSIC:
                  result = config.getLogChannel(target);

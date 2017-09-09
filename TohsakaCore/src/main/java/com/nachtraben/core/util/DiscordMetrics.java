@@ -45,7 +45,7 @@ public class DiscordMetrics implements Runnable {
                 e.printStackTrace();
             }
         }
-        EXEC.scheduleAtFixedRate(this, 0L, 1L, TimeUnit.HOURS);
+        EXEC.scheduleAtFixedRate(this, 5L, 60L, TimeUnit.MINUTES);
         LOGGER.debug("Initialized new DiscordMetrics for: " + output.getName());
     }
 

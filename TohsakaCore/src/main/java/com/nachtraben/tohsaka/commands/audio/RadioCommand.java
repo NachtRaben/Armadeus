@@ -2,7 +2,7 @@ package com.nachtraben.tohsaka.commands.audio;
 
 import com.nachtraben.core.command.GuildCommandSender;
 import com.nachtraben.core.util.ChannelTarget;
-import com.nachtraben.core.util.Radio;
+import com.nachtraben.core.audio.Radio;
 import com.nachtraben.orangeslice.CommandSender;
 import com.nachtraben.orangeslice.command.Command;
 

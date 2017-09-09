@@ -3,20 +3,16 @@ package com.nachtraben.core.audio;
 import com.nachtraben.core.command.GuildCommandSender;
 import com.nachtraben.core.managers.GuildMusicManager;
 import com.nachtraben.core.util.ChannelTarget;
-import com.nachtraben.core.util.Radio;
 import com.nachtraben.core.util.TimeUtil;
 import com.nachtraben.core.util.Utils;
-import com.sedmelluq.discord.lavaplayer.player.AudioLoadResultHandler;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayer;
 import com.sedmelluq.discord.lavaplayer.player.event.AudioEventAdapter;
 import com.sedmelluq.discord.lavaplayer.source.youtube.YoutubeAudioTrack;
 import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackEndReason;
-import com.sedmelluq.discord.lavaplayer.track.AudioTrackInfo;
 import net.dv8tion.jda.core.EmbedBuilder;
 import net.dv8tion.jda.core.entities.Guild;
-import net.dv8tion.jda.core.entities.Member;
 import net.dv8tion.jda.core.entities.VoiceChannel;
 import net.dv8tion.jda.core.managers.AudioManager;
 import org.slf4j.Logger;
@@ -25,8 +21,7 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.BlockingDeque;
-import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.*;
 
 public class TrackScheduler extends AudioEventAdapter {
 
@@ -38,21 +33,42 @@ public class TrackScheduler extends AudioEventAdapter {
 
     private AudioTrack lastTrack;
     private AudioTrack currentTrack;
-    private Radio currentStation;
 
     private boolean repeatTrack;
     private boolean repeatQueue;
 
     private VoiceChannel currentChannel;
 
+    private ScheduledFuture<?> afkCheck;
+    private long leave = -1;
+
     public TrackScheduler(GuildMusicManager guildMusicManager) {
         this.manager = guildMusicManager;
         queue = new LinkedBlockingDeque<>();
+        afkCheck = Utils.getScheduler().scheduleWithFixedDelay(() -> {
+            Guild g = manager.getGuild();
+            if(g != null) {
+                VoiceChannel v = g.getAudioManager().getConnectedChannel();
+                if(v != null) {
+                    if(leave != -1)
+                        LOGGER.debug("Leaving { " + g.getName() + " } in: " + TimeUtil.millisToString(leave - System.currentTimeMillis(), TimeUtil.FormatType.STRING));
+                    if((v.getMembers().size() < 2 || currentTrack == null) && leave == -1) {
+                        leave = TimeUnit.MINUTES.toMillis(2) + System.currentTimeMillis();
+                    } else if(v.getMembers().size() > 1 && currentTrack != null && leave != -1) {
+                        leave = -1;
+                    } else if((v.getMembers().size() < 2 || currentTrack == null) && leave != -1 && System.currentTimeMillis() > leave) {
+                        stop();
+                        g.getAudioManager().closeAudioConnection();
+                    }
+                } else if(leave != -1) {
+                    leave = -1;
+                }
+            }
+        }, 0L, 5L, TimeUnit.SECONDS);
     }
 
     public void queue(AudioTrack track) {
         synchronized (queue) {
-            LOGGER.debug("Queue.");
             synchronized (queue) {
                 queue.offer(track);
             }
@@ -61,14 +77,12 @@ public class TrackScheduler extends AudioEventAdapter {
     }
 
     public void play(AudioTrack track) {
-        LOGGER.debug("Play.");
         currentTrack = track;
         manager.getPlayer().playTrack(track);
     }
 
     public void stop() {
         synchronized (queue) {
-            LOGGER.debug("Stop.");
             repeatTrack = false;
             repeatQueue = false;
             manager.getPlayer().setPaused(false);
@@ -84,16 +98,9 @@ public class TrackScheduler extends AudioEventAdapter {
 
     public void skip() {
         synchronized (queue) {
-            LOGGER.debug("Skip.");
             repeatTrack = false;
-            if (isPlaying()) {
-                if (repeatQueue) {
-                    queue.addLast(getCurrentTrack());
-                }
-            }
             lastTrack = currentTrack;
             if (queue.isEmpty() && isPlaying()) {
-                LOGGER.debug("Queue ended.");
                 stop();
             } else if (!queue.isEmpty())
                 play(queue.poll());
@@ -102,7 +109,7 @@ public class TrackScheduler extends AudioEventAdapter {
 
     public boolean shuffle() {
         synchronized (queue) {
-            if(!queue.isEmpty()) {
+            if (!queue.isEmpty()) {
                 List<AudioTrack> tracks = new ArrayList<>();
                 queue.drainTo(tracks);
                 Collections.shuffle(tracks);
@@ -121,13 +128,12 @@ public class TrackScheduler extends AudioEventAdapter {
         if (manager.getGuild() != null) {
             AudioManager audioManager = manager.getGuild().getAudioManager();
             if (currentChannel != null && (audioManager.isAttemptingToConnect() || audioManager.isConnected())) {
-                LOGGER.debug("Already connected.");
                 currentChannel = audioManager.getConnectedChannel();
-                return true;            } else {
+                return true;
+            } else {
                 VoiceChannel channel = requestor.getVoiceChannel();
                 if (channel != null) {
                     try {
-                        LOGGER.debug("Connecting.");
                         audioManager.openAudioConnection(channel);
                         this.currentChannel = channel;
                         return true;
@@ -142,7 +148,6 @@ public class TrackScheduler extends AudioEventAdapter {
 
     @Override
     public void onTrackStart(AudioPlayer player, AudioTrack track) {
-        LOGGER.debug("StartEvent.");
         GuildCommandSender requestor = track.getUserData(GuildCommandSender.class);
         if (requestor != null) {
             Guild guild = requestor.getGuild();
@@ -160,31 +165,32 @@ public class TrackScheduler extends AudioEventAdapter {
                 stop();
                 return;
             }
-            if (!repeatTrack) {
+            if (!repeatTrack)
                 sendEmbed(track, requestor);
-            }
         } else {
-            LOGGER.debug("Null requester. Skipping.");
             skip();
         }
     }
 
     @Override
     public void onTrackEnd(AudioPlayer player, AudioTrack track, AudioTrackEndReason endReason) {
-        LOGGER.debug("OnTrackEnd");
         if (endReason.mayStartNext && repeatTrack) {
-            LOGGER.debug("Repeating track.");
             player.playTrack(getCurrentTrack());
         } else if (endReason.mayStartNext) {
+            if (repeatQueue)
+                queue.addLast(getCurrentTrack());
             skip();
         }
     }
 
     @Override
     public void onTrackException(AudioPlayer player, AudioTrack track, FriendlyException exception) {
-        LOGGER.debug("OnException");
+        // TODO: Prevent requeue if error is unrecoverable.
+        if(repeatTrack)
+            repeatTrack = false;
         GuildCommandSender requestor = track.getUserData(GuildCommandSender.class);
         requestor.sendMessage(ChannelTarget.MUSIC, String.format("Failed to play `%s` because, `%s`.", track.getInfo().title, exception.getMessage()));
+        LOGGER.error("Something went wrong with lavaplayer.", exception);
     }
 
     private void sendEmbed(AudioTrack track, GuildCommandSender sender) {
@@ -213,8 +219,8 @@ public class TrackScheduler extends AudioEventAdapter {
 
     public void skipTo(AudioTrack track) {
         synchronized (queue) {
-            if(queue.contains(track)) {
-                while(queue.peek() != track) {
+            if (queue.contains(track)) {
+                while (queue.peek() != track) {
                     queue.pop();
                 }
                 skip();
@@ -223,7 +229,7 @@ public class TrackScheduler extends AudioEventAdapter {
     }
 
     public AudioTrack getLastTrack() {
-        if(lastTrack != null) {
+        if (lastTrack != null) {
             AudioTrack track = lastTrack.makeClone();
             track.setUserData(lastTrack.getUserData());
             return track;
@@ -232,7 +238,7 @@ public class TrackScheduler extends AudioEventAdapter {
     }
 
     public AudioTrack getCurrentTrack() {
-        if(currentTrack != null) {
+        if (currentTrack != null) {
             AudioTrack track = currentTrack.makeClone();
             track.setUserData(currentTrack.getUserData());
             return track;
@@ -256,7 +262,9 @@ public class TrackScheduler extends AudioEventAdapter {
         this.repeatQueue = repeatQueue;
     }
 
-    public void playRadio(Radio audioLoadResultHandler, AudioTrack track) {
-
+    public void destroy() {
+        if(afkCheck != null && !afkCheck.isCancelled())
+            afkCheck.cancel(true);
     }
+
 }

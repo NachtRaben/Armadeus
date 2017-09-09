@@ -3,9 +3,11 @@ package com.nachtraben.tohsaka.commands.moderation;
 import com.nachtraben.core.command.GuildCommandSender;
 import com.nachtraben.core.configuration.BotConfig;
 import com.nachtraben.core.util.ChannelTarget;
+import com.nachtraben.core.util.DateTimeUtil;
 import com.nachtraben.core.util.TimeUtil;
 import com.nachtraben.orangeslice.CommandSender;
-import com.nachtraben.orangeslice.command.Cmd;
+import com.nachtraben.orangeslice.command.CommandTree;
+import com.nachtraben.orangeslice.command.SubCommand;
 import net.dv8tion.jda.core.Permission;
 import net.dv8tion.jda.core.entities.Message;
 import net.dv8tion.jda.core.entities.MessageHistory;
@@ -13,253 +15,313 @@ import net.dv8tion.jda.core.entities.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.time.OffsetDateTime;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
-import java.time.temporal.ChronoField;
+import java.time.*;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
-public class CleanCommands {
+public class CleanCommands extends CommandTree {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CleanCommands.class);
-
-    private static final SimpleDateFormat DATE_TIME = new SimpleDateFormat("MM/dd/yy-h:mma");
-    private static final SimpleDateFormat DATE_TIME_ZONE = new SimpleDateFormat("MM/dd/yy-h:mma z");
-    private static final SimpleDateFormat DATE = new SimpleDateFormat("MM/dd/yy");
-    private static final SimpleDateFormat TIME = new SimpleDateFormat("h:mma");
     private static Set<Long> purges = new HashSet<>();
 
-    // TODO: Clean [amount] --date=date --time=time --silent // bot messages only
-    // TODO: Clear/Purge [amount] --date=date --time=time --silent
-    // TODO: prune {users} --date=date --time=time --silent
+    // TODO: Clean [amount] --date=date --time=time --silent --message=
+    // TODO: Clear/Purge [amount] --date=date --time=time --silent --message=
+    // TODO: prune {users} --date=date --time=time --silent --message=
 
-    @Cmd(name = "clean", format = "[amount]", description = "Cleans bot messages. Dates specified in EST.", flags = {"--date=", "--time=", "--silent", "-s"})
-    public void clean(CommandSender sender, Map<String, String> args, Map<String, String> flags) {
-        if (sender instanceof GuildCommandSender) {
-            GuildCommandSender sendee = (GuildCommandSender) sender;
-
-            boolean isSilent = flags.containsKey("silent") || flags.containsKey("s");
-            boolean hasAmount = args.containsKey("amount");
-            boolean hasDate = flags.containsKey("date");
-            boolean hasTime = flags.containsKey("time");
-
-            int amount = 100;
-            Date date = null;
-
-            if(!sendee.getGuild().getMember(sendee.getJDA().getSelfUser()).hasPermission(Permission.MESSAGE_MANAGE)) {
-                if(!isSilent)
-                    sendee.sendMessage(ChannelTarget.GENERIC, "Sorry, but I don't have permission to delete messages here.");
-                return;
+    public CleanCommands() {
+        super.getChildren().add(new SubCommand("clean", "[amount]", "Cleans bot messages. Dates specified in EST.") {
+            @Override
+            public void init() {
+                super.setFlags(Arrays.asList("--date=", "--time=", "--message=", "--silent", "-s"));
             }
 
-            // Can run
-            if (!canRun(sendee)) {
-                if (!isSilent)
-                    sendee.sendMessage(ChannelTarget.GENERIC, "You are missing the manage_messages perm required to run that command.");
-                return;
-            }
+            @Override
+            public void run(CommandSender sender, Map<String, String> args, Map<String, String> flags) {
+                if (sender instanceof GuildCommandSender) {
+                    LOGGER.debug("CLEAN COMMAND!!");
+                    GuildCommandSender sendee = (GuildCommandSender) sender;
 
-            if (purges.contains(sendee.getGuild().getIdLong())) {
-                if (!isSilent)
-                    sendee.sendMessage(ChannelTarget.GENERIC, "Sorry but there is already an active purge for this guild.");
-                return;
-            }
+                    boolean isSilent = flags.containsKey("silent") || flags.containsKey("s");
+                    boolean hasAmount = args.containsKey("amount");
+                    boolean hasDate = flags.containsKey("date");
+                    boolean hasTime = flags.containsKey("time");
+                    boolean hasMessage = flags.containsKey("message");
 
-            // Parse amount
-            if (hasAmount) {
-                amount = getAmount(sendee, args.get("amount"), isSilent);
-                if (amount <= 0)
-                    return;
-            }
+                    int amount = 100;
+                    long messageId = -1;
+                    LocalDateTime date = null;
 
-            // Parse date
-            if ((hasDate || hasTime) && hasAmount && !isSilent) {
-                sendee.sendMessage(ChannelTarget.GENERIC, "Sorry time/date flags do not work if the amount is specified.");
-                return;
-            }
-
-            if (!hasAmount && hasDate && hasTime) {
-                date = getDate(sendee, flags.get("date"), flags.get("time"), isSilent);
-                if (date == null)
-                    return;
-            }
-
-            purge(sendee, amount, date, Collections.singletonList(sendee.getJDA().getSelfUser().getIdLong()), isSilent);
-        }
-    }
-
-    @Cmd(name = "purge", format = "[amount]", description = "Cleans all messages. Dates specified in EST.", flags = {"--date=", "--time=", "--silent", "-s"}, aliases = {"clear"})
-    public void purge(CommandSender sender, Map<String, String> args, Map<String, String> flags) {
-        if (sender instanceof GuildCommandSender) {
-            GuildCommandSender sendee = (GuildCommandSender) sender;
-
-            boolean isSilent = flags.containsKey("silent") || flags.containsKey("s");
-            boolean hasAmount = args.containsKey("amount");
-            boolean hasDate = flags.containsKey("date");
-            boolean hasTime = flags.containsKey("time");
-
-            int amount = 100;
-            Date date = null;
-
-            if(!sendee.getGuild().getMember(sendee.getJDA().getSelfUser()).hasPermission(Permission.MESSAGE_MANAGE)) {
-                if(!isSilent)
-                    sendee.sendMessage(ChannelTarget.GENERIC, "Sorry, but I don't have permission to delete messages here.");
-                return;
-            }
-
-            // Can run
-            if (!canRun(sendee)) {
-                if (!isSilent)
-                    sendee.sendMessage(ChannelTarget.GENERIC, "You are missing the manage_messages perm required to run that command.");
-                return;
-            }
-
-            if (purges.contains(sendee.getGuild().getIdLong())) {
-                if (!isSilent)
-                    sendee.sendMessage(ChannelTarget.GENERIC, "Sorry but there is already an active purge for this guild.");
-                return;
-            }
-
-            // Parse amount
-            if (hasAmount) {
-                amount = getAmount(sendee, args.get("amount"), isSilent);
-                if (amount <= 0)
-                    return;
-            }
-
-            // Parse date
-            if ((hasDate || hasTime) && hasAmount && !isSilent) {
-                sendee.sendMessage(ChannelTarget.GENERIC, "Sorry time/date flags do not work if the amount is specified.");
-                return;
-            }
-
-            if (!hasAmount && hasDate && hasTime) {
-                date = getDate(sendee, flags.get("date"), flags.get("time"), isSilent);
-                if (date == null)
-                    return;
-            }
-
-            purge(sendee, amount, date, Collections.emptyList(), isSilent);
-        }
-    }
-
-    @Cmd(name = "prune", format = "{users/messages}", description = "Cleans user specific messages", flags = {"--date=", "--time=", "--amount=", "--silent", "-s"})
-    public void prune(CommandSender sender, Map<String, String> args, Map<String, String> flags) {
-        if (sender instanceof GuildCommandSender) {
-            GuildCommandSender sendee = (GuildCommandSender) sender;
-
-            boolean isSilent = flags.containsKey("silent") || flags.containsKey("s");
-            boolean hasAmount = flags.containsKey("amount");
-            boolean hasDate = flags.containsKey("date");
-            boolean hasTime = flags.containsKey("time");
-
-            int amount = 100;
-            Date date = null;
-
-            if(!sendee.getGuild().getMember(sendee.getJDA().getSelfUser()).hasPermission(Permission.MESSAGE_MANAGE)) {
-                if(!isSilent)
-                    sendee.sendMessage(ChannelTarget.GENERIC, "Sorry, but I don't have permission to delete messages here.");
-                return;
-            }
-
-            // Can run
-            if (!canRun(sendee)) {
-                if (!isSilent)
-                    sendee.sendMessage(ChannelTarget.GENERIC, "You are missing the manage_messages perm required to run that command.");
-                return;
-            }
-
-            if (purges.contains(sendee.getGuild().getIdLong())) {
-                if (!isSilent)
-                    sendee.sendMessage(ChannelTarget.GENERIC, "Sorry but there is already an active purge for this guild.");
-                return;
-            }
-
-            // Parse amount
-            if (hasAmount) {
-                amount = getAmount(sendee, flags.get("amount"), isSilent);
-                if (amount <= 0)
-                    return;
-            }
-
-            // Parse date
-            if ((hasDate || hasTime) && hasAmount && !isSilent) {
-                sendee.sendMessage(ChannelTarget.GENERIC, "Sorry time/date flags do not work if the amount is specified.");
-                return;
-            }
-
-            if (!hasAmount && hasDate && hasTime) {
-                date = getDate(sendee, flags.get("date"), flags.get("time"), isSilent);
-                if (date == null)
-                    return;
-            }
-
-            List<Long> ids = new ArrayList<>();
-            for (User user : sendee.getMessage().getMentionedUsers())
-                ids.add(user.getIdLong());
-
-            for (String s : args.get("users/messages").split("\\s+")) {
-                if (!s.startsWith("<") && !s.endsWith(">")) {
-                    try {
-                        ids.add(Long.parseLong(s));
-                    } catch (NumberFormatException e) {
+                    // Can run
+                    if (!canRun(sendee)) {
                         if (!isSilent)
-                            sendee.sendMessage(ChannelTarget.GENERIC, "Sorry but, " + s + " is not a valid ID i can work with.");
+                            sendee.sendMessage(ChannelTarget.GENERIC, "You are missing the " + Permission.MESSAGE_MANAGE.getName().toLowerCase() + " perm required to run that command.");
                         return;
                     }
+
+                    if (purges.contains(sendee.getGuild().getIdLong())) {
+                        if (!isSilent)
+                            sendee.sendMessage(ChannelTarget.GENERIC, "Sorry but there is already an active purge for this guild.");
+                        return;
+                    }
+
+                    // Parse amount
+                    if (hasAmount) {
+                        LOGGER.debug("amount");
+                        amount = parseAmount(sendee, args.get("amount"), isSilent);
+                        if (amount <= 0)
+                            return;
+                    }
+                    // Parse message id
+                    else if (hasMessage) {
+                        LOGGER.debug("message");
+                        try {
+                            messageId = Long.parseLong(flags.get("message"));
+                        } catch (NumberFormatException e) {
+                            if (!isSilent)
+                                sendee.sendMessage("You didn't provide a valid channel ID. The ID of your message was `" + sendee.getMessage().getIdLong() + "`.");
+                            return;
+                        }
+                        Message m = sendee.getTextChannel().getMessageById(messageId).complete();
+                        if (m == null) {
+                            if (!isSilent)
+                                sendee.sendMessage(ChannelTarget.GENERIC, "Sorry, but the message you asked for doesn't exist.");
+                            return;
+                        }
+                    }
+                    // Parse date/time
+                    else if (hasDate || hasTime) {
+                        LOGGER.debug("date/time");
+                        date = parseDate(sendee, flags.get("date"), flags.get("time"), isSilent);
+                        if (date == null)
+                            return;
+                    }
+
+                    purge(sendee, amount, date, messageId, Collections.singletonList(sendee.getJDA().getSelfUser().getIdLong()), Collections.emptyList(), isSilent);
                 }
             }
+        });
+        super.getChildren().add(new SubCommand("purge", "[amount]", "Cleans all messages. Dates specified in EST.") {
+            @Override
+            public void init() {
+                super.setFlags(Arrays.asList("--date=", "--time=", "--message=", "--silent", "-s"));
+            }
 
-            purge(sendee, amount, date, ids, isSilent);
-        }
+            @Override
+            public void run(CommandSender sender, Map<String, String> args, Map<String, String> flags) {
+                if (sender instanceof GuildCommandSender) {
+                    GuildCommandSender sendee = (GuildCommandSender) sender;
+
+                    boolean isSilent = flags.containsKey("silent") || flags.containsKey("s");
+                    boolean hasAmount = args.containsKey("amount");
+                    boolean hasDate = flags.containsKey("date");
+                    boolean hasTime = flags.containsKey("time");
+                    boolean hasMessage = flags.containsKey("message");
+
+                    int amount = 100;
+                    long messageId = -1;
+                    LocalDateTime date = null;
+
+                    if (!sendee.getGuild().getMember(sendee.getJDA().getSelfUser()).hasPermission(Permission.MESSAGE_MANAGE)) {
+                        if (!isSilent)
+                            sendee.sendMessage(ChannelTarget.GENERIC, "Sorry, but I don't have permission to delete messages here.");
+                        return;
+                    }
+
+                    // Can run
+                    if (!canRun(sendee)) {
+                        if (!isSilent)
+                            sendee.sendMessage(ChannelTarget.GENERIC, "You are missing the " + Permission.MESSAGE_MANAGE.getName().toLowerCase() + " perm required to run that command.");
+                        return;
+                    }
+
+                    if (purges.contains(sendee.getGuild().getIdLong())) {
+                        if (!isSilent)
+                            sendee.sendMessage(ChannelTarget.GENERIC, "Sorry but there is already an active purge for this guild.");
+                        return;
+                    }
+
+                    // Parse amount
+                    if (hasAmount) {
+                        LOGGER.debug("amount");
+                        amount = parseAmount(sendee, args.get("amount"), isSilent);
+                        if (amount <= 0)
+                            return;
+                    }
+                    // Parse message id
+                    else if (hasMessage) {
+                        LOGGER.debug("message");
+                        try {
+                            messageId = Long.parseLong(flags.get("message"));
+                        } catch (NumberFormatException e) {
+                            if (!isSilent)
+                                sendee.sendMessage("You didn't provide a valid channel ID. The ID of your message was `" + sendee.getMessage().getIdLong() + "`.");
+                            return;
+                        }
+                        Message m = sendee.getTextChannel().getMessageById(messageId).complete();
+                        if (m == null) {
+                            if (!isSilent)
+                                sendee.sendMessage(ChannelTarget.GENERIC, "Sorry, but the message you asked for doesn't exist.");
+                            return;
+                        }
+                    }
+                    // Parse date/time
+                    else if (hasDate || hasTime) {
+                        LOGGER.debug("date/time");
+                        date = parseDate(sendee, flags.get("date"), flags.get("time"), isSilent);
+                        if (date == null)
+                            return;
+                    }
+
+                    purge(sendee, amount, date,  messageId, Collections.emptyList(), Collections.emptyList(), isSilent);
+                }
+            }
+        });
+        super.getChildren().add(new SubCommand("prune", "{users/content}", "Cleans messages based on users/content. Dates specified in EST.") {
+            @Override
+            public void init() {
+                super.setFlags(Arrays.asList("--date=", "--time=", "--message=", "--amount=", "--silent", "-s"));
+            }
+
+            @Override
+            public void run(CommandSender sender, Map<String, String> args, Map<String, String> flags) {
+                if (sender instanceof GuildCommandSender) {
+                    GuildCommandSender sendee = (GuildCommandSender) sender;
+
+                    boolean isSilent = flags.containsKey("silent") || flags.containsKey("s");
+                    boolean hasAmount = flags.containsKey("amount");
+                    boolean hasDate = flags.containsKey("date");
+                    boolean hasTime = flags.containsKey("time");
+                    boolean hasMessage = flags.containsKey("message");
+
+                    int amount = 100;
+                    long messageId = -1;
+                    LocalDateTime date = null;
+
+                    if (!sendee.getGuild().getMember(sendee.getJDA().getSelfUser()).hasPermission(Permission.MESSAGE_MANAGE)) {
+                        if (!isSilent)
+                            sendee.sendMessage(ChannelTarget.GENERIC, "Sorry, but I don't have permission to delete messages here.");
+                        return;
+                    }
+
+                    // Can run
+                    if (!canRun(sendee)) {
+                        if (!isSilent)
+                            sendee.sendMessage(ChannelTarget.GENERIC, "You are missing the " + Permission.MESSAGE_MANAGE.getName().toLowerCase() + " perm required to run that command.");
+                        return;
+                    }
+
+                    if (purges.contains(sendee.getGuild().getIdLong())) {
+                        if (!isSilent)
+                            sendee.sendMessage(ChannelTarget.GENERIC, "Sorry but there is already an active purge for this guild.");
+                        return;
+                    }
+
+                    // Parse amount
+                    if (hasAmount) {
+                        LOGGER.debug("amount");
+                        amount = parseAmount(sendee, flags.get("amount"), isSilent);
+                        if (amount <= 0)
+                            return;
+                    }
+                    // Parse message id
+                    else if (hasMessage) {
+                        LOGGER.debug("message");
+                        try {
+                            messageId = Long.parseLong(flags.get("message"));
+                        } catch (NumberFormatException e) {
+                            if (!isSilent)
+                                sendee.sendMessage("You didn't provide a valid channel ID. The ID of your message was `" + sendee.getMessage().getIdLong() + "`.");
+                            return;
+                        }
+                        Message m = sendee.getTextChannel().getMessageById(messageId).complete();
+                        if (m == null) {
+                            if (!isSilent)
+                                sendee.sendMessage(ChannelTarget.GENERIC, "Sorry, but the message you asked for doesn't exist.");
+                            return;
+                        }
+                    }
+                    // Parse date/time
+                    else if (hasDate || hasTime) {
+                        LOGGER.debug("date/time");
+                        date = parseDate(sendee, flags.get("date"), flags.get("time"), isSilent);
+                        if (date == null)
+                            return;
+                    }
+
+                    List<Long> ids = new ArrayList<>();
+                    List<String> filters = new ArrayList<>();
+                    for (User user : sendee.getMessage().getMentionedUsers())
+                        ids.add(user.getIdLong());
+
+                    for (String s : args.get("users/content").split("\\s+")) {
+                        if (!s.startsWith("<") && !s.endsWith(">")) {
+                            try {
+                                ids.add(Long.parseLong(s));
+                            } catch (NumberFormatException e) {
+                                filters.add(s);
+                            }
+                        }
+                    }
+
+                    purge(sendee, amount, date, messageId, ids, filters, isSilent);
+                }
+            }
+        });
     }
 
-    private Integer getAmount(GuildCommandSender sender, String amount, boolean silent) {
+    private Integer parseAmount(GuildCommandSender sender, String amount, boolean silent) {
         try {
             Integer result = Integer.parseInt(amount);
             if (result <= 0)
                 sender.sendMessage(ChannelTarget.GENERIC, "Sorry, but provided amounts must be `>0`.");
             return result;
         } catch (NumberFormatException e) {
-            if (!silent)
-                sender.sendMessage(ChannelTarget.GENERIC, "Sorry but `" + amount + "` isn't actually a number. -.-");
+            if (!silent) {
+                if(amount.startsWith("<") && amount.endsWith(">"))
+                    sender.sendMessage(ChannelTarget.GENERIC, "Seems like you tried to specify a user, you want to use the prune command.");
+                else
+                    sender.sendMessage(ChannelTarget.GENERIC, "Sorry but `" + amount + "` isn't actually a number. -.-");
+            }
             return -1;
         }
     }
 
-    private Date getDate(GuildCommandSender sender, String date, String time, boolean silent) {
-        Date result = null;
+    private LocalDateTime parseDate(GuildCommandSender sender, String date, String time, boolean silent) {
+        LOGGER.debug("Date: " + date + "\tTime: " + time);
+        LocalDateTime result = null;
         if (date != null && time != null) {
-            try {
-                result = DATE_TIME.parse(date + "-" + time);
-            } catch (ParseException e) {
+            LOGGER.debug("DATE-TIME");
+            result = DateTimeUtil.parseDateTime(date, time);
+            if (result == null)
                 if (!silent)
                     sender.sendMessage(ChannelTarget.GENERIC, "Sorry but you didn't specify a valid date/time combo, try something like `--date=07/21/17 --time=8:30am`.");
-                return null;
-            }
         } else if (date != null) {
-            try {
-                result = DATE.parse(date);
-            } catch (ParseException e) {
+            LOGGER.debug("DATE");
+            LocalDate parsedDate = DateTimeUtil.parseDate(date);
+            if (parsedDate == null) {
                 if (!silent)
                     sender.sendMessage(ChannelTarget.GENERIC, "Sorry but you didn't specify a valid date, try something like `--date=07/21/17`.");
-                return null;
+            } else {
+                result = LocalDateTime.of(parsedDate, LocalTime.of(0, 0));
             }
         } else if (time != null) {
-            try {
-                result = new Date(TIME.parse(time).getTime() + OffsetDateTime.now().get(ChronoField.YEAR));
-            } catch (ParseException e) {
+            LOGGER.debug("TIME");
+            LocalTime parsedTime = DateTimeUtil.parseTime(time);
+            if (parsedTime != null) {
+                result = LocalDateTime.of(LocalDate.now(), parsedTime);
+            } else {
                 long millis = TimeUtil.stringToMillis(time);
-                if (millis > 0) {
-                    result = new Date(System.currentTimeMillis() - millis);
-                } else if (silent) {
+                if (millis > 0)
+                    result = LocalDateTime.of(LocalDate.now(), LocalTime.now().minusSeconds(TimeUnit.MILLISECONDS.toSeconds(millis)));
+                else if (!silent)
                     sender.sendMessage(ChannelTarget.GENERIC, "Sorry but you did not specify a valid time, try something like `--time=8:30am` or `--time=30m` for a time-frame.");
-                    return null;
-                }
             }
+        }
+        LOGGER.debug(String.valueOf(result));
+        if (result != null && result.isBefore(LocalDateTime.now().minusWeeks(4))) {
+            if (!silent)
+                sender.sendMessage(ChannelTarget.GENERIC, "Sorry but you can't perform a date purge on anything older than a month.");
+            result = null;
         }
         return result;
     }
@@ -269,111 +331,166 @@ public class CleanCommands {
         return sender.getMember().hasPermission(Permission.MESSAGE_MANAGE) || config.getDeveloperIDs().contains(sender.getUserID()) || config.getOwnerIDs().contains(sender.getUserID());
     }
 
-    private void purge(GuildCommandSender sender, int amount, Date date, List<Long> ids, boolean silent) {
+    private void purge(GuildCommandSender sender, int amount, LocalDateTime date, long messageID, List<Long> ids, List<String> filters, boolean silent) {
         // TODO: Limit how far back it will search for messages with amount
         // TODO: Limit how far date can go back
         purges.add(sender.getGuild().getIdLong());
-        MessageHistory history = new MessageHistory(sender.getTextChannel());
         boolean ignore = sender.getGuildConfig().shouldDeleteCommands();
+
+        OffsetDateTime time = date != null ? date.atZone(ZoneId.systemDefault()).toOffsetDateTime() : null;
+
+        int deletions = 0;
+        int cycles = 5;
+        boolean finished = false;
+        List<Message> bulkDelete = new ArrayList<>();
+        List<Message> singleDelete = new ArrayList<>();
+        MessageHistory history = new MessageHistory(sender.getTextChannel());
         if (date != null) {
-            // Deal with a specified date.
-            OffsetDateTime time = OffsetDateTime.ofInstant(date.toInstant(), ZoneId.systemDefault());
-            LOGGER.debug("Purging until " + time.toString());
-            boolean finished = false;
-            int repetitions = 0;
+            // TODO: Deal with date
+            LOGGER.debug(time.toString());
             while (!finished) {
-                repetitions++;
-                if (repetitions == 50) {
+                if (cycles <= 0) {
+                    if (!silent)
+                        sender.sendMessage(ChannelTarget.GENERIC, "Sorry, but you have hit the purge limit with `" + deletions + "` deletions.");
                     LOGGER.error("Scanning for too many messages!", new RuntimeException());
                     break;
                 }
-                LOGGER.debug("Purge cycles: " + repetitions);
-                List<Message> massPurge = new ArrayList<>();
-                List<Message> singlePurge = new ArrayList<>();
+                LOGGER.debug("Cycles remaining: " + cycles);
                 List<Message> messages = history.retrievePast(100).complete();
                 if (messages.isEmpty())
                     break;
 
                 for (Message m : messages) {
                     if (m.getCreationTime().isAfter(time)) {
-                        if(m.equals(sender.getMessage()) && ignore)
+                        if (ignore && m.equals(sender.getMessage()))
                             continue;
-                        if (ids.contains(m.getAuthor().getIdLong()) || ids.isEmpty()) {
-                            LOGGER.debug("Deleting message: " + m.getIdLong() + " from " + m.getCreationTime());
-                            if (!m.getCreationTime().isBefore(OffsetDateTime.now().minusWeeks(2)))
-                                massPurge.add(m);
-                            else
-                                singlePurge.add(m);
+
+                        if (shouldDelete(m, ids, filters)) {
+                            LOGGER.debug("Deleting message: " + m.getIdLong() + " from " + m.getCreationTime().toString());
+                            processMessage(m, bulkDelete, singleDelete);
                         }
                     } else {
+                        LOGGER.debug("Finished, found message before Date.");
                         finished = true;
                         break;
                     }
                 }
-                if (massPurge.size() > 2) {
-                    sender.getTextChannel().deleteMessages(massPurge).complete();
-                } else {
-                    singlePurge.addAll(massPurge);
-                }
-                if (!singlePurge.isEmpty()) {
-                    singlePurge.forEach(message -> {
-                        try {
-                            message.delete().reason("Clear command.").complete();
-                        } catch (Exception ignored) {
-                        }
-                    });
-                }
+                cycles--;
+                deletions += bulkDelete.size();
+                deletions += singleDelete.size();
+                delete(sender, bulkDelete, singleDelete);
             }
-            LOGGER.debug("Finished.");
-            if (!silent)
-                sender.sendMessage(ChannelTarget.GENERIC, "Cleared all messages after `" + DATE_TIME_ZONE.format(date) + "` in " + sender.getTextChannel().getAsMention());
-        } else {
-            // Deal with amount.
-            int repetitions = 0;
-            int count = amount;
-            while (count > 0) {
-                repetitions++;
-                if (repetitions == 50) {
+        } else if (messageID > 0) {
+            LOGGER.debug("Deleting until I found message: " + messageID);
+            while (!finished) {
+                if (cycles <= 0) {
+                    if (!silent)
+                        sender.sendMessage(ChannelTarget.GENERIC, "Sorry, but you have hit the purge limit with `" + deletions + "` deletions.");
                     LOGGER.error("Scanning for too many messages!", new RuntimeException());
                     break;
                 }
-                LOGGER.debug("Purge cycles: " + repetitions);
-                List<Message> massPurge = new ArrayList<>();
-                List<Message> singlePurge = new ArrayList<>();
-                boolean finished = true;
-                for (Message m : history.retrievePast(Math.min(count, 100)).complete()) {
-                    if(m.equals(sender.getMessage()) && ignore)
-                        continue;
-                    if (ids.contains(m.getAuthor().getIdLong()) || ids.isEmpty()) {
-                        LOGGER.debug("Deleting message: " + m.getIdLong());
-                        finished = false;
-                        if (!m.getCreationTime().isBefore(OffsetDateTime.now().minusWeeks(2)))
-                            massPurge.add(m);
-                        else
-                            singlePurge.add(m);
+                LOGGER.debug("Cycles remaining: " + cycles);
+                List<Message> messages = history.retrievePast(100).complete();
+                if (messages.isEmpty())
+                    break;
+
+                for (Message m : messages) {
+                    if (m.getIdLong() != messageID) {
+                        if (ignore && m.equals(sender.getMessage()))
+                            continue;
+
+                        if (shouldDelete(m, ids, filters)) {
+                            LOGGER.debug("Deleting message: " + m.getIdLong());
+                            processMessage(m, bulkDelete, singleDelete);
+                        }
+                    } else {
+                        LOGGER.debug("Finished, found message with ID.");
+                        finished = true;
+                        break;
                     }
                 }
-                if (massPurge.size() > 2) {
-                    sender.getTextChannel().deleteMessages(massPurge).complete();
-                    count -= massPurge.size();
-                } else {
-                    singlePurge.addAll(massPurge);
-                }
-                if (!singlePurge.isEmpty()) {
-                    singlePurge.forEach(message -> {
-                        try {
-                            message.delete().reason("Clear command.").complete();
-                        } catch (Exception ignored) {
-                        }
-                    });
-                    count -= singlePurge.size();
-                }
-                if (finished)
-                    break;
+                cycles--;
+                deletions += bulkDelete.size();
+                deletions += singleDelete.size();
+                delete(sender, bulkDelete, singleDelete);
             }
-            if (!silent)
-                sender.sendMessage(ChannelTarget.GENERIC, "Cleared the last `" + (amount - count) + "` messages in " + sender.getTextChannel().getAsMention());
+        } else if (amount > 0) {
+            // Deal with amount.
+            while (amount > 0) {
+                if (cycles <= 0) {
+                    if (!silent)
+                        sender.sendMessage(ChannelTarget.GENERIC, "Sorry, but you have hit the purge limit with `" + deletions + "` deletions.");
+                    LOGGER.error("Scanning for too many messages!", new RuntimeException());
+                    break;
+                }
+                LOGGER.debug("Cycles remaining: " + cycles);
+                List<Message> messages = history.retrievePast(Math.min(100, amount)).complete();
+                if (messages.isEmpty())
+                    break;
+
+                for (Message m : messages) {
+                    if (ignore && m.equals(sender.getMessage()))
+                        continue;
+
+                    if (shouldDelete(m, ids, filters)) {
+                        LOGGER.debug("Deleting message: " + m.getIdLong());
+                        processMessage(m, bulkDelete, singleDelete);
+                    }
+                }
+                LOGGER.debug("Amount: " + amount);
+                cycles--;
+                deletions += bulkDelete.size();
+                deletions += singleDelete.size();
+                amount -= Math.min(100, amount);
+                delete(sender, bulkDelete, singleDelete);
+            }
+            LOGGER.debug("Finished, processed Amount.");
+        }
+        if(!silent) {
+            sender.sendMessage(ChannelTarget.GENERIC, "Purged `" + deletions + "` messages in " + sender.getTextChannel().getAsMention() + (date != null ? (" since `" + date.toString() + "`.") : ""));
         }
         purges.remove(sender.getGuild().getIdLong());
+    }
+
+    private void processMessage(Message m, List<Message> bulkDelete, List<Message> singleDelete) {
+        if (!m.getCreationTime().isBefore(OffsetDateTime.now().minusWeeks(2)))
+            bulkDelete.add(m);
+        else
+            singleDelete.add(m);
+    }
+
+    private boolean shouldDelete(Message m, List<Long> ids, List<String> filters) {
+        // Author matching
+        if (ids.isEmpty() || ids.contains(m.getAuthor().getIdLong()) && filters.isEmpty())
+            return true;
+
+        // Filter matching
+        else if (!filters.isEmpty())
+            for (String filter : filters)
+                if (m.getRawContent().contains(filter))
+                    return true;
+
+        return false;
+    }
+
+    private void delete(GuildCommandSender sender, List<Message> bulkDelete, List<Message> singleDelete) {
+        if (bulkDelete.size() > 2) {
+            try {
+                sender.getTextChannel().deleteMessages(bulkDelete).complete();
+            } catch (Exception ignored) {
+                LOGGER.debug("Failed to bulk delete messages", ignored);
+            }
+        } else {
+            singleDelete.addAll(bulkDelete);
+        }
+        singleDelete.forEach(message -> {
+            try {
+                message.delete().reason("Clear command.").complete();
+            } catch (Exception ignored) {
+                LOGGER.debug("Failed to delete message: " + message.getRawContent(), ignored);
+            }
+        });
+        bulkDelete.clear();
+        singleDelete.clear();
     }
 }

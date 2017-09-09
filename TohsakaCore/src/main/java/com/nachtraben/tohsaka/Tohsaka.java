@@ -4,9 +4,11 @@ import com.nachtraben.core.DiscordBot;
 import com.nachtraben.core.command.ConsoleCommandSender;
 import com.nachtraben.core.command.DiscordCommandSender;
 import com.nachtraben.core.command.GuildCommandSender;
+import com.nachtraben.orangeslice.CommandResult;
 import com.nachtraben.orangeslice.CommandSender;
 import com.nachtraben.orangeslice.command.Cmd;
 import com.nachtraben.orangeslice.command.Command;
+import com.nachtraben.orangeslice.command.CommandTree;
 import com.nachtraben.orangeslice.event.CommandEventListener;
 import com.nachtraben.orangeslice.event.CommandExceptionEvent;
 import com.nachtraben.orangeslice.event.CommandPostProcessEvent;
@@ -19,10 +21,13 @@ import org.reflections.scanners.MethodAnnotationsScanner;
 import org.reflections.scanners.SubTypesScanner;
 import org.reflections.util.ClasspathHelper;
 import org.reflections.util.ConfigurationBuilder;
+import org.reflections.util.FilterBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -51,16 +56,20 @@ public class Tohsaka extends DiscordBot {
 
             @Override
             public void onCommandPostProcess(CommandPostProcessEvent e) {
-                LOGGER.debug(String.format("CommandPostProcess >> Sender: %s, Args: %s, Flags:%s, Command: %s", e.getSender().getName(), e.getArgs(), e.getFlags(), e.getCommand().getName()));
-                if(e.getSender() instanceof GuildCommandSender) {
+                LOGGER.debug(String.format("CommandPostProcess >> Sender: %s, Args: %s, Flags:%s, Command: %s, Result: %s", e.getSender().getName(), e.getArgs(), e.getFlags(), e.getCommand().getName(), e.getResult()));
+                if (e.getSender() instanceof GuildCommandSender) {
                     GuildCommandSender sender = (GuildCommandSender) e.getSender();
                     Member bot = sender.getGuild().getMember(sender.getGuild().getJDA().getSelfUser());
-                    if(getGuildManager().getConfigurationFor(sender.getGuild()).shouldDeleteCommands() && bot.hasPermission(Permission.MESSAGE_MANAGE)) {
-                        if(sender.getMessage() != null) {
-                            try {
-                                sender.getMessage().delete().reason("Command message.").complete();
-                            } catch (ErrorResponseException ignored){}
+                    if (sender.getGuildConfig().shouldDeleteCommands() && bot.hasPermission(Permission.MESSAGE_MANAGE)) {
+                        try {
+                            if (sender.getMessage() != null)
+                                sender.getMessage().delete().reason("Command message.").queue();
+                        } catch (Exception ignored) {
                         }
+                    }
+                    if (e.getResult().equals(CommandResult.INVALID_FLAGS)) {
+                        LOGGER.debug(e.getCommand().getFlags().toString());
+                        LOGGER.debug("PostProcessException encountered.", e.getException());
                     }
                 }
             }
@@ -68,18 +77,19 @@ public class Tohsaka extends DiscordBot {
             @Override
             public void onCommandException(CommandExceptionEvent e) {
                 e.getSender().sendMessage("Unfortunately an error has occurred with your request. The bot author has been notified.");
-                //LOGGER.error("An error occurred during command execution.", e.getException());
+                LOGGER.error("An error occurred during command execution.", e.getException());
             }
         });
     }
 
     private void registerCommands() {
         Reflections reflections = new Reflections(
-                new ConfigurationBuilder().setUrls(ClasspathHelper.forPackage("com.nachtraben.tohsaka.commands"))
+                new ConfigurationBuilder()
+                        .setUrls(ClasspathHelper.forPackage("com.nachtraben.tohsaka.commands"))
                         .setScanners(
                                 new SubTypesScanner(),
                                 new MethodAnnotationsScanner()
-                        )
+                        ).filterInputsBy(new FilterBuilder().includePackage("com.nachtraben.tohsaka.commands"))
         );
         Set<Class<?>> classes = new HashSet<>();
         for (Method m : reflections.getMethodsAnnotatedWith(Cmd.class)) {
@@ -94,9 +104,17 @@ public class Tohsaka extends DiscordBot {
         }
         for (Class s : reflections.getSubTypesOf(Command.class)) {
             try {
-                getCommandBase().registerCommands(s.newInstance());
+                if (!Modifier.isAbstract(s.getModifiers()))
+                    getCommandBase().registerCommands(s.newInstance());
             } catch (InstantiationException | IllegalAccessException e) {
-                e.printStackTrace();
+                LOGGER.error("Failed to instantiate command class, " + s.getSimpleName() + ".", e);
+            }
+        }
+        for (Class s : reflections.getSubTypesOf(CommandTree.class)) {
+            try {
+                getCommandBase().registerCommands(s.newInstance());
+            } catch (IllegalAccessException | InstantiationException e) {
+                LOGGER.error("Failed to instantiate command class, " + s.getSimpleName() + ".", e);
             }
         }
     }

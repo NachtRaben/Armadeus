@@ -35,7 +35,6 @@ public class LogbackListener<E> extends AppenderBase<E> {
             ILoggingEvent event = (ILoggingEvent) eventObject;
             Level level = event.getLevel();
             if (level.isGreaterOrEqual(Level.ERROR)) {
-                System.err.println("Logging an error.");
                 TextChannel channel = bot.getConfig().getErrorLogChannel();
                 if (channel != null) {
                     try {

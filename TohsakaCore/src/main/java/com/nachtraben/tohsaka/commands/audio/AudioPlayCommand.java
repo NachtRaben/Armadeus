@@ -1,6 +1,5 @@
 package com.nachtraben.tohsaka.commands.audio;
 
-import com.nachtraben.core.audio.MusicRequestor;
 import com.nachtraben.core.command.GuildCommandSender;
 import com.nachtraben.core.managers.GuildMusicManager;
 import com.nachtraben.core.util.ChannelTarget;
@@ -14,6 +13,7 @@ import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
 
@@ -23,6 +23,7 @@ public class AudioPlayCommand extends Command {
 
     public AudioPlayCommand() {
         super("play", "{track}", "Plays the desired track, searching youtube if necessary.");
+        super.setFlags(Arrays.asList("-pr", "--random", "--randomize", "--shuffle", "--playlist"));
     }
 
     @Override
@@ -68,7 +69,6 @@ public class AudioPlayCommand extends Command {
 
             @Override
             public void noMatches() {
-                LOGGER.debug("No matches.");
                 if(search.startsWith("ytsearch:"))
                     sender.sendMessage("Failed to find any results for `" + search.replace("ytsearch:", "") + "`.");
                 else
@@ -78,7 +78,7 @@ public class AudioPlayCommand extends Command {
             @Override
             public void loadFailed(FriendlyException exception) {
                 sender.sendMessage(ChannelTarget.MUSIC, "Failed to load the track, `" + exception.getMessage().replace("`", "") + "`.");
-                LOGGER.warn(exception.getMessage(), exception);
+                LOGGER.warn("An exception occurred while searching for a track.", exception);
             }
         });
     }

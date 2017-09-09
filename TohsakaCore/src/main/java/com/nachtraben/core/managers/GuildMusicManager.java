@@ -69,6 +69,7 @@ public class GuildMusicManager {
     }
 
     public void setTrackScheduler(TrackScheduler scheduler) {
+        this.scheduler.destroy();
         player.removeListener(this.scheduler);
         this.scheduler = scheduler;
         player.addListener(this.scheduler);
