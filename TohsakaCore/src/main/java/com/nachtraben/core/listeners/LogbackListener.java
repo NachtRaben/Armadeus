@@ -43,7 +43,7 @@ public class LogbackListener<E> extends AppenderBase<E> {
                         eb.setColor(Utils.randomColor());
                         if (event.getThrowableProxy() != null) {
                             String throwable = getStackTrace(event);
-                            eb.addField("Stack:", throwable.substring(0, Math.min(throwable.length(), MessageEmbed.VALUE_MAX_LENGTH)), false);
+                            eb.addField("Stack:", throwable.substring(0, Math.min(throwable.length(), MessageEmbed.VALUE_MAX_LENGTH - eb.getDescriptionBuilder().length())), false);
                         }
                         eb.setFooter(new Date(event.getTimeStamp()).toString(), null);
                         channel.sendMessage(eb.build()).queue();

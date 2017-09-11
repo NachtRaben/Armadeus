@@ -46,18 +46,15 @@ public class ConsoleCommandSender implements CommandSender, Runnable {
 
     @Override
     public void run() {
-        LOGGER.info("Thread started.");
         String message;
         while(Tohsaka.getInstance().isRunning()) {
             while((message = input.nextLine()) != null) {
-                LOGGER.info("Recieved input, " + message);
                 String[] tokens = message.split("\\s+");
                 String command = tokens[0];
                 String[] args = tokens.length > 1 ? Arrays.copyOfRange(tokens, 1, tokens.length) : new String[]{};
                 runCommand(command, args);
             }
         }
-        LOGGER.info("Thread stopped.");
     }
 
 }

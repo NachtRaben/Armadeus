@@ -31,7 +31,7 @@ public class HelpCommands {
             String var = args.get("command/page");
 
             if (var != null) {
-                commands = base.getCommands().get(var);
+                commands = base.getCommand(var);
                 if (commands == null) {
                     try {
                         page = Integer.parseInt(var);

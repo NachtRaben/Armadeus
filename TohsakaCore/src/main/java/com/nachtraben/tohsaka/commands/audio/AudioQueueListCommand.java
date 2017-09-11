@@ -43,12 +43,12 @@ public class AudioQueueListCommand extends Command {
             eb.setTitle("__**" + botMember.getEffectiveName() + "'s Queue:**__");
 //            eb.setDescription("__***" + botMember.getEffectiveName() + "'s Queue:***__");
             eb.setColor(Utils.randomColor());
-            eb.appendDescription("**[Current](" + current.getInfo().uri + ") ) " + current.getInfo().title + "for (`" +
+            eb.appendDescription("**[Current](" + current.getInfo().uri + ") ) " + current.getInfo().title + " for (`" +
                     (current.getInfo().isStream ? "Stream" : TimeUtil.millisToString(current.getDuration(), TimeUtil.FormatType.STRING))
                             + "`)**");
             int counter = 0;
             for (AudioTrack track : tracks) {
-                if (counter++ > 10)
+                if (counter++ >= 10)
                     break;
                 String message = "\n**[" + counter + "](" + track.getInfo().uri + ") ) " + track.getInfo().title + " for (`"
                         + (track.getInfo().isStream ? "Stream" : TimeUtil.millisToString(track.getDuration(), TimeUtil.FormatType.STRING))

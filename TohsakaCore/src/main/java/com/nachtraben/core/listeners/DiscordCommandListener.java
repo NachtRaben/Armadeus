@@ -70,7 +70,6 @@ public class DiscordCommandListener extends ListenerAdapter {
                     if (!bot.isDebugging() && prefix == null && !config.getPrefixes().isEmpty()) {
                         for (String pref : config.getPrefixes()) {
                             if (content.startsWith(pref)) {
-                                LOGGER.debug("Matched guild prefix: " + pref);
                                 prefix = pref;
                                 break;
                             }
@@ -101,7 +100,8 @@ public class DiscordCommandListener extends ListenerAdapter {
                     try {
                         sender.runCommand(command, args);
                     } catch (Exception e) {
-                        LOGGER.error("Failed to run command.", e);
+                        sender.sendMessage(ChannelTarget.GENERIC, "I was unable to process your command, please try again later.");
+                        LOGGER.error("An exception occurred while attempting to run a command.", e);
                     }
                 }
 

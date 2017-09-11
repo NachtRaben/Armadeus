@@ -80,6 +80,14 @@ public class GuildCommandSender extends DiscordCommandSender {
             channel.sendMessage(embed).queue();
     }
 
+    public long getGuildId() {
+        return guildId;
+    }
+
+    public long getTextChannelId() {
+        return textChannelId;
+    }
+
     private TextChannel getTargetChannel(ChannelTarget target) {
         TextChannel result = null;
         GuildConfig config = getGuildConfig();
