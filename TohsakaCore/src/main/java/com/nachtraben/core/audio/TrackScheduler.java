@@ -112,6 +112,8 @@ public class TrackScheduler extends AudioEventAdapter {
         synchronized (queue) {
             repeatTrack = false;
             lastTrack = currentTrack;
+            if(currentTrack != null && repeatQueue)
+                queue.addLast(getCurrentTrack());
             if (queue.isEmpty() && isPlaying()) {
                 if (debug)
                     LOGGER.debug("Skipped and stopping.");
@@ -217,8 +219,6 @@ public class TrackScheduler extends AudioEventAdapter {
         if (endReason.mayStartNext && repeatTrack) {
             player.playTrack(getCurrentTrack());
         } else if (endReason.mayStartNext) {
-            if (repeatQueue)
-                queue.addLast(getCurrentTrack());
             skip();
         } else {
             if (debug)

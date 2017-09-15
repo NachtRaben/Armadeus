@@ -173,7 +173,7 @@ public class GuildConfig implements CustomJsonIO {
                     return;
                 }
                 getGuild().getAudioManager().setSelfDeafened(true);
-                getGuild().getAudioManager().openAudioConnection(getGuild().getVoiceChannelById(in.readLong()));
+                getGuild().getAudioManager().openAudioConnection(getGuild().getVoiceChannelById(channel));
                 while(!getGuild().getAudioManager().isConnected()) {
                     Thread.sleep(100);
                 }
