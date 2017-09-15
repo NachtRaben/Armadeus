@@ -13,6 +13,7 @@ import com.vdurmont.emoji.EmojiParser;
 import net.dv8tion.jda.core.EmbedBuilder;
 import net.kodehawa.lib.imageboards.ImageboardAPI;
 import net.kodehawa.lib.imageboards.entities.BoardImage;
+import net.kodehawa.lib.imageboards.entities.QueryFailedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -65,39 +66,51 @@ public class ImageCommands extends CommandTree {
                     }
 
                     int page = RANDOM.nextInt(255);
-                    int i = runs.getAndIncrement();
+                    runs.getAndIncrement();
                     ImageboardAPI<? extends BoardImage> board = rating.equals(ImageRating.SAFE) ? NMappedBoards.cleanBoards.get(RANDOM.nextInt(NMappedBoards.cleanBoards.size())) : NMappedBoards.nsfwBoards.get(RANDOM.nextInt(NMappedBoards.nsfwBoards.size()));
-                    List<? extends BoardImage> images = board.getBlocking(page, 100);
+                    List<? extends BoardImage> images = null;
                     ImageRating finalRating = rating;
-                    if (images != null) {
-                        List<? extends BoardImage> finals = images.stream().filter(image -> finalRating.matches(image.getRating().toLowerCase())).collect(Collectors.toList());
-                        if (images.isEmpty()) {
-                            if (!rating.equals(ImageRating.SAFE))
-                                sendee.sendMessage(ChannelTarget.NSFW, "Sorry, but I wasn't able to find an image.");
-                            else
-                                sendee.sendMessage(ChannelTarget.GENERIC, "Sorry, but I wasn't able to find an image.");
-                        }
-                        BoardImage selection = finals.get(RANDOM.nextInt(finals.size()));
-                        EmbedBuilder eb = new EmbedBuilder();
-                        eb.setAuthor(board.getImageType().getSimpleName().replace("Image", "").replace("Furry", "E621") + ":", selection.getImageUrl(), null);
-                        //eb.setDescription(String.format("[%s](%s)", "link", selection.getImageUrl()));
-                        eb.setFooter("Requested by: " + (gcs != null ? gcs.getMember().getEffectiveName() : sendee.getName()), sendee.getUser().getAvatarUrl());
-                        eb.setColor(Utils.randomColor());
-                        eb.setImage(selection.getImageUrl());
-                        if (selection.getImageUrl().toLowerCase().contains("null")) {
-                            // TODO: Query again? Send user a message?
-                            sendee.sendMessage("Unfortunately I was unable to fetch you an image, please try again.");
-                            LOGGER.error(board.getBoardType().name() + " returned invalid URL!\tType: " + selection.getClass().getSimpleName() + "\tURL: " + selection.getImageUrl() + "\tErrors: " + errors.incrementAndGet() + "/" + runs.get());
+                    int attempts = 0;
+                    while(images == null || images.isEmpty()) {
+                        if(attempts++ > 10) {
+                            sendee.sendMessage("I couldn't find anything .-. wut.");
                             return;
                         }
-                        if (finalRating.equals(ImageRating.SAFE))
-                            sendee.sendMessage(ChannelTarget.GENERIC, eb.build());
-                        else
-                            sendee.sendMessage(ChannelTarget.NSFW, eb.build());
-                    } else {
-                        // TODO: Query error, could be invalid page, could be an actual outage. Re-Query?
-                        sendee.sendMessage("Unfortunately I was unable to fetch you an image, please try again.");
+                        try {
+                            images = board.getBlocking(page, 100);
+                            if(images != null) {
+                                images = images.stream().filter(image -> finalRating.matches(image.getRating().toLowerCase())
+                                        && (image.getTags().stream().noneMatch(tag -> tag.equalsIgnoreCase("loli")))).collect(Collectors.toList());
+                                if(!images.isEmpty())
+                                    break;
+                            }
+                            try {
+                                Thread.sleep(2000);
+                            } catch (InterruptedException ignored) {
+                            }
+                        } catch (QueryFailedException e) {
+                            LOGGER.debug("Failed to query " + board.getBoardType().name() + ", received a " + e.getCode() + ".");
+                            return;
+                        }
                     }
+                    BoardImage selection = images.get(RANDOM.nextInt(images.size()));
+                    LOGGER.debug(selection.getImageUrl());
+                    EmbedBuilder eb = new EmbedBuilder();
+                    eb.setAuthor(board.getImageType().getSimpleName().replace("Image", "").replace("Furry", "E621") + ":", selection.getImageUrl(), null);
+                    //if(!selection.getTags().isEmpty())
+                        //eb.setDescription("Tags: `" + selection.getTags().subList(0, Math.min(5, selection.getTags().size())) + "`");                    eb.setFooter("Requested by: " + (gcs != null ? gcs.getMember().getEffectiveName() : sendee.getName()), sendee.getUser().getAvatarUrl());
+                    eb.setColor(Utils.randomColor());
+                    eb.setImage(selection.getImageUrl());
+                    if (selection.getImageUrl().toLowerCase().contains("null")) {
+                        // TODO: Query again? Send user a message?
+                        sendee.sendMessage("Unfortunately I was unable to fetch you an image, please try again.");
+                        LOGGER.error(board.getBoardType().name() + " returned invalid URL!\tType: " + selection.getClass().getSimpleName() + "\tURL: " + selection.getImageUrl() + "\tErrors: " + errors.incrementAndGet() + "/" + runs.get());
+                        return;
+                    }
+                    if (finalRating.equals(ImageRating.SAFE))
+                        sendee.sendMessage(ChannelTarget.GENERIC, eb.build());
+                    else
+                        sendee.sendMessage(ChannelTarget.NSFW, eb.build());
                 }
             }
         });

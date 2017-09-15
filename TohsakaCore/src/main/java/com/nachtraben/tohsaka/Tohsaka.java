@@ -27,7 +27,7 @@ import java.lang.reflect.Modifier;
 import java.util.HashSet;
 import java.util.Set;
 
-public class Tohsaka extends DiscordBot {
+public class Tohsaka extends DiscordBot implements CommandEventListener {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Tohsaka.class);
 
@@ -42,43 +42,7 @@ public class Tohsaka extends DiscordBot {
         long start = System.currentTimeMillis();
         LOGGER.debug("Took " + (System.currentTimeMillis() - start) + "ms to load all shards.");
         registerCommands();
-        getCommandBase().registerEventListener(new CommandEventListener() {
-            @Override
-            public void onCommandPreProcess(CommandPreProcessEvent e) {
-                if(e.getSender() instanceof GuildCommandSender) {
-                    GuildCommandSender sendee = (GuildCommandSender) e.getSender();
-                    LOGGER.debug(String.format("CommandPreProcess >> Sender: %s#{%s}, Args: %s, Flags: %s, Command: %s", sendee.getMember().getEffectiveName(), sendee.getGuild().getName(), e.getArgs(), e.getFlags(), e.getCommand().getName()));
-                } else {
-                    LOGGER.debug(String.format("CommandPreProcess >> Sender: %s, Args: %s, Flags: %s, Command: %s", e.getSender().getName(), e.getArgs(), e.getFlags(), e.getCommand().getName()));
-                }
-            }
-
-            @Override
-            public void onCommandPostProcess(CommandPostProcessEvent e) {
-                if (e.getSender() instanceof GuildCommandSender) {
-                    GuildCommandSender sendee = (GuildCommandSender) e.getSender();
-                    LOGGER.debug(String.format("CommandPostProcess >> Sender: %s#{%s}, Args: %s, Flags:%s, Command: %s, Result: %s", sendee.getMember().getEffectiveName(), sendee.getGuild().getName(),  e.getArgs(), e.getFlags(), e.getCommand().getName(), e.getResult()));
-                    Member bot = sendee.getGuild().getMember(sendee.getGuild().getJDA().getSelfUser());
-                    if (sendee.getGuildConfig().shouldDeleteCommands() && bot.hasPermission(Permission.MESSAGE_MANAGE)) {
-                        try {
-                            if (sendee.getMessage() != null)
-                                sendee.getMessage().delete().reason("Command message.").queue();
-                        } catch (Exception ignored) {
-                        }
-                    }
-                } else {
-                    LOGGER.debug(String.format("CommandPostProcess >> Sender: %s, Args: %s, Flags:%s, Command: %s, Result: %s", e.getSender().getName(), e.getArgs(), e.getFlags(), e.getCommand().getName(), e.getResult()));
-                }
-                if(e.getResult().equals(CommandResult.INVALID_FLAGS))
-                    e.getSender().sendMessage("Sorry, but you provided invalid flags for that command. {`" + e.getException().getMessage() + "`}");
-            }
-
-            @Override
-            public void onCommandException(CommandExceptionEvent e) {
-                e.getSender().sendMessage("Unfortunately an error has occurred with your request. The bot author has been notified.");
-                LOGGER.error("An error occurred during command execution.", e.getException());
-            }
-        });
+        getCommandBase().registerEventListener(this);
         getShardManager().connectAllShards();
         postStart();
     }
@@ -128,4 +92,41 @@ public class Tohsaka extends DiscordBot {
         new Tohsaka(args, false);
     }
 
+    @Override
+    public void onCommandPreProcess(CommandPreProcessEvent e) {
+        if(e.getSender() instanceof GuildCommandSender) {
+            GuildCommandSender sendee = (GuildCommandSender) e.getSender();
+            LOGGER.debug(String.format("CommandPreProcess >> Sender: %s#{%s}, Args: %s, Flags: %s, Command: %s", sendee.getMember().getEffectiveName(), sendee.getGuild().getName(), e.getArgs(), e.getFlags(), e.getCommand().getName()));
+        } else {
+            LOGGER.debug(String.format("CommandPreProcess >> Sender: %s, Args: %s, Flags: %s, Command: %s", e.getSender().getName(), e.getArgs(), e.getFlags(), e.getCommand().getName()));
+        }
+    }
+
+    @Override
+    public void onCommandPostProcess(CommandPostProcessEvent e) {
+        if(e.getResult().equals(CommandResult.UNKNOWN_COMMAND))
+            return;
+        if (e.getSender() instanceof GuildCommandSender) {
+            GuildCommandSender sendee = (GuildCommandSender) e.getSender();
+            LOGGER.debug(String.format("CommandPostProcess >> Sender: %s#{%s}, Args: %s, Flags:%s, Command: %s, Result: %s", sendee.getMember().getEffectiveName(), sendee.getGuild().getName(),  e.getArgs(), e.getFlags(), e.getCommand().getName(), e.getResult()));
+            Member bot = sendee.getGuild().getMember(sendee.getGuild().getJDA().getSelfUser());
+            if (sendee.getGuildConfig().shouldDeleteCommands() && bot.hasPermission(Permission.MESSAGE_MANAGE)) {
+                try {
+                    if (sendee.getMessage() != null)
+                        sendee.getMessage().delete().reason("Command message.").queue();
+                } catch (Exception ignored) {
+                }
+            }
+        } else {
+            LOGGER.debug(String.format("CommandPostProcess >> Sender: %s, Args: %s, Flags:%s, Command: %s, Result: %s", e.getSender().getName(), e.getArgs(), e.getFlags(), e.getCommand().getName(), e.getResult()));
+        }
+        if(e.getResult().equals(CommandResult.INVALID_FLAGS))
+            e.getSender().sendMessage("Sorry, but you provided invalid flags for that command. {`" + e.getException().getMessage() + "`}");
+    }
+
+    @Override
+    public void onCommandException(CommandExceptionEvent e) {
+        e.getSender().sendMessage("Unfortunately an error has occurred with your request. The bot author has been notified.");
+        LOGGER.error("An error occurred during command execution.", e.getException());
+    }
 }

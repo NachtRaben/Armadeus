@@ -8,9 +8,11 @@ import net.dv8tion.jda.core.entities.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class GuildCommandSender extends DiscordCommandSender {
+import java.io.*;
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(GuildCommandSender.class);
+public class GuildCommandSender extends DiscordCommandSender implements Serializable {
+
+    private transient static final Logger LOGGER = LoggerFactory.getLogger(GuildCommandSender.class);
 
     private long guildId;
     private long textChannelId;

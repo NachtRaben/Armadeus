@@ -1,21 +1,20 @@
 package com.nachtraben.core.configuration;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
+import com.nachtraben.core.audio.TrackScheduler;
 import com.nachtraben.core.managers.GuildManager;
+import com.nachtraben.core.managers.GuildMusicManager;
 import com.nachtraben.core.util.ChannelTarget;
+import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
+import java.io.*;
+import java.util.*;
 
 public class RedisGuildConfig extends GuildConfig implements RedisConfig {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RedisGuildConfig.class);
-    private static final Gson GSON = new GsonBuilder().disableHtmlEscaping().create();
 
     public RedisGuildConfig(GuildManager manager, Long guild) {
         super(manager, guild);

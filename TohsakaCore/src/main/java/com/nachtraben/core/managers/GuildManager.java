@@ -1,5 +1,6 @@
 package com.nachtraben.core.managers;
 
+import com.google.common.io.PatternFilenameFilter;
 import com.nachtraben.core.DiscordBot;
 import com.nachtraben.core.configuration.GuildConfig;
 import com.nachtraben.core.configuration.RedisGuildConfig;
@@ -9,6 +10,7 @@ import net.dv8tion.jda.core.entities.Guild;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
@@ -55,6 +57,25 @@ public class GuildManager {
     public void saveConfigurations() {
         for(Map.Entry<Long, GuildConfig> config : configs.entrySet()) {
             config.getValue().save();
+        }
+    }
+
+    public void savePersistInformation() {
+        if(!configs.isEmpty())
+            LOGGER.debug("Saving persist information.");
+        for(GuildConfig c : configs.values())
+            c.savePersistInfo();
+    }
+
+    public void loadPersistInformation() {
+        for(File f : GuildConfig.PERSIST_DIR.listFiles(new PatternFilenameFilter(".*.persist"))) {
+            try {
+                Long id = Long.parseLong(f.getName().replace(".persist", ""));
+                GuildConfig config = getConfigurationFor(id);
+                config.loadPersistInfo(f);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
     }
 

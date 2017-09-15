@@ -2,6 +2,7 @@ package com.nachtraben.tohsaka.commands;
 
 import com.nachtraben.core.command.GuildCommandSender;
 import com.nachtraben.core.util.ChannelTarget;
+import com.nachtraben.core.util.Utils;
 import com.nachtraben.orangeslice.CommandSender;
 import com.nachtraben.orangeslice.command.Command;
 
@@ -19,7 +20,9 @@ public class DisconnectCommand extends Command {
             GuildCommandSender sendee = (GuildCommandSender) sender;
             if(sendee.getGuild().getAudioManager().isConnected()) {
                 sendee.getGuildConfig().getMusicManager().getScheduler().stop();
-                sendee.getGuild().getAudioManager().closeAudioConnection();
+                Utils.getExecutor().execute(() -> {
+                    sendee.getGuild().getAudioManager().closeAudioConnection();
+                });
                 sendee.sendMessage(ChannelTarget.MUSIC, "Guess you don't want me listening anymore :c");
             } else {
                 sendee.sendMessage(ChannelTarget.GENERIC, "I'm not connected, why did you feel the need to run that?");

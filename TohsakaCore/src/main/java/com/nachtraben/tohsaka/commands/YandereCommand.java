@@ -1,6 +1,6 @@
 package com.nachtraben.tohsaka.commands;
 
-import com.nachtraben.TimedCache;
+import com.nachtraben.core.util.TimedCache;
 import com.nachtraben.core.command.DiscordCommandSender;
 import com.nachtraben.core.command.GuildCommandSender;
 import com.nachtraben.core.util.ChannelTarget;
@@ -30,7 +30,7 @@ public class YandereCommand extends Command {
     private final Random r = new Random();
 
     public YandereCommand() {
-        super("yandere", "(tags)", "Gets an image from Yandere");
+        super("yandere", "(tag)", "Gets an image from Yandere");
         super.setAliases(Arrays.asList("yande.re", "yand", "yd"));
         super.setFlags(Arrays.asList("--safe", "--questionable", "--explicit", "-seq"));
     }
@@ -44,7 +44,7 @@ public class YandereCommand extends Command {
             boolean safe = flags.containsKey("safe") || flags.containsKey("s");
             boolean questionable = flags.containsKey("questionable") || flags.containsKey("q");
             boolean explicit = flags.containsKey("explicit") || flags.containsKey("e");
-            boolean isSearch = args.containsKey("tags");
+            boolean isSearch = args.containsKey("tag");
 
             ImageRating rating = gcs != null && gcs.getTextChannel().isNSFW() ? ImageRating.EXPLICIT : ImageRating.SAFE;
             if (explicit && questionable)
@@ -62,28 +62,29 @@ public class YandereCommand extends Command {
             }
 
             ImageRating finalRating = rating;
-            List<YandereImage> images = isSearch ? Imageboards.YANDERE.onSearchBlocking(100, args.get("tags")) : Imageboards.YANDERE.getBlocking(RAND.nextInt(1024));
+            List<YandereImage> images = isSearch ? Imageboards.YANDERE.onSearchBlocking(100, args.get("tag").replace(" ", "_")) : Imageboards.YANDERE.getBlocking(RAND.nextInt(1024));
             if (images != null) {
                 Set<String> cache = gcs != null ? guildSearchCache.computeIfAbsent(gcs.getGuildId(), set -> new HashSet<>()) : userSearchCache.computeIfAbsent(sendee.getUserID(), set -> new HashSet<>());
-                images = images.stream().filter(image -> finalRating.matches(image.getRating().toLowerCase())).filter(image -> !cache.contains(image.getImageUrl())).collect(Collectors.toList());
+                images = images.stream().filter(image -> finalRating.matches(image.getRating().toLowerCase()) && image.getTags().stream().noneMatch(tag -> tag.equalsIgnoreCase("loli"))).filter(image -> !cache.contains(image.getImageUrl())).collect(Collectors.toList());
                 if (images.isEmpty()) {
                     if (isSearch) {
                         if (!rating.equals(ImageRating.SAFE))
-                            sendee.sendMessage(ChannelTarget.NSFW, "Sorry, but I didn't find anything for the tags, `" + Arrays.asList(args.get("tags").split(" ")) + "`.");
+                            sendee.sendMessage(ChannelTarget.NSFW, "Sorry, but I didn't find anything for the tag, `" + args.get("tag") + "`.");
                         else
-                            sendee.sendMessage(ChannelTarget.GENERIC, "Sorry, but I didn't find anything for the tags, `" + Arrays.asList(args.get("tags").split(" ")) + "`.");
+                            sendee.sendMessage(ChannelTarget.GENERIC, "Sorry, but I didn't find anything for the tag, `" + args.get("tag") + "`.");
                     } else {
                         if (!rating.equals(ImageRating.SAFE))
                             sendee.sendMessage(ChannelTarget.NSFW, "Sorry, but I wasn't able to find an image.");
                         else
                             sendee.sendMessage(ChannelTarget.GENERIC, "Sorry, but I wasn't able to find an image.");
                     }
+                    return;
                 }
                 YandereImage selection = images.get(RAND.nextInt(images.size()));
                 cache.add(selection.getImageUrl());
                 EmbedBuilder eb = new EmbedBuilder();
                 eb.setColor(Utils.randomColor());
-                eb.setAuthor(isSearch ? Arrays.asList(args.get("tags").split(" ")).get(0) : "Yandere", selection.getImageUrl(), null);
+                eb.setAuthor(isSearch ? args.get("tag") : "Yandere", selection.getImageUrl(), null);
 //                eb.setDescription("[link](" + selection.getImageUrl() + ")");
                 eb.setImage(selection.getImageUrl());
                 eb.setFooter("Requested by: " + (gcs != null ? gcs.getMember().getEffectiveName() : sendee.getName()), sendee.getUser().getAvatarUrl());

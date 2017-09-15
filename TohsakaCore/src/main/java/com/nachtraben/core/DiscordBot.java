@@ -1,25 +1,23 @@
 package com.nachtraben.core;
 
+import com.nachtraben.core.audio.AudioPlayerSendHandler;
 import com.nachtraben.core.configuration.BotConfig;
 import com.nachtraben.core.configuration.RedisBotConfig;
 import com.nachtraben.core.listeners.DiscordCommandListener;
+import com.nachtraben.core.listeners.FileUploadListener;
 import com.nachtraben.core.listeners.LogbackListener;
 import com.nachtraben.core.listeners.SimpleLogListener;
 import com.nachtraben.core.managers.GuildManager;
 import com.nachtraben.core.managers.ShardManager;
 import com.nachtraben.core.util.DiscordMetrics;
-import com.nachtraben.lemonslice.ConfigurationUtils;
+import com.nachtraben.core.util.Utils;
 import com.nachtraben.orangeslice.CommandBase;
 import com.nachtraben.pineappleslice.redis.RedisModule;
 import com.nachtraben.pineappleslice.redis.RedisProperties;
 import net.dv8tion.jda.core.JDA;
 import net.dv8tion.jda.core.entities.Guild;
-import net.dv8tion.jda.webhook.WebhookClient;
-import net.dv8tion.jda.webhook.WebhookClientBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.File;
 
 public abstract class DiscordBot {
 
@@ -38,6 +36,7 @@ public abstract class DiscordBot {
 
     private boolean running = false;
     private boolean debugging = false;
+    private boolean logMessages = false;
 
     public DiscordBot(String[] args) {
         PROGRAM_ARGS = args;
@@ -69,12 +68,18 @@ public abstract class DiscordBot {
             SimpleLogListener.init();
 
         shardManager = new ShardManager(this);
-        shardManager.addDefaultListener(new DiscordCommandListener(this));
+        shardManager.addDefaultListener(new DiscordCommandListener(this), new FileUploadListener());
         LogbackListener.install(this);
     }
 
     protected void postStart() {
         dmetrics = new DiscordMetrics(this);
+        try {
+            Thread.sleep(5000);
+            guildManager.loadPersistInformation();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
     public ShardManager getShardManager() {
@@ -108,15 +113,29 @@ public abstract class DiscordBot {
             ((RedisBotConfig) config).setDebugging(debugging);
     }
 
+    public void logMessages(boolean log) {
+        this.logMessages = log;
+    }
+
+    public boolean isLogMessages() {
+        return this.logMessages;
+    }
+
+    public void setAudioDebug(boolean b) {
+        AudioPlayerSendHandler.DEBUG = b;
+    }
+
     public void shutdown() {
         if(shutdownHandler != null)
             Runtime.getRuntime().removeShutdownHook(shutdownHandler);
 
         running = false;
+        Utils.stopExecutors();
         try {
             Thread.sleep(4000);
         } catch (InterruptedException ignored) {
         }
+        guildManager.savePersistInformation();
         shardManager.shutdownAllShards();
         DiscordMetrics.shutdown();
         System.exit(0);

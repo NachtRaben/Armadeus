@@ -33,14 +33,14 @@ public class AudioVolumeCommands {
             try {
                 vol = Integer.parseInt(args.get("vol"));
             } catch (NumberFormatException e) {
-                sendee.sendMessage(ChannelTarget.GENERIC, "`" + args.get("vol") + "` is not a proper number -.-");
+                sendee.sendMessage(ChannelTarget.MUSIC, "`" + args.get("vol") + "` is not a proper number -.-");
                 return;
             }
             if (vol != -1) {
                 manager.getPlayer().setVolume(vol);
                 config.getMetadata().put("volume", String.valueOf(vol));
                 config.save();
-                sendee.sendMessage(ChannelTarget.GENERIC, "Volume set to `" + manager.getPlayer().getVolume() + "/150`.");
+                sendee.sendMessage(ChannelTarget.MUSIC, "Volume set to `" + manager.getPlayer().getVolume() + "/150`.");
             }
         } else {
             sender.sendMessage("Sorry but that command is only available in guilds I'm a part of.");

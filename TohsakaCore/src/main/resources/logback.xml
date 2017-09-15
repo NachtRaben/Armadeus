@@ -7,7 +7,7 @@
     <property name="LOG_PATH" value="."/>
     <property name="LOG_ARCHIVE" value="${LOG_PATH}/logs"/>
 
-    <logger name="com.nachtraben.core.listeners.JDALogListener" level="INFO"/>
+    <logger name="com.nachtraben.core.listeners.JDALogListener" level="DEBUG"/>
     <logger name="com.nachtraben" level="TRACE"/>
 
     <appender name="Console" class="ch.qos.logback.core.ConsoleAppender">
@@ -27,7 +27,7 @@
         </rollingPolicy>
     </appender>
 
-     <root level="INFO">
+     <root level="DEBUG">
          <appender-ref ref="Console"/>
          <appender-ref ref="File"/>
     </root>

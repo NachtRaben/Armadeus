@@ -1,6 +1,7 @@
 package com.nachtraben.core.managers;
 
 import com.nachtraben.core.DiscordBot;
+import com.sedmelluq.discord.lavaplayer.jdaudp.NativeAudioSendFactory;
 import net.dv8tion.jda.core.AccountType;
 import net.dv8tion.jda.core.JDA;
 import net.dv8tion.jda.core.JDABuilder;
@@ -122,6 +123,7 @@ public class ShardManager {
         JDABuilder builder = new JDABuilder(AccountType.BOT).setToken(bot.getConfig().getBotToken());
         builder.setEventManager(new ExecutorServiceEventManager());
         builder.setReconnectQueue(queue);
+        builder.setAudioSendFactory(new NativeAudioSendFactory());
         defaultListeners.forEach(builder::addEventListener);
         return builder;
     }

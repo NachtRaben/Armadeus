@@ -1,9 +1,13 @@
 package com.nachtraben.core.util;
 
+import com.nachtraben.core.command.GuildCommandSender;
+import com.sedmelluq.discord.lavaplayer.source.youtube.YoutubeAudioTrack;
+import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import net.dv8tion.jda.core.EmbedBuilder;
 import net.dv8tion.jda.core.entities.MessageEmbed;
 
 import java.awt.*;
+import java.io.*;
 import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -39,6 +43,42 @@ public class Utils {
     public static void stopExecutors() {
         SCHEDULER.shutdown();
         EXEC.shutdown();
+    }
+
+    public static byte[] serialize(Object o) {
+        try(ByteArrayOutputStream baos = new ByteArrayOutputStream(); ObjectOutput out = new ObjectOutputStream(baos)) {
+            out.writeObject(o);
+            out.flush();
+            return baos.toByteArray();
+        } catch (IOException e) {
+            e.printStackTrace();
+            return new byte[]{};
+        }
+    }
+
+    public static <T> T deserialize(byte[] bytes, Class<T> clazz) {
+        try(ByteArrayInputStream bais = new ByteArrayInputStream(bytes); ObjectInput in = new ObjectInputStream(bais)) {
+            return (T) in.readObject();
+        } catch (IOException | ClassNotFoundException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    public static EmbedBuilder getAudioTrackEmbed(AudioTrack track, GuildCommandSender sender) {
+        EmbedBuilder builder = new EmbedBuilder();
+        builder.setAuthor("Now Playing: ",
+                EmbedBuilder.URL_PATTERN.matcher(track.getInfo().uri).matches()
+                        ? track.getInfo().uri : null, null)
+                .setColor(Utils.randomColor())
+                .setFooter("Requested by: " + sender.getMember().getEffectiveName(), sender.getUser().getAvatarUrl())
+                .setDescription(String.format("Title: %s\nAuthor: %s\nLength: %s",
+                        track.getInfo().title,
+                        track.getInfo().author,
+                        track.getInfo().isStream ? "Stream" : TimeUtil.millisToString(track.getInfo().length, TimeUtil.FormatType.STRING)));
+        if (track instanceof YoutubeAudioTrack)
+            builder.setThumbnail(String.format("https://img.youtube.com/vi/%s/default.jpg", track.getIdentifier()));
+        return builder;
     }
 
 }

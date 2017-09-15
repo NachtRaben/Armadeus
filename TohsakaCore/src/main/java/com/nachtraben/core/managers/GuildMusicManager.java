@@ -27,6 +27,7 @@ public class GuildMusicManager {
         DEFAULT_PLAYER_MANAGER = new DefaultAudioPlayerManager();
         DEFAULT_PLAYER_MANAGER.getConfiguration().setOpusEncodingQuality(AudioConfiguration.OPUS_QUALITY_MAX);
         DEFAULT_PLAYER_MANAGER.getConfiguration().setResamplingQuality(AudioConfiguration.ResamplingQuality.HIGH);
+        AudioSourceManagers.registerLocalSource(DEFAULT_PLAYER_MANAGER);
         AudioSourceManagers.registerRemoteSources(DEFAULT_PLAYER_MANAGER);
         /*DEFAULT_PLAYER_MANAGER.registerSourceManager(new YoutubeAudioSourceManager(true));
         DEFAULT_PLAYER_MANAGER.registerSourceManager(new SoundCloudAudioSourceManager());

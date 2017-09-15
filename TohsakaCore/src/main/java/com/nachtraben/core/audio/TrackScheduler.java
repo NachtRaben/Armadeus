@@ -5,6 +5,7 @@ import com.nachtraben.core.managers.GuildMusicManager;
 import com.nachtraben.core.util.ChannelTarget;
 import com.nachtraben.core.util.TimeUtil;
 import com.nachtraben.core.util.Utils;
+import com.nachtraben.tohsaka.Tohsaka;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayer;
 import com.sedmelluq.discord.lavaplayer.player.event.AudioEventAdapter;
 import com.sedmelluq.discord.lavaplayer.source.youtube.YoutubeAudioTrack;
@@ -14,10 +15,12 @@ import com.sedmelluq.discord.lavaplayer.track.AudioTrackEndReason;
 import net.dv8tion.jda.core.EmbedBuilder;
 import net.dv8tion.jda.core.entities.Guild;
 import net.dv8tion.jda.core.entities.VoiceChannel;
+import net.dv8tion.jda.core.exceptions.InsufficientPermissionException;
 import net.dv8tion.jda.core.managers.AudioManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.lang.reflect.ParameterizedType;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -26,6 +29,8 @@ import java.util.concurrent.*;
 public class TrackScheduler extends AudioEventAdapter {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(TrackScheduler.class);
+
+    public static boolean debug = Tohsaka.getInstance().isDebugging();
 
     private GuildMusicManager manager;
 
@@ -37,30 +42,34 @@ public class TrackScheduler extends AudioEventAdapter {
     private boolean repeatTrack;
     private boolean repeatQueue;
 
-    private VoiceChannel currentChannel;
+    private boolean channelLock;
 
     private ScheduledFuture<?> afkCheck;
     private long leave = -1;
+    private boolean persist = true;
 
     public TrackScheduler(GuildMusicManager guildMusicManager) {
         this.manager = guildMusicManager;
         queue = new LinkedBlockingDeque<>();
         afkCheck = Utils.getScheduler().scheduleWithFixedDelay(() -> {
             Guild g = manager.getGuild();
-            if(g != null) {
+            if (g != null && !persist) {
                 VoiceChannel v = g.getAudioManager().getConnectedChannel();
-                if(v != null) {
-                    if(leave != -1)
-                        LOGGER.debug("Leaving { " + g.getName() + " } in: " + TimeUtil.millisToString(leave - System.currentTimeMillis(), TimeUtil.FormatType.STRING));
-                    if((v.getMembers().size() < 2 || currentTrack == null) && leave == -1) {
+                if (v != null) {
+                    if (leave != -1)
+                        if (debug)
+                            LOGGER.debug("Leaving { " + g.getName() + " } in: " + TimeUtil.millisToString(leave - System.currentTimeMillis(), TimeUtil.FormatType.STRING));
+                    if ((v.getMembers().size() < 2 || currentTrack == null) && leave == -1) {
                         leave = TimeUnit.MINUTES.toMillis(2) + System.currentTimeMillis();
-                    } else if(v.getMembers().size() > 1 && currentTrack != null && leave != -1) {
+                    } else if (v.getMembers().size() > 1 && currentTrack != null && leave != -1) {
                         leave = -1;
-                    } else if((v.getMembers().size() < 2 || currentTrack == null) && leave != -1 && System.currentTimeMillis() > leave) {
+                    } else if ((v.getMembers().size() < 2 || currentTrack == null) && leave != -1 && System.currentTimeMillis() > leave) {
                         stop();
-                        g.getAudioManager().closeAudioConnection();
+                        Utils.getExecutor().execute(() -> {
+                            g.getAudioManager().closeAudioConnection();
+                        });
                     }
-                } else if(leave != -1) {
+                } else if (leave != -1) {
                     leave = -1;
                 }
             }
@@ -82,17 +91,20 @@ public class TrackScheduler extends AudioEventAdapter {
     }
 
     public void stop() {
+        if (debug)
+            LOGGER.debug("Stopped");
         synchronized (queue) {
             repeatTrack = false;
             repeatQueue = false;
+            //persist = false;
             manager.getPlayer().setPaused(false);
-            manager.getPlayer().stopTrack();
             queue.clear();
             if (isPlaying()) {
+                manager.getPlayer().stopTrack();
                 currentTrack.getUserData(GuildCommandSender.class).sendMessage(ChannelTarget.MUSIC, "Queue concluded.");
-                currentChannel = null;
-                currentTrack = null;
             }
+            channelLock = false;
+            currentTrack = null;
         }
     }
 
@@ -101,9 +113,17 @@ public class TrackScheduler extends AudioEventAdapter {
             repeatTrack = false;
             lastTrack = currentTrack;
             if (queue.isEmpty() && isPlaying()) {
+                if (debug)
+                    LOGGER.debug("Skipped and stopping.");
                 stop();
-            } else if (!queue.isEmpty())
+            } else if (!queue.isEmpty()) {
+                if (debug)
+                    LOGGER.debug("Skipping");
                 play(queue.poll());
+            } else {
+                if (debug)
+                    LOGGER.debug("Wut? " + isPlaying());
+            }
         }
     }
 
@@ -121,25 +141,41 @@ public class TrackScheduler extends AudioEventAdapter {
     }
 
     public boolean isPlaying() {
-        return currentTrack != null && currentChannel != null;
+        return currentTrack != null && channelLock;
     }
 
+    // TODO: Rewrite voice channel logic.
+    // TODO: If requester channel is null but I'm in a channel.
     private boolean joinVoiceChannel(GuildCommandSender requestor) {
         if (manager.getGuild() != null) {
             AudioManager audioManager = manager.getGuild().getAudioManager();
-            if (currentChannel != null && (audioManager.isAttemptingToConnect() || audioManager.isConnected())) {
-                currentChannel = audioManager.getConnectedChannel();
+            VoiceChannel connected = audioManager.getConnectedChannel();
+            VoiceChannel reqChannel = requestor.getVoiceChannel();
+            if (channelLock && connected != null) {
                 return true;
-            } else {
-                VoiceChannel channel = requestor.getVoiceChannel();
-                if (channel != null) {
+            } else if (!channelLock) {
+                if (reqChannel != null) {
+                    if (debug)
+                        LOGGER.debug("Not locked and requester connected.");
                     try {
-                        audioManager.openAudioConnection(channel);
-                        this.currentChannel = channel;
+                        channelLock = true;
+                        try {
+                            audioManager.setSelfDeafened(true);
+                            audioManager.openAudioConnection(reqChannel);
+                        } catch (InsufficientPermissionException e) {
+                            requestor.sendMessage(ChannelTarget.MUSIC, "Failed to join `" + reqChannel.getName() + "` because `" + e.getMessage() + "`.");
+                            return false;
+                        }
                         return true;
                     } catch (Exception e) {
-                        e.printStackTrace();
+                        channelLock = false;
+                        LOGGER.error("Failed to join " + reqChannel.getName() + ".", e);
                     }
+                } else if (connected != null) {
+                    if (debug)
+                        LOGGER.debug("Not locked and connected.");
+                    channelLock = true;
+                    return true;
                 }
             }
         }
@@ -148,6 +184,8 @@ public class TrackScheduler extends AudioEventAdapter {
 
     @Override
     public void onTrackStart(AudioPlayer player, AudioTrack track) {
+        if (debug)
+            LOGGER.debug("TrackStartEvent");
         GuildCommandSender requestor = track.getUserData(GuildCommandSender.class);
         if (requestor != null) {
             Guild guild = requestor.getGuild();
@@ -174,19 +212,24 @@ public class TrackScheduler extends AudioEventAdapter {
 
     @Override
     public void onTrackEnd(AudioPlayer player, AudioTrack track, AudioTrackEndReason endReason) {
+        if (debug)
+            LOGGER.debug("TrackStopEvent");
         if (endReason.mayStartNext && repeatTrack) {
             player.playTrack(getCurrentTrack());
         } else if (endReason.mayStartNext) {
             if (repeatQueue)
                 queue.addLast(getCurrentTrack());
             skip();
+        } else {
+            if (debug)
+                LOGGER.debug("What happened... " + endReason.name());
         }
     }
 
     @Override
     public void onTrackException(AudioPlayer player, AudioTrack track, FriendlyException exception) {
         // TODO: Prevent requeue if error is unrecoverable.
-        if(repeatTrack)
+        if (repeatTrack)
             repeatTrack = false;
         GuildCommandSender requestor = track.getUserData(GuildCommandSender.class);
         requestor.sendMessage(ChannelTarget.MUSIC, String.format("Failed to play `%s` because, `%s`.", track.getInfo().title, exception.getMessage()));
@@ -194,18 +237,7 @@ public class TrackScheduler extends AudioEventAdapter {
     }
 
     private void sendEmbed(AudioTrack track, GuildCommandSender sender) {
-        EmbedBuilder builder = new EmbedBuilder();
-        builder.setAuthor("Now Playing: ",
-                EmbedBuilder.URL_PATTERN.matcher(track.getInfo().uri).matches()
-                        ? track.getInfo().uri : null, null)
-                .setColor(Utils.randomColor())
-                .setFooter("Requested by: " + sender.getMember().getEffectiveName(), sender.getUser().getAvatarUrl())
-                .setDescription(String.format("Title: %s\nAuthor: %s\nLength: %s",
-                        track.getInfo().title,
-                        track.getInfo().author,
-                        track.getInfo().isStream ? "Stream" : TimeUtil.millisToString(track.getInfo().length, TimeUtil.FormatType.STRING)));
-        if (track instanceof YoutubeAudioTrack)
-            builder.setThumbnail(String.format("https://img.youtube.com/vi/%s/default.jpg", track.getIdentifier()));
+        EmbedBuilder builder = Utils.getAudioTrackEmbed(track, sender);
         sender.sendMessage(ChannelTarget.MUSIC, builder.build());
     }
 
@@ -221,7 +253,10 @@ public class TrackScheduler extends AudioEventAdapter {
         synchronized (queue) {
             if (queue.contains(track)) {
                 while (queue.peek() != track) {
-                    queue.pop();
+                    if (repeatQueue)
+                        queue.addLast(queue.pop());
+                    else
+                        queue.pop();
                 }
                 skip();
             }
@@ -262,8 +297,16 @@ public class TrackScheduler extends AudioEventAdapter {
         this.repeatQueue = repeatQueue;
     }
 
+    public boolean isPersist() {
+        return persist;
+    }
+
+    public void setPersist(boolean b) {
+        this.persist = b;
+    }
+
     public void destroy() {
-        if(afkCheck != null && !afkCheck.isCancelled())
+        if (afkCheck != null && !afkCheck.isCancelled())
             afkCheck.cancel(true);
     }
 

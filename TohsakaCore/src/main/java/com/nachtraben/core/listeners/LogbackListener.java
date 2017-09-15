@@ -39,7 +39,7 @@ public class LogbackListener<E> extends AppenderBase<E> {
                 if (channel != null) {
                     try {
                         EmbedBuilder eb = new EmbedBuilder();
-                        eb.setDescription(String.format("***[%s]: %s***", level.levelStr, event.getMessage()));
+                        eb.setDescription(String.format("***[%s]: %s***", level.levelStr, event.getMessage().substring(0, Math.min(event.getMessage().length(), MessageEmbed.TEXT_MAX_LENGTH))));
                         eb.setColor(Utils.randomColor());
                         if (event.getThrowableProxy() != null) {
                             String throwable = getStackTrace(event);
@@ -59,6 +59,8 @@ public class LogbackListener<E> extends AppenderBase<E> {
         StringWriter sw = new StringWriter();
         PrintWriter pw = new PrintWriter(sw);
         ThrowableProxy e = (ThrowableProxy) event.getThrowableProxy();
+        if(e.getCause() != null)
+            e = (ThrowableProxy) e.getCause();
         e.getThrowable().printStackTrace(pw);
         return sw.toString();
     }

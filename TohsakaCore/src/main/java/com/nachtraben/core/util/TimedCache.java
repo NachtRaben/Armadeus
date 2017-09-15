@@ -1,4 +1,4 @@
-package com.nachtraben;
+package com.nachtraben.core.util;
 
 import java.util.*;
 import java.util.concurrent.TimeUnit;

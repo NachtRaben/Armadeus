@@ -1,7 +1,6 @@
 package com.nachtraben.core.command;
 
 import com.nachtraben.core.DiscordBot;
-import com.nachtraben.core.configuration.GuildConfig;
 import com.nachtraben.core.util.ChannelTarget;
 import com.nachtraben.orangeslice.CommandResult;
 import com.nachtraben.orangeslice.CommandSender;
@@ -10,15 +9,16 @@ import net.dv8tion.jda.core.entities.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.Serializable;
 import java.util.concurrent.Future;
 
-public class DiscordCommandSender implements CommandSender {
+public class DiscordCommandSender implements CommandSender, Serializable {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(DiscordCommandSender.class);
+    private transient static final Logger LOGGER = LoggerFactory.getLogger(DiscordCommandSender.class);
 
-    private DiscordBot dbot;
+    private transient DiscordBot dbot;
 
-    private JDA jda;
+    private transient JDA jda;
 
     private long userID;
     private long messageID;
@@ -130,6 +130,11 @@ public class DiscordCommandSender implements CommandSender {
 
     public void sendMessage(ChannelTarget target, MessageEmbed embed) {
         sendMessage(embed);
+    }
+
+    public void build(DiscordBot bot) {
+        dbot = bot;
+        jda = dbot.getShardManager().getUserByID(userID).getJDA();
     }
 
 }
