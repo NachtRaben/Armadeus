@@ -54,7 +54,8 @@ public class GuildConfig implements CustomJsonIO {
     boolean deleteCommands = false;
 
     Set<String> prefixes;
-    Set<String> disabledCommands;
+    Map<String, Set<Long>> disabledCommands;
+    boolean isBlacklist = true;
     Set<Long> blacklistedIDs;
     Map<String, Long> logChannels;
     Map<String, String> metadata;
@@ -63,7 +64,8 @@ public class GuildConfig implements CustomJsonIO {
         this.guildManager = manager;
         this.guildID = guild;
         this.prefixes = new HashSet<>();
-        this.disabledCommands = new HashSet<>();
+        this.disabledCommands = new HashMap<>();
+        this.isBlacklist = true;
         this.blacklistedIDs = new HashSet<>();
         this.logChannels = new HashMap<>();
         this.configFile = new File(GUILD_DIR, guild + ".json");
@@ -83,7 +85,9 @@ public class GuildConfig implements CustomJsonIO {
             if (jo.has("prefixes"))
                 prefixes = GSON.fromJson(jo.get("prefixes"), TypeToken.getParameterized(HashSet.class, String.class).getType());
             if (jo.has("disabledCommands"))
-                disabledCommands = GSON.fromJson(jo.get("disabledCommands"), TypeToken.getParameterized(HashSet.class, String.class).getType());
+                disabledCommands = GSON.fromJson(jo.get("disabledCommands"), new TypeToken<HashMap<String, Set<Long>>>(){}.getType());
+            if(jo.has("isBlacklist"))
+                isBlacklist = jo.get("isBlacklist").getAsBoolean();
             if (jo.has("blacklistedIDs"))
                 blacklistedIDs = GSON.fromJson(jo.get("blacklistedIDS"), TypeToken.getParameterized(HashSet.class, String.class).getType());
             if (jo.has("logChannels"))
@@ -131,6 +135,10 @@ public class GuildConfig implements CustomJsonIO {
                 MessageOutput mout = new MessageOutput(out);
                 int count = 0;
                 for (AudioTrack track : tracks) {
+                    if(track == null) {
+                        LOGGER.error("Wtf, null track in `" + getGuild().getName() + "`. O.o");
+                        continue;
+                    }
                     AudioSourceManager sm = track.getSourceManager();
                     if(sm == null) {
                         LOGGER.debug("Invalid source manager in " + getGuild().getName() + "?");
@@ -138,7 +146,7 @@ public class GuildConfig implements CustomJsonIO {
                         LOGGER.debug(String.valueOf(track.getInfo()));
                         LOGGER.debug(String.valueOf(track.getState()));
                         LOGGER.debug(String.valueOf(track.getUserData()));
-                    } else if (sm != null && track.getSourceManager().isTrackEncodable(track)) {
+                    } else if (track.getSourceManager().isTrackEncodable(track)) {
                         getMusicManager().getPlayerManager().encodeTrack(mout, track);
                         byte[] userdata = Utils.serialize(track.getUserData(GuildCommandSender.class));
                         out.writeInt(userdata.length);
@@ -255,16 +263,33 @@ public class GuildConfig implements CustomJsonIO {
         prefixes.add(prefix);
     }
 
-    public Set<String> getDisabledCommands() {
-        return new HashSet<>(disabledCommands);
+    public HashMap<String, Set<Long>> getDisabledCommands() {
+        return new HashMap<>(disabledCommands);
     }
 
-    public void setDisabledCommands(Set<String> commands) {
+    public boolean isBlacklist() {
+        return isBlacklist;
+    }
+
+    public void setBlacklist(boolean blacklist) {
+        isBlacklist = blacklist;
+    }
+
+    public void setDisabledCommands(Map<String, Set<Long>> commands) {
         this.disabledCommands = commands;
     }
 
-    public void addDisabledCommand(String command) {
-        disabledCommands.add(command);
+    public void addDisabledCommand(String command, long groupId) {
+        disabledCommands.computeIfAbsent(command, set -> new HashSet<>()).add(groupId);
+    }
+
+    public void removeDisabledCommand(String command, long groupId) {
+        if(disabledCommands.containsKey(command)) {
+            Set<Long> ids = disabledCommands.get(command);
+            ids.remove(groupId);
+            if(ids.isEmpty())
+                disabledCommands.remove(command);
+        }
     }
 
     public Set<Long> getBlacklistedIDs() {

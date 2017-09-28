@@ -1,5 +1,6 @@
 package com.nachtraben.core.command;
 
+import com.nachtraben.core.util.Utils;
 import com.nachtraben.orangeslice.CommandResult;
 import com.nachtraben.orangeslice.CommandSender;
 import com.nachtraben.tohsaka.Tohsaka;
@@ -16,7 +17,6 @@ public class ConsoleCommandSender implements CommandSender, Runnable {
     private static final Logger LOGGER = LoggerFactory.getLogger(ConsoleCommandSender.class);
 
     private static ConsoleCommandSender instance;
-    private Thread runnable;
     private Scanner input;
 
     public ConsoleCommandSender() {
@@ -24,8 +24,7 @@ public class ConsoleCommandSender implements CommandSender, Runnable {
         Asserts.check(instance == null, "There is already an instance of the ConsoleCommandSender");
         instance = this;
         input = new Scanner(System.in);
-        runnable = new Thread(this);
-        runnable.start();
+        Utils.getExecutor().execute(this);
     }
 
     @Override

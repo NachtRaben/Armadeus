@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class RedisGuildConfig extends GuildConfig implements RedisConfig {
 
@@ -30,8 +31,21 @@ public class RedisGuildConfig extends GuildConfig implements RedisConfig {
             deleteCommands = Boolean.parseBoolean(config.get("deleteCommands"));
         if (config.containsKey("prefixes"))
             prefixes = GSON.fromJson(config.get("prefixes"), TypeToken.getParameterized(HashSet.class, String.class).getType());
-        if (config.containsKey("disabledCommands"))
-            disabledCommands = GSON.fromJson(config.get("disabledCommands"), TypeToken.getParameterized(HashSet.class, String.class).getType());
+        if (config.containsKey("disabledCommands")) {
+            try {
+                disabledCommands = GSON.fromJson(config.get("disabledCommands"), new TypeToken<HashMap<String, HashSet<Long>>>(){}.getType());
+            } catch (Exception e) {
+                try {
+                    disabledCommands =
+                            ((HashSet<String>) GSON.fromJson(config.get("disabledCommands"), TypeToken.getParameterized(HashSet.class, String.class).getType()))
+                                    .stream().collect(Collectors.toMap(cmd -> cmd, value -> new HashSet<Long>()));
+                } catch (Exception e2) {
+                    LOGGER.error("Failed to convert disabled commands.", e2);
+                }
+            }
+        }
+        if (config.containsKey("isBlacklist"))
+            isBlacklist = Boolean.parseBoolean(config.get("isBlacklist"));
         if (config.containsKey("blacklistedIDs"))
             blacklistedIDs = GSON.fromJson(config.get("blacklistedIDs"), TypeToken.getParameterized(HashSet.class, Long.class).getType());
         if (config.containsKey("logChannels"))
@@ -71,6 +85,7 @@ public class RedisGuildConfig extends GuildConfig implements RedisConfig {
         result.put("deleteCommands", String.valueOf(shouldDeleteCommands()));
         result.put("prefixes", GSON.toJson(getPrefixes()));
         result.put("disabledCommands", GSON.toJson(getDisabledCommands()));
+        result.put("isBlacklist", String.valueOf(isBlacklist));
         result.put("blacklistedIDs", GSON.toJson(getBlacklistedIDs()));
         result.put("logChannels", GSON.toJson(getLogChannels()));
         result.put("metadata", GSON.toJson(getMetadata()));

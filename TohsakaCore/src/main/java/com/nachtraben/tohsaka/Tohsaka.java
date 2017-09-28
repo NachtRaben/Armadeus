@@ -3,6 +3,7 @@ package com.nachtraben.tohsaka;
 import com.nachtraben.core.DiscordBot;
 import com.nachtraben.core.command.ConsoleCommandSender;
 import com.nachtraben.core.command.GuildCommandSender;
+import com.nachtraben.core.configuration.GuildConfig;
 import com.nachtraben.orangeslice.CommandResult;
 import com.nachtraben.orangeslice.command.Cmd;
 import com.nachtraben.orangeslice.command.Command;
@@ -25,6 +26,7 @@ import org.slf4j.LoggerFactory;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 public class Tohsaka extends DiscordBot implements CommandEventListener {
@@ -97,6 +99,24 @@ public class Tohsaka extends DiscordBot implements CommandEventListener {
         if(e.getSender() instanceof GuildCommandSender) {
             GuildCommandSender sendee = (GuildCommandSender) e.getSender();
             LOGGER.debug(String.format("CommandPreProcess >> Sender: %s#{%s}, Args: %s, Flags: %s, Command: %s", sendee.getMember().getEffectiveName(), sendee.getGuild().getName(), e.getArgs(), e.getFlags(), e.getCommand().getName()));
+            GuildConfig config = sendee.getGuildConfig();
+            if(sendee.getMember().isOwner() || sendee.getMember().hasPermission(Permission.ADMINISTRATOR) || getConfig().getOwnerIDs().contains(sendee.getUserID()) || getConfig().getDeveloperIDs().contains(sendee.getUserID()))
+                return;
+
+            Map<String, Set<Long>> blacklistedCommands = config.getDisabledCommands();
+            if(blacklistedCommands.containsKey(e.getCommand().getName())) {
+                Set<Long> blacklistedRoles = blacklistedCommands.get(e.getCommand().getName());
+                boolean hasRole = blacklistedRoles.contains(-1L) || sendee.getMember().getRoles().stream().anyMatch(role -> blacklistedRoles.contains(role.getIdLong()));
+                if(config.isBlacklist() && hasRole) {
+                    LOGGER.info(sendee.getName() + " was denied access cause they had the role.");
+                    sendee.sendPrivateMessage("Sorry but `" + sendee.getGuild().getName() + " doesn't have that command enabled for your roles.");
+                    e.setCancelled();
+                } else if(!config.isBlacklist() && !hasRole) {
+                    LOGGER.info(sendee.getName() + " was denied access cause they didn't have the role.");
+                    sendee.sendPrivateMessage("Sorry but `" + sendee.getGuild().getName() + " doesn't have that command enabled for your roles.");
+                    e.setCancelled();
+                }
+            }
         } else {
             LOGGER.debug(String.format("CommandPreProcess >> Sender: %s, Args: %s, Flags: %s, Command: %s", e.getSender().getName(), e.getArgs(), e.getFlags(), e.getCommand().getName()));
         }

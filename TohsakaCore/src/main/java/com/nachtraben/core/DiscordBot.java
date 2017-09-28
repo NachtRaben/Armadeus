@@ -126,19 +126,26 @@ public abstract class DiscordBot {
     }
 
     public void shutdown() {
-        if(shutdownHandler != null)
-            Runtime.getRuntime().removeShutdownHook(shutdownHandler);
+        shutdown(0);
+    }
+
+    public void shutdown(int code) {
+        if(shutdownHandler != null) {
+            try {
+                Runtime.getRuntime().removeShutdownHook(shutdownHandler);
+            } catch (Exception ignored) {}
+        }
 
         running = false;
-        Utils.stopExecutors();
         try {
             Thread.sleep(4000);
         } catch (InterruptedException ignored) {
         }
         guildManager.savePersistInformation();
-        shardManager.shutdownAllShards();
         DiscordMetrics.shutdown();
-        System.exit(0);
+        shardManager.shutdownAllShards();
+        Utils.stopExecutors();
+        Runtime.getRuntime().halt(code);
     }
 
     public int getTotalChannels() {

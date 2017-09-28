@@ -236,6 +236,13 @@ public class TrackScheduler extends AudioEventAdapter {
         LOGGER.error("Something went wrong with lavaplayer.", exception);
     }
 
+    @Override
+    public void onTrackStuck(AudioPlayer player, AudioTrack track, long thresholdMs) {
+        GuildCommandSender requestor = track.getUserData(GuildCommandSender.class);
+        requestor.sendMessage(ChannelTarget.MUSIC + "Got stuck while playing `" + track.getInfo().title + "`. It will be skipped.");
+        skip();
+    }
+
     private void sendEmbed(AudioTrack track, GuildCommandSender sender) {
         EmbedBuilder builder = Utils.getAudioTrackEmbed(track, sender);
         sender.sendMessage(ChannelTarget.MUSIC, builder.build());
