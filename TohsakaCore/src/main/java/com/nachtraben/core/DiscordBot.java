@@ -6,7 +6,6 @@ import com.nachtraben.core.configuration.RedisBotConfig;
 import com.nachtraben.core.listeners.DiscordCommandListener;
 import com.nachtraben.core.listeners.FileUploadListener;
 import com.nachtraben.core.listeners.LogbackListener;
-import com.nachtraben.core.listeners.SimpleLogListener;
 import com.nachtraben.core.managers.GuildManager;
 import com.nachtraben.core.managers.ShardManager;
 import com.nachtraben.core.util.DiscordMetrics;
@@ -63,9 +62,6 @@ public abstract class DiscordBot {
 
         commandBase = new CommandBase();
         commandListener = new DiscordCommandListener(this);
-
-        if (!SimpleLogListener.isInitialized())
-            SimpleLogListener.init();
 
         shardManager = new ShardManager(this);
         shardManager.addDefaultListener(new DiscordCommandListener(this), new FileUploadListener());

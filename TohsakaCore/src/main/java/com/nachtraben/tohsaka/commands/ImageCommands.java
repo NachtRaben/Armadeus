@@ -8,12 +8,12 @@ import com.nachtraben.core.util.images.NMappedBoards;
 import com.nachtraben.orangeslice.CommandSender;
 import com.nachtraben.orangeslice.command.CommandTree;
 import com.nachtraben.orangeslice.command.SubCommand;
-import com.nachtraben.tohsaka.ImageRating;
 import com.vdurmont.emoji.EmojiParser;
 import net.dv8tion.jda.core.EmbedBuilder;
-import net.kodehawa.lib.imageboards.ImageboardAPI;
+import net.kodehawa.lib.imageboards.ImageBoard;
 import net.kodehawa.lib.imageboards.entities.BoardImage;
-import net.kodehawa.lib.imageboards.entities.QueryFailedException;
+import net.kodehawa.lib.imageboards.entities.Rating;
+import net.kodehawa.lib.imageboards.entities.exceptions.QueryFailedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,26 +50,24 @@ public class ImageCommands extends CommandTree {
                     boolean questionable = flags.containsKey("questionable") || flags.containsKey("q");
                     boolean explicit = flags.containsKey("explicit") || flags.containsKey("e");
 
-                    ImageRating rating = gcs != null && gcs.getTextChannel().isNSFW() ? ImageRating.EXPLICIT : ImageRating.SAFE;
-                    if (explicit && questionable)
-                        rating = ImageRating.QANDE;
-                    else if (explicit)
-                        rating = ImageRating.EXPLICIT;
+                    Rating rating = gcs != null && gcs.getTextChannel().isNSFW() ? Rating.EXPLICIT : Rating.SAFE;
+                    if (explicit)
+                        rating = Rating.EXPLICIT;
                     else if (questionable)
-                        rating = ImageRating.QUESTIONABLE;
+                        rating = Rating.QUESTIONABLE;
                     else if (safe)
-                        rating = ImageRating.SAFE;
+                        rating = Rating.SAFE;
 
-                    if (gcs != null && !gcs.getTextChannel().isNSFW() && !rating.equals(ImageRating.SAFE)) {
+                    if (gcs != null && !gcs.getTextChannel().isNSFW() && !rating.equals(Rating.SAFE)) {
                         gcs.sendMessage(ChannelTarget.NSFW, "Sorry, " + gcs.getMember().getAsMention() + " but I can't satisfy that desire in here. " + EmojiParser.parseToUnicode(":cry:"));
                         return;
                     }
 
                     int page = RANDOM.nextInt(255);
                     runs.getAndIncrement();
-                    ImageboardAPI<? extends BoardImage> board = rating.equals(ImageRating.SAFE) ? NMappedBoards.cleanBoards.get(RANDOM.nextInt(NMappedBoards.cleanBoards.size())) : NMappedBoards.nsfwBoards.get(RANDOM.nextInt(NMappedBoards.nsfwBoards.size()));
+                    ImageBoard<? extends BoardImage> board = rating.equals(Rating.SAFE) ? NMappedBoards.cleanBoards.get(RANDOM.nextInt(NMappedBoards.cleanBoards.size())) : NMappedBoards.nsfwBoards.get(RANDOM.nextInt(NMappedBoards.nsfwBoards.size()));
                     List<? extends BoardImage> images = null;
-                    ImageRating finalRating = rating;
+                    Rating finalRating = rating;
                     int attempts = 0;
                     while(images == null || images.isEmpty()) {
                         if(attempts++ > 10) {
@@ -77,9 +75,9 @@ public class ImageCommands extends CommandTree {
                             return;
                         }
                         try {
-                            images = board.getBlocking(page, 100);
+                            images = board.get(page, 100).blocking();
                             if(images != null) {
-                                images = images.stream().filter(image -> finalRating.matches(image.getRating().toLowerCase())
+                                images = images.stream().filter(image -> image.getRating().equals(finalRating)
                                         && (image.getTags().stream().noneMatch(tag -> tag.equalsIgnoreCase("loli")))).collect(Collectors.toList());
                                 if(!images.isEmpty())
                                     break;
@@ -89,25 +87,25 @@ public class ImageCommands extends CommandTree {
                             } catch (InterruptedException ignored) {
                             }
                         } catch (QueryFailedException e) {
-                            LOGGER.debug("Failed to query " + board.getBoardType().name() + ", received a " + e.getCode() + ".");
+                            LOGGER.debug("Failed to query " + board.getBoardType() + ", received a " + e.getCode() + ".");
                             return;
                         }
                     }
                     BoardImage selection = images.get(RANDOM.nextInt(images.size()));
-                    LOGGER.debug(selection.getImageUrl());
+                    LOGGER.debug(selection.getURL());
                     EmbedBuilder eb = new EmbedBuilder();
-                    eb.setAuthor(board.getImageType().getSimpleName().replace("Image", "").replace("Furry", "E621") + ":", selection.getImageUrl(), null);
+                    eb.setAuthor(board.getImageType().getSimpleName().replace("Image", "").replace("Furry", "E621") + ":", selection.getURL(), null);
                     //if(!selection.getTags().isEmpty())
                         //eb.setDescription("Tags: `" + selection.getTags().subList(0, Math.min(5, selection.getTags().size())) + "`");                    eb.setFooter("Requested by: " + (gcs != null ? gcs.getMember().getEffectiveName() : sendee.getName()), sendee.getUser().getAvatarUrl());
                     eb.setColor(Utils.randomColor());
-                    eb.setImage(selection.getImageUrl());
-                    if (selection.getImageUrl().toLowerCase().contains("null")) {
+                    eb.setImage(selection.getURL());
+                    if (selection.getURL().toLowerCase().contains("null")) {
                         // TODO: Query again? Send user a message?
                         sendee.sendMessage("Unfortunately I was unable to fetch you an image, please try again.");
-                        LOGGER.error(board.getBoardType().name() + " returned invalid URL!\tType: " + selection.getClass().getSimpleName() + "\tURL: " + selection.getImageUrl() + "\tErrors: " + errors.incrementAndGet() + "/" + runs.get());
+                        LOGGER.error(board.getBoardType() + " returned invalid URL!\tType: " + selection.getClass().getSimpleName() + "\tURL: " + selection.getURL() + "\tErrors: " + errors.incrementAndGet() + "/" + runs.get());
                         return;
                     }
-                    if (finalRating.equals(ImageRating.SAFE))
+                    if (finalRating.equals(Rating.SAFE))
                         sendee.sendMessage(ChannelTarget.GENERIC, eb.build());
                     else
                         sendee.sendMessage(ChannelTarget.NSFW, eb.build());

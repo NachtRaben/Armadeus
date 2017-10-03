@@ -1,36 +1,36 @@
 package com.nachtraben.core.util.images;
 
-import net.kodehawa.lib.imageboards.ImageboardAPI;
+import net.kodehawa.lib.imageboards.DefaultImageBoards;
+import net.kodehawa.lib.imageboards.ImageBoard;
 import net.kodehawa.lib.imageboards.entities.BoardImage;
-import net.kodehawa.lib.imageboards.util.Imageboards;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class NMappedBoards {
 
-    public static final List<ImageboardAPI<? extends BoardImage>> nsfwBoards = new ArrayList<>();
-    public static final List<ImageboardAPI<? extends BoardImage>> cleanBoards = new ArrayList<>();
-    public static final List<ImageboardAPI<? extends BoardImage>> allBoards = new ArrayList<>();
+    public static final List<ImageBoard<? extends BoardImage>> nsfwBoards = new ArrayList<>();
+    public static final List<ImageBoard<? extends BoardImage>> cleanBoards = new ArrayList<>();
+    public static final List<ImageBoard<? extends BoardImage>> allBoards = new ArrayList<>();
 
     static {
-        nsfwBoards.add(Imageboards.E621);
-        nsfwBoards.add(Imageboards.KONACHAN);
-        nsfwBoards.add(Imageboards.RULE34);
-        nsfwBoards.add(Imageboards.YANDERE);
-        nsfwBoards.add(Imageboards.DANBOORU);
+        nsfwBoards.add(DefaultImageBoards.E621);
+        nsfwBoards.add(DefaultImageBoards.KONACHAN);
+        nsfwBoards.add(DefaultImageBoards.RULE34);
+        nsfwBoards.add(DefaultImageBoards.YANDERE);
+        nsfwBoards.add(DefaultImageBoards.DANBOORU);
 
-        cleanBoards.add(Imageboards.KONACHAN);
-        cleanBoards.add(Imageboards.YANDERE);
-        cleanBoards.add(Imageboards.DANBOORU);
-        cleanBoards.add(Imageboards.SAFEBOORU);
+        cleanBoards.add(DefaultImageBoards.KONACHAN);
+        cleanBoards.add(DefaultImageBoards.YANDERE);
+        cleanBoards.add(DefaultImageBoards.DANBOORU);
+        cleanBoards.add(DefaultImageBoards.SAFEBOORU);
 
-        allBoards.add(Imageboards.E621);
-        allBoards.add(Imageboards.KONACHAN);
-        allBoards.add(Imageboards.RULE34);
-        allBoards.add(Imageboards.YANDERE);
-        allBoards.add(Imageboards.DANBOORU);
-        allBoards.add(Imageboards.SAFEBOORU);
+        allBoards.add(DefaultImageBoards.E621);
+        allBoards.add(DefaultImageBoards.KONACHAN);
+        allBoards.add(DefaultImageBoards.RULE34);
+        allBoards.add(DefaultImageBoards.YANDERE);
+        allBoards.add(DefaultImageBoards.DANBOORU);
+        allBoards.add(DefaultImageBoards.SAFEBOORU);
     }
 
 }
