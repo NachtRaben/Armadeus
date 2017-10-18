@@ -10,6 +10,7 @@ import com.nachtraben.core.managers.GuildManager;
 import com.nachtraben.core.managers.ShardManager;
 import com.nachtraben.core.util.DiscordMetrics;
 import com.nachtraben.core.util.Utils;
+import com.nachtraben.core.util.WebhookLogger;
 import com.nachtraben.orangeslice.CommandBase;
 import com.nachtraben.pineappleslice.redis.RedisModule;
 import com.nachtraben.pineappleslice.redis.RedisProperties;
@@ -32,6 +33,8 @@ public abstract class DiscordBot {
     private DiscordCommandListener commandListener;
     private Thread shutdownHandler;
     private DiscordMetrics dmetrics;
+
+    private WebhookLogger wlogger;
 
     private boolean running = false;
     private boolean debugging = false;
@@ -71,6 +74,18 @@ public abstract class DiscordBot {
     protected void postStart() {
         dmetrics = new DiscordMetrics(this);
         try {
+            Thread.sleep(2000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        wlogger = new WebhookLogger(this, 317784247949590528L, 369967452488073216L);
+        try {
+            wlogger.start();
+        } catch (Exception e) {
+            logger.error("Failed to initialize fine logger!", e);
+            wlogger = null;
+        }
+        try {
             Thread.sleep(5000);
             guildManager.loadPersistInformation();
         } catch (InterruptedException e) {
@@ -100,6 +115,10 @@ public abstract class DiscordBot {
 
     public boolean isDebugging() {
         return debugging;
+    }
+
+    public WebhookLogger getWlogger() {
+        return wlogger;
     }
 
     public void setDebugging(boolean debugging) {
@@ -140,6 +159,7 @@ public abstract class DiscordBot {
         guildManager.savePersistInformation();
         DiscordMetrics.shutdown();
         shardManager.shutdownAllShards();
+        wlogger.stop();
         Utils.stopExecutors();
         Runtime.getRuntime().halt(code);
     }

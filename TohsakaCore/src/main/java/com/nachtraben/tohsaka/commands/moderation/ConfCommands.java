@@ -1,9 +1,10 @@
-package com.nachtraben.tohsaka.commands;
+package com.nachtraben.tohsaka.commands.moderation;
 
 import com.nachtraben.core.command.GuildCommandSender;
 import com.nachtraben.core.configuration.BotConfig;
 import com.nachtraben.core.configuration.GuildConfig;
 import com.nachtraben.core.util.ChannelTarget;
+import com.nachtraben.core.util.TimeUtil;
 import com.nachtraben.orangeslice.CommandSender;
 import com.nachtraben.orangeslice.command.Cmd;
 import com.nachtraben.tohsaka.Tohsaka;
@@ -144,6 +145,31 @@ public class ConfCommands {
             }
             config.save();
             sendee.sendMessage(ChannelTarget.GENERIC, String.format("`%s` logging channel is now unset.", target.toString()));
+        } else {
+            sender.sendMessage("Sorry but that command is only available in guilds I'm a part of.");
+        }
+    }
+
+    @Cmd(name = "conf", format = "set cooldown <cooldown>", description = "Sets global cooldown for all commands performed per user.")
+    public void setCooldown(CommandSender sender, Map<String, String> args, Map<String, String> flags) {
+        if (sender instanceof GuildCommandSender) {
+            GuildCommandSender sendee = (GuildCommandSender) sender;
+
+            if (!hasPerms(sendee)) {
+                sendee.sendMessage(ChannelTarget.GENERIC, "Sorry but you just aren't good enough for that command.");
+                return;
+            }
+
+            GuildConfig config = sendee.getDbot().getGuildManager().getConfigurationFor(sendee.getGuild());
+            long cooldown = TimeUtil.stringToMillis(args.get("cooldown"));
+            if(cooldown != 0 && cooldown < 5000) {
+                sendee.sendMessage("Sorry but the minimal cooldown is either 0 (to disable) or 5 seconds.");
+                return;
+            }
+            config.setCooldown(cooldown);
+            config.save();
+            sendee.sendMessage(ChannelTarget.GENERIC, "Cooldown is now: `" + TimeUtil.fromLong(config.getCooldown(), TimeUtil.FormatType.STRING) + "`.");
+
         } else {
             sender.sendMessage("Sorry but that command is only available in guilds I'm a part of.");
         }

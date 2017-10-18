@@ -68,15 +68,7 @@ public class TimedCache<K, V> {
     }
 
     private void cleanup() {
-        Iterator<Map.Entry<K, TimedValue<V>>> it = data.entrySet().iterator();
-        while(it.hasNext()) {
-            Map.Entry<K, TimedValue<V>> entry = it.next();
-            if(entry.getValue().isExpired()) {
-                System.out.println(entry.getKey() + " has expired.");
-                it.remove();
-            }
-        }
-        //data.entrySet().removeIf(entry -> entry.getValue().isExpired());
+        data.entrySet().removeIf(entry -> entry.getValue().isExpired());
     }
 
     private class TimedValue<T> {

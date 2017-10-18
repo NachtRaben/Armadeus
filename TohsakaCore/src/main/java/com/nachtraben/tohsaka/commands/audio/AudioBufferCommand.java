@@ -35,10 +35,10 @@ public class AudioBufferCommand extends Command {
                 return;
             }
             if(time >= currTrack.getDuration()) {
-                sendee.sendMessage(ChannelTarget.MUSIC, "Sorry, but I can only buffer to `" + TimeUtil.millisToString(currTrack.getDuration(), TimeUtil.FormatType.STRING) + "`.");
+                sendee.sendMessage(ChannelTarget.MUSIC, "Sorry, but I can only buffer to `" + TimeUtil.fromLong(currTrack.getDuration(), TimeUtil.FormatType.STRING) + "`.");
                 return;
             }
-            sendee.sendMessage(ChannelTarget.MUSIC, "Buffering to `" + TimeUtil.millisToString(time, TimeUtil.FormatType.STRING) + "`.");
+            sendee.sendMessage(ChannelTarget.MUSIC, "Buffering to `" + TimeUtil.fromLong(time, TimeUtil.FormatType.STRING) + "`.");
             manager.getPlayer().getPlayingTrack().setPosition(time);
         } else {
             sender.sendMessage("Sorry but that command is only available in guilds I'm a part of.");

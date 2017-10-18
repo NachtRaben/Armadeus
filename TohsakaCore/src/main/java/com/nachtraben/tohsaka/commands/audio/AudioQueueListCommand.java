@@ -12,7 +12,6 @@ import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import net.dv8tion.jda.core.EmbedBuilder;
 import net.dv8tion.jda.core.entities.Member;
 import net.dv8tion.jda.core.entities.MessageEmbed;
-import net.dv8tion.jda.core.entities.MessageEmbed.Field;
 
 import java.util.List;
 import java.util.Map;
@@ -44,20 +43,20 @@ public class AudioQueueListCommand extends Command {
 //            eb.setDescription("__***" + botMember.getEffectiveName() + "'s Queue:***__");
             eb.setColor(Utils.randomColor());
             eb.appendDescription("**[Current](" + current.getInfo().uri + ") ) " + current.getInfo().title + " for (`" +
-                    (current.getInfo().isStream ? "Stream" : TimeUtil.millisToString(current.getDuration(), TimeUtil.FormatType.STRING))
+                    (current.getInfo().isStream ? "Stream" : TimeUtil.fromLong(current.getDuration(), TimeUtil.FormatType.STRING))
                             + "`)**");
             int counter = 0;
             for (AudioTrack track : tracks) {
                 if (counter++ >= 10)
                     break;
                 String message = "\n**[" + counter + "](" + track.getInfo().uri + ") ) " + track.getInfo().title + " for (`"
-                        + (track.getInfo().isStream ? "Stream" : TimeUtil.millisToString(track.getDuration(), TimeUtil.FormatType.STRING))
+                        + (track.getInfo().isStream ? "Stream" : TimeUtil.fromLong(track.getDuration(), TimeUtil.FormatType.STRING))
                         + "`)**";
                 if(eb.getDescriptionBuilder().length() + message.length() > MessageEmbed.TEXT_MAX_LENGTH)
                     break;
                 eb.appendDescription(message);
             }
-            eb.setFooter("Tracks: " + tracks.size() + " Runtime: " + TimeUtil.millisToString(totalTime, TimeUtil.FormatType.STRING), sendee.getGuild().getJDA().getSelfUser().getAvatarUrl());
+            eb.setFooter("Tracks: " + tracks.size() + " Runtime: " + TimeUtil.fromLong(totalTime, TimeUtil.FormatType.STRING), sendee.getGuild().getJDA().getSelfUser().getAvatarUrl());
             sendee.sendMessage(ChannelTarget.MUSIC, eb.build());
         } else {
             sender.sendMessage("Sorry but that command is only available in guilds I'm a part of.");

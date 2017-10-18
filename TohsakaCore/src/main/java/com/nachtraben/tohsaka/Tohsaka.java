@@ -4,6 +4,7 @@ import com.nachtraben.core.DiscordBot;
 import com.nachtraben.core.command.ConsoleCommandSender;
 import com.nachtraben.core.command.GuildCommandSender;
 import com.nachtraben.core.configuration.GuildConfig;
+import com.nachtraben.core.util.TimeUtil;
 import com.nachtraben.orangeslice.CommandResult;
 import com.nachtraben.orangeslice.command.Cmd;
 import com.nachtraben.orangeslice.command.Command;
@@ -25,15 +26,19 @@ import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class Tohsaka extends DiscordBot implements CommandEventListener {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Tohsaka.class);
 
     private static Tohsaka instance;
+
+    private ConcurrentHashMap<Long, Map<Long, Long>> cooldowns = new ConcurrentHashMap<>();
 
     public Tohsaka(String[] args, boolean debugging) {
         super(args);
@@ -96,27 +101,45 @@ public class Tohsaka extends DiscordBot implements CommandEventListener {
 
     @Override
     public void onCommandPreProcess(CommandPreProcessEvent e) {
-        if(e.getSender() instanceof GuildCommandSender) {
+        if (e.getSender() instanceof GuildCommandSender) {
             GuildCommandSender sendee = (GuildCommandSender) e.getSender();
-            LOGGER.debug(String.format("CommandPreProcess >> Sender: %s#{%s}, Args: %s, Flags: %s, Command: %s", sendee.getMember().getEffectiveName(), sendee.getGuild().getName(), e.getArgs(), e.getFlags(), e.getCommand().getName()));
             GuildConfig config = sendee.getGuildConfig();
-            if(sendee.getMember().isOwner() || sendee.getMember().hasPermission(Permission.ADMINISTRATOR) || getConfig().getOwnerIDs().contains(sendee.getUserID()) || getConfig().getDeveloperIDs().contains(sendee.getUserID()))
+            LOGGER.debug(String.format("CommandPreProcess >> Sender: %s#{%s}, Args: %s, Flags: %s, Command: %s", sendee.getMember().getEffectiveName(), sendee.getGuild().getName(), e.getArgs(), e.getFlags(), e.getCommand().getName()));
+            if (sendee.getMember().isOwner() || sendee.getMember().hasPermission(Permission.ADMINISTRATOR) || getConfig().getOwnerIDs().contains(sendee.getUserID()) || getConfig().getDeveloperIDs().contains(sendee.getUserID()))
                 return;
 
             Map<String, Set<Long>> blacklistedCommands = config.getDisabledCommands();
-            if(blacklistedCommands.containsKey(e.getCommand().getName())) {
+            if (blacklistedCommands.containsKey(e.getCommand().getName())) {
                 Set<Long> blacklistedRoles = blacklistedCommands.get(e.getCommand().getName());
                 boolean hasRole = blacklistedRoles.contains(-1L) || sendee.getMember().getRoles().stream().anyMatch(role -> blacklistedRoles.contains(role.getIdLong()));
-                if(config.isBlacklist() && hasRole) {
+                if (config.isBlacklist() && hasRole) {
                     LOGGER.info(sendee.getName() + " was denied access cause they had the role.");
                     sendee.sendPrivateMessage("Sorry but `" + sendee.getGuild().getName() + " doesn't have that command enabled for your roles.");
                     e.setCancelled();
-                } else if(!config.isBlacklist() && !hasRole) {
+                } else if (!config.isBlacklist() && !hasRole) {
                     LOGGER.info(sendee.getName() + " was denied access cause they didn't have the role.");
                     sendee.sendPrivateMessage("Sorry but `" + sendee.getGuild().getName() + " doesn't have that command enabled for your roles.");
                     e.setCancelled();
                 }
             }
+
+            if (config.hasCooldown()) {
+                Map<Long, Long> times = cooldowns.computeIfAbsent(sendee.getGuildId(), map -> new HashMap<>());
+                if (!times.containsKey(sendee.getUserID())) {
+                    times.put(sendee.getUserID(), System.currentTimeMillis() + config.getCooldown());
+                } else {
+                    long reset = times.get(sendee.getUserID());
+                    if (System.currentTimeMillis() > reset) {
+                        times.replace(sendee.getUserID(), System.currentTimeMillis() + config.getCooldown());
+                    } else {
+                        LOGGER.info(sendee.getName() + " was denied the ability to run command cause he was on cooldown for " + TimeUtil.fromLong(reset - System.currentTimeMillis(), TimeUtil.FormatType.STRING));
+                        sendee.sendPrivateMessage("Sorry, but you are currently under cooldown in `" + sendee.getGuild().getName() + "` for `" + TimeUtil.fromLong(reset - System.currentTimeMillis(), TimeUtil.FormatType.STRING) + "`.");
+                        e.setCancelled();
+                        return;
+                    }
+                }
+            }
+
         } else {
             LOGGER.debug(String.format("CommandPreProcess >> Sender: %s, Args: %s, Flags: %s, Command: %s", e.getSender().getName(), e.getArgs(), e.getFlags(), e.getCommand().getName()));
         }
@@ -124,11 +147,11 @@ public class Tohsaka extends DiscordBot implements CommandEventListener {
 
     @Override
     public void onCommandPostProcess(CommandPostProcessEvent e) {
-        if(e.getResult().equals(CommandResult.UNKNOWN_COMMAND))
+        if (e.getResult().equals(CommandResult.UNKNOWN_COMMAND))
             return;
         if (e.getSender() instanceof GuildCommandSender) {
             GuildCommandSender sendee = (GuildCommandSender) e.getSender();
-            LOGGER.debug(String.format("CommandPostProcess >> Sender: %s#{%s}, Args: %s, Flags:%s, Command: %s, Result: %s", sendee.getMember().getEffectiveName(), sendee.getGuild().getName(),  e.getArgs(), e.getFlags(), e.getCommand().getName(), e.getResult()));
+            LOGGER.debug(String.format("CommandPostProcess >> Sender: %s#{%s}, Args: %s, Flags:%s, Command: %s, Result: %s", sendee.getMember().getEffectiveName(), sendee.getGuild().getName(), e.getArgs(), e.getFlags(), e.getCommand().getName(), e.getResult()));
             Member bot = sendee.getGuild().getMember(sendee.getGuild().getJDA().getSelfUser());
             if (sendee.getGuildConfig().shouldDeleteCommands() && bot.hasPermission(Permission.MESSAGE_MANAGE)) {
                 try {
@@ -140,7 +163,7 @@ public class Tohsaka extends DiscordBot implements CommandEventListener {
         } else {
             LOGGER.debug(String.format("CommandPostProcess >> Sender: %s, Args: %s, Flags:%s, Command: %s, Result: %s", e.getSender().getName(), e.getArgs(), e.getFlags(), e.getCommand().getName(), e.getResult()));
         }
-        if(e.getResult().equals(CommandResult.INVALID_FLAGS))
+        if (e.getResult().equals(CommandResult.INVALID_FLAGS))
             e.getSender().sendMessage("Sorry, but you provided invalid flags for that command. {`" + e.getException().getMessage() + "`}");
     }
 

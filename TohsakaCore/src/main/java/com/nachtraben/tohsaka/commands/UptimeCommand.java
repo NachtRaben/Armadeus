@@ -20,7 +20,7 @@ public class UptimeCommand extends Command {
 
     @Override
     public void run(CommandSender sender, Map<String, String> args, Map<String, String> flags) {
-        sender.sendMessage("I have been online for: `" + TimeUtil.millisToString(rb.getUptime(), TimeUtil.FormatType.STRING) + "`.");
+        sender.sendMessage("I have been online for: `" + TimeUtil.fromLong(rb.getUptime(), TimeUtil.FormatType.STRING) + "`.");
     }
 
 }

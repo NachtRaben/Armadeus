@@ -1,4 +1,4 @@
-package com.nachtraben.tohsaka.commands;
+package com.nachtraben.tohsaka.commands.moderation;
 
 import com.nachtraben.core.audio.TrackScheduler;
 import com.nachtraben.core.command.GuildCommandSender;

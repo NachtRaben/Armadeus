@@ -3,11 +3,15 @@ package com.nachtraben.core.util;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.text.Format;
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.util.Date;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
@@ -23,6 +27,9 @@ public class DateTimeUtil {
 
     private static final DateTimeFormatter DATE_SHORT_YEAR = DateTimeFormatter.ofPattern("M/d/yy", Locale.ENGLISH);
     private static final DateTimeFormatter DATE_LONG_YEAR = DateTimeFormatter.ofPattern("M/d/yyyy", Locale.ENGLISH);
+
+    private static final Format format = new SimpleDateFormat("HH:mm:ss");
+
 
     public static LocalTime parseTime(String time) {
         DateTimeFormatter selected = time.toUpperCase().matches(".*[AM|PM]") ? TIME : TIME_24H;
@@ -55,6 +62,11 @@ public class DateTimeUtil {
         if (parsedDate != null && parsedTime != null)
             return LocalDateTime.of(parsedDate, parsedTime);
         return null;
+    }
+
+    public static String formatTime(long l) {
+        Date date = new Date(l);
+        return format.format(date);
     }
 
 }

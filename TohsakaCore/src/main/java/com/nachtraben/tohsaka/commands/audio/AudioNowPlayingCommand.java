@@ -35,8 +35,8 @@ public class AudioNowPlayingCommand extends Command {
             EmbedBuilder builder = Utils.getAudioTrackEmbed(manager.getPlayer().getPlayingTrack(), sendee);
             if(extended) {
                 AudioTrack current = manager.getPlayer().getPlayingTrack();
-                builder.addField("Position:", "`" + TimeUtil.millisToString(current.getPosition(), TimeUtil.FormatType.STRING)
-                        + "/" + TimeUtil.millisToString(current.getDuration(), TimeUtil.FormatType.STRING) + "`" , true);
+                builder.addField("Position:", "`" + TimeUtil.fromLong(current.getPosition(), TimeUtil.FormatType.STRING)
+                        + "/" + TimeUtil.fromLong(current.getDuration(), TimeUtil.FormatType.STRING) + "`" , true);
                 builder.addField("Volume:", "`" + manager.getPlayer().getVolume() + "/150" + "`", true);
                 builder.addField("QueueSize:", "`" + scheduler.getQueue().size() + "`", true);
                 builder.addField("RepeatAll:", "`" + scheduler.isRepeatQueue() + "`", true);

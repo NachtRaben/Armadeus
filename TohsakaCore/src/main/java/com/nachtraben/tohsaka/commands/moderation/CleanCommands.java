@@ -10,6 +10,7 @@ import com.nachtraben.orangeslice.command.CommandTree;
 import com.nachtraben.orangeslice.command.SubCommand;
 import net.dv8tion.jda.core.Permission;
 import net.dv8tion.jda.core.entities.Message;
+import net.dv8tion.jda.core.entities.MessageEmbed;
 import net.dv8tion.jda.core.entities.MessageHistory;
 import net.dv8tion.jda.core.entities.User;
 import org.slf4j.Logger;
@@ -461,6 +462,14 @@ public class CleanCommands extends CommandTree {
 
     private boolean shouldDelete(Message m, List<Long> ids, List<String> filters) {
         // Author matching
+        for(Message.Attachment att : m.getAttachments())
+            if(att.isImage())
+                return false;
+
+        for(MessageEmbed e : m.getEmbeds())
+            if(e.getImage() != null)
+                return false;
+
         if (ids.isEmpty() || ids.contains(m.getAuthor().getIdLong()) && filters.isEmpty())
             return true;
 

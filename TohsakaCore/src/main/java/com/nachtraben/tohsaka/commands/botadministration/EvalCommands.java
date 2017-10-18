@@ -1,4 +1,4 @@
-package com.nachtraben.tohsaka.commands;
+package com.nachtraben.tohsaka.commands.botadministration;
 
 import com.nachtraben.core.command.DiscordCommandSender;
 import com.nachtraben.core.command.GuildCommandSender;

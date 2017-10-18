@@ -48,10 +48,10 @@ public class DiscordCommandListener extends ListenerAdapter {
             DiscordCommandSender sender = null;
             String prefix = null;
             try {
-                if (dbot.isDebugging() &&
-                        !dbot.getConfig().getOwnerIDs().contains(message.getAuthor().getIdLong()) &&
-                        !dbot.getConfig().getDeveloperIDs().contains(message.getAuthor().getIdLong()))
-                    return;
+//                if (dbot.isDebugging() &&
+//                        !dbot.getConfig().getOwnerIDs().contains(message.getAuthor().getIdLong()) &&
+//                        !dbot.getConfig().getDeveloperIDs().contains(message.getAuthor().getIdLong()))
+//                    return;
 
                 if (!mentions.isEmpty() && mentions.get(0).equals(jda.getSelfUser()) && content.startsWith(mentions.get(0).getAsMention())) {
                     if (dbot.getConfig() instanceof RedisBotConfig && !dbot.isDebugging() && ((RedisBotConfig) dbot.getConfig()).isDebugging()) {

@@ -59,6 +59,7 @@ public class GuildConfig implements CustomJsonIO {
     Set<Long> blacklistedIDs;
     Map<String, Long> logChannels;
     Map<String, String> metadata;
+    long cooldown;
 
     public GuildConfig(GuildManager manager, Long guild) {
         this.guildManager = manager;
@@ -69,6 +70,7 @@ public class GuildConfig implements CustomJsonIO {
         this.blacklistedIDs = new HashSet<>();
         this.logChannels = new HashMap<>();
         this.configFile = new File(GUILD_DIR, guild + ".json");
+        this.cooldown = -1;
     }
 
     @Override
@@ -98,6 +100,8 @@ public class GuildConfig implements CustomJsonIO {
                 logChannels.put(ChannelTarget.MUSIC.toString().toLowerCase(), jo.get("musicLogChannelID").getAsLong());
             if (jo.has("metadata"))
                 metadata = GSON.fromJson(jo.get("metadata"), TypeToken.getParameterized(HashMap.class, String.class, String.class).getType());
+            if(jo.has("cooldown"))
+                cooldown = jo.get("cooldown").getAsLong();
             postInit();
         }
     }
@@ -353,6 +357,18 @@ public class GuildConfig implements CustomJsonIO {
 
     public Map<String, String> getMetadata() {
         return metadata;
+    }
+
+    public long getCooldown() {
+        return cooldown;
+    }
+
+    public void setCooldown(long cooldown) {
+        this.cooldown = cooldown;
+    }
+
+    public boolean hasCooldown() {
+        return cooldown >= 0;
     }
 
     public File getConfigFile() {

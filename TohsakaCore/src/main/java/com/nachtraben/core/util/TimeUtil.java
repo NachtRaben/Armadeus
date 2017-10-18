@@ -52,7 +52,7 @@ public class TimeUtil {
         return (neg ? -1 : 1) * (TimeUnit.DAYS.toMillis(weeks * 7) + TimeUnit.DAYS.toMillis(days) + TimeUnit.HOURS.toMillis(hours) + TimeUnit.MINUTES.toMillis(minutes) + TimeUnit.SECONDS.toMillis(seconds));
     }
 
-    public static String millisToString(Long t, FormatType format) {
+    public static String fromLong(Long t, FormatType format) {
         boolean neg = t < 0;
         if (neg) t = t * -1;
         int size = t >= WEEK ? 5 : (t >= DAY ? 4 : (t >= HOUR ? 3 : (t >= MINUTE ? 2 : 1)));

@@ -52,6 +52,8 @@ public class RedisGuildConfig extends GuildConfig implements RedisConfig {
             logChannels = GSON.fromJson(config.get("logChannels"), TypeToken.getParameterized(HashMap.class, String.class, Long.class).getType());
         if (config.containsKey("metadata"))
             metadata = GSON.fromJson(config.get("metadata"), TypeToken.getParameterized(HashMap.class, String.class, String.class).getType());
+        if(config.containsKey("cooldown"))
+            cooldown = Long.parseLong(config.get("cooldown"));
 
         if (config.containsKey("genericLogChannelID")) {
             long id = Long.parseLong(config.get("genericLogChannelID"));
@@ -89,6 +91,7 @@ public class RedisGuildConfig extends GuildConfig implements RedisConfig {
         result.put("blacklistedIDs", GSON.toJson(getBlacklistedIDs()));
         result.put("logChannels", GSON.toJson(getLogChannels()));
         result.put("metadata", GSON.toJson(getMetadata()));
+        result.put("cooldown", GSON.toJson(getCooldown()));
         return result;
     }
 

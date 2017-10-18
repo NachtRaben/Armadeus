@@ -1,4 +1,4 @@
-package com.nachtraben.tohsaka.commands;
+package com.nachtraben.tohsaka.commands.image;
 
 import com.nachtraben.core.util.TimedCache;
 import com.nachtraben.core.command.DiscordCommandSender;
@@ -10,7 +10,6 @@ import com.nachtraben.orangeslice.command.Command;
 import com.vdurmont.emoji.EmojiParser;
 import net.dv8tion.jda.core.EmbedBuilder;
 import net.kodehawa.lib.imageboards.DefaultImageBoards;
-import net.kodehawa.lib.imageboards.entities.BoardImage;
 import net.kodehawa.lib.imageboards.entities.Rating;
 import net.kodehawa.lib.imageboards.entities.impl.YandereImage;
 import org.slf4j.Logger;

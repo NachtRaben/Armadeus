@@ -8,7 +8,6 @@ import com.nachtraben.core.util.Utils;
 import com.nachtraben.tohsaka.Tohsaka;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayer;
 import com.sedmelluq.discord.lavaplayer.player.event.AudioEventAdapter;
-import com.sedmelluq.discord.lavaplayer.source.youtube.YoutubeAudioTrack;
 import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackEndReason;
@@ -20,7 +19,6 @@ import net.dv8tion.jda.core.managers.AudioManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.lang.reflect.ParameterizedType;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -58,7 +56,7 @@ public class TrackScheduler extends AudioEventAdapter {
                 if (v != null) {
                     if (leave != -1)
                         if (debug)
-                            LOGGER.debug("Leaving { " + g.getName() + " } in: " + TimeUtil.millisToString(leave - System.currentTimeMillis(), TimeUtil.FormatType.STRING));
+                            LOGGER.debug("Leaving { " + g.getName() + " } in: " + TimeUtil.fromLong(leave - System.currentTimeMillis(), TimeUtil.FormatType.STRING));
                     if ((v.getMembers().size() < 2 || currentTrack == null) && leave == -1) {
                         leave = TimeUnit.MINUTES.toMillis(2) + System.currentTimeMillis();
                     } else if (v.getMembers().size() > 1 && currentTrack != null && leave != -1) {
@@ -233,7 +231,7 @@ public class TrackScheduler extends AudioEventAdapter {
             repeatTrack = false;
         GuildCommandSender requestor = track.getUserData(GuildCommandSender.class);
         requestor.sendMessage(ChannelTarget.MUSIC, String.format("Failed to play `%s` because, `%s`.", track.getInfo().title, exception.getMessage()));
-        LOGGER.error("Something went wrong with lavaplayer.", exception);
+        LOGGER.warn("Something went wrong with lavaplayer.", exception);
     }
 
     @Override
