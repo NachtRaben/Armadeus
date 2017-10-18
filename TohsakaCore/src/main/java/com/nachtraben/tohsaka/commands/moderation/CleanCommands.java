@@ -33,7 +33,7 @@ public class CleanCommands extends CommandTree {
         super.getChildren().add(new SubCommand("clean", "[amount]", "Cleans bot messages. Dates specified in EST.") {
             @Override
             public void init() {
-                super.setFlags(Arrays.asList("--date=", "--time=", "--message=", "--silent", "-s"));
+                super.setFlags(Arrays.asList("--date=", "--time=", "--message=", "--silent", "--preserve", "-sp"));
             }
 
             @Override
@@ -97,14 +97,14 @@ public class CleanCommands extends CommandTree {
                             return;
                     }
 
-                    purge(sendee, amount, date, messageId, Collections.singletonList(sendee.getJDA().getSelfUser().getIdLong()), Collections.emptyList(), isSilent);
+                    purge(sendee, amount, date, messageId, Collections.singletonList(sendee.getJDA().getSelfUser().getIdLong()), Collections.emptyList(), isSilent, flags.containsKey("preserve") || flags.containsKey("p"));
                 }
             }
         });
         super.getChildren().add(new SubCommand("purge", "[amount]", "Cleans all messages. Dates specified in EST.") {
             @Override
             public void init() {
-                super.setFlags(Arrays.asList("--date=", "--time=", "--message=", "--silent", "-s"));
+                super.setFlags(Arrays.asList("--date=", "--time=", "--message=", "--silent", "--preserve", "-sp"));
             }
 
             @Override
@@ -173,14 +173,14 @@ public class CleanCommands extends CommandTree {
                             return;
                     }
 
-                    purge(sendee, amount, date,  messageId, Collections.emptyList(), Collections.emptyList(), isSilent);
+                    purge(sendee, amount, date,  messageId, Collections.emptyList(), Collections.emptyList(), isSilent, flags.containsKey("preserve") || flags.containsKey("p"));
                 }
             }
         });
         super.getChildren().add(new SubCommand("prune", "{users/content}", "Cleans messages based on users/content. Dates specified in EST.") {
             @Override
             public void init() {
-                super.setFlags(Arrays.asList("--date=", "--time=", "--message=", "--amount=", "--silent", "-s"));
+                super.setFlags(Arrays.asList("--date=", "--time=", "--message=", "--amount=", "--silent",  "--preserve", "-sp"));
             }
 
             @Override
@@ -264,7 +264,7 @@ public class CleanCommands extends CommandTree {
                         }
                     }
 
-                    purge(sendee, amount, date, messageId, ids, filters, isSilent);
+                    purge(sendee, amount, date, messageId, ids, filters, isSilent, flags.containsKey("preserve") || flags.containsKey("p"));
                 }
             }
         });
@@ -332,7 +332,7 @@ public class CleanCommands extends CommandTree {
         return sender.getMember().hasPermission(Permission.MESSAGE_MANAGE) || config.getDeveloperIDs().contains(sender.getUserID()) || config.getOwnerIDs().contains(sender.getUserID());
     }
 
-    private void purge(GuildCommandSender sender, int amount, LocalDateTime date, long messageID, List<Long> ids, List<String> filters, boolean silent) {
+    private void purge(GuildCommandSender sender, int amount, LocalDateTime date, long messageID, List<Long> ids, List<String> filters, boolean silent, boolean preserve) {
         // TODO: Limit how far back it will search for messages with amount
         // TODO: Limit how far date can go back
         purges.add(sender.getGuild().getIdLong());
@@ -366,7 +366,7 @@ public class CleanCommands extends CommandTree {
                         if (ignore && m.equals(sender.getMessage()))
                             continue;
 
-                        if (shouldDelete(m, ids, filters)) {
+                        if (shouldDelete(m, ids, filters, preserve)) {
                             LOGGER.debug("Deleting message: " + m.getIdLong() + " from " + m.getCreationTime().toString());
                             processMessage(m, bulkDelete, singleDelete);
                         }
@@ -400,7 +400,7 @@ public class CleanCommands extends CommandTree {
                         if (ignore && m.equals(sender.getMessage()))
                             continue;
 
-                        if (shouldDelete(m, ids, filters)) {
+                        if (shouldDelete(m, ids, filters, preserve)) {
                             LOGGER.debug("Deleting message: " + m.getIdLong());
                             processMessage(m, bulkDelete, singleDelete);
                         }
@@ -433,7 +433,7 @@ public class CleanCommands extends CommandTree {
                     if (ignore && m.equals(sender.getMessage()))
                         continue;
 
-                    if (shouldDelete(m, ids, filters)) {
+                    if (shouldDelete(m, ids, filters, preserve)) {
                         LOGGER.debug("Deleting message: " + m.getIdLong());
                         processMessage(m, bulkDelete, singleDelete);
                     }
@@ -460,16 +460,19 @@ public class CleanCommands extends CommandTree {
             singleDelete.add(m);
     }
 
-    private boolean shouldDelete(Message m, List<Long> ids, List<String> filters) {
+    private boolean shouldDelete(Message m, List<Long> ids, List<String> filters, boolean preserve) {
+        // Image preservation
+        if(preserve) {
+            for (Message.Attachment att : m.getAttachments())
+                if (att.isImage())
+                    return false;
+
+            for (MessageEmbed e : m.getEmbeds())
+                if (e.getImage() != null)
+                    return false;
+        }
+
         // Author matching
-        for(Message.Attachment att : m.getAttachments())
-            if(att.isImage())
-                return false;
-
-        for(MessageEmbed e : m.getEmbeds())
-            if(e.getImage() != null)
-                return false;
-
         if (ids.isEmpty() || ids.contains(m.getAuthor().getIdLong()) && filters.isEmpty())
             return true;
 

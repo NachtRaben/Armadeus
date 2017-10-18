@@ -368,7 +368,7 @@ public class GuildConfig implements CustomJsonIO {
     }
 
     public boolean hasCooldown() {
-        return cooldown >= 0;
+        return cooldown > 0;
     }
 
     public File getConfigFile() {

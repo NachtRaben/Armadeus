@@ -46,11 +46,11 @@ public class LogbackListener<E> extends AppenderBase<E> {
                         eb.setDescription(String.format("***[%s]: %s***", level.levelStr, event.getMessage().substring(0, Math.min(event.getMessage().length(), MessageEmbed.TEXT_MAX_LENGTH))));
                         eb.setColor(Utils.randomColor());
                         if(logger != null)
-                            logger.send(event.getFormattedMessage());
+                            logger.send(String.format("[%s][%s][%s]: %s", DateTimeUtil.formatTime(event.getTimeStamp()), level.levelStr, name, event.getFormattedMessage()));
                         if (event.getThrowableProxy() != null) {
                             String throwable = getStackTrace(event);
                             if(logger != null)
-                                logger.send(throwable);
+                                logger.send(String.format("[%s][%s][%s]: %s", DateTimeUtil.formatTime(event.getTimeStamp()), level.levelStr, name, throwable));
                             eb.addField("Stack:", throwable.substring(0, Math.min(throwable.length(), MessageEmbed.VALUE_MAX_LENGTH - eb.getDescriptionBuilder().length())), false);
                         }
                         eb.setFooter(new Date(event.getTimeStamp()).toString(), null);
