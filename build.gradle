@@ -1,0 +1,36 @@
+buildscript {
+    repositories {
+        mavenLocal()
+        mavenCentral()
+        jcenter()
+    }
+    dependencies {
+        classpath 'com.github.jengelman.gradle.plugins:shadow:2.0.1'
+    }
+}
+
+subprojects {
+    apply plugin: 'java'
+    apply plugin: 'idea'
+    apply plugin: 'com.github.johnrengelman.shadow'
+
+    group = 'com.nachtraben'
+    version '2.0'
+
+    sourceCompatibility = 1.8
+    targetCompatibility = 1.8
+    compileJava.options.encoding = 'UTF-8'
+
+    repositories {
+        mavenLocal()
+        maven { url 'https://jitpack.io' }
+        maven { url "https://dl.bintray.com/kodehawa/maven" }
+        mavenCentral()
+        jcenter()
+    }
+
+    shadowJar {
+        classifier = ""
+    }
+}
+

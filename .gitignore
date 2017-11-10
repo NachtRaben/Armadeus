@@ -20,7 +20,6 @@ gradle/
 .gradle/
 gradlew
 gradlew.bat
-*.gradle
 
 # eclipse
 .classpath

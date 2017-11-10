@@ -1,0 +1,2 @@
+rootProject.name = 'Tohsaka'
+include 'TohsakaCore', 'TohsakaDepends'
