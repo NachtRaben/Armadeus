@@ -1,6 +1,7 @@
 package com.nachtraben.core;
 
 import com.nachtraben.core.audio.AudioPlayerSendHandler;
+import com.nachtraben.core.command.ConsoleCommandSender;
 import com.nachtraben.core.configuration.BotConfig;
 import com.nachtraben.core.configuration.RedisBotConfig;
 import com.nachtraben.core.listeners.DiscordCommandListener;
@@ -41,6 +42,7 @@ public abstract class DiscordBot {
     private boolean logMessages = false;
 
     public DiscordBot(String[] args) {
+        ConsoleCommandSender.start();
         PROGRAM_ARGS = args;
         shutdownHandler = new Thread(this::shutdown);
         Runtime.getRuntime().addShutdownHook(shutdownHandler);
@@ -152,6 +154,7 @@ public abstract class DiscordBot {
         }
 
         running = false;
+        ConsoleCommandSender.stop();
         try {
             Thread.sleep(4000);
         } catch (InterruptedException ignored) {

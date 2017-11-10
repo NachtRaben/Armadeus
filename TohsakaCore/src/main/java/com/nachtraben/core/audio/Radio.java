@@ -1,5 +1,6 @@
 package com.nachtraben.core.audio;
 
+import com.nachtraben.core.HiddenConstants;
 import com.nachtraben.core.command.GuildCommandSender;
 import com.nachtraben.core.managers.GuildMusicManager;
 import com.nachtraben.core.util.ChannelTarget;
@@ -19,13 +20,14 @@ import java.lang.reflect.Modifier;
 
 public enum Radio {
 
-    SPOTIFY("Spotify Radio", "NachtRaben", "http://nachtvps:13375", null),
+    SPOTIFY("Spotify Radio", "NachtRaben", "http://localhost:13375", null),
     HIVE("Hive Radio", "Hive365", "http://stream.hive365.co.uk:8088/live",
             new EmbedBuilder().setColor(Color.YELLOW)
                     .setTitle("Radio provided by Hive365.", "https://hive365.co.uk/")
                     .setDescription("Non-stop music guaranteed to get ya buzzin'")
                     .build()),
-    MOE("LISTEN.moe", "LISTEN.moe", "http://listen.moe/stream.m3u", null);
+    MOE("LISTEN.moe", "LISTEN.moe", "http://listen.moe/stream.m3u", null),
+    MONSTERCAT("Monstercat Radio", "dooley_labs", HiddenConstants.MONSTERCAT_STREAM, null);
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Radio.class);
     private static Field titleField;
@@ -87,7 +89,7 @@ public enum Radio {
 
             @Override
             public void loadFailed(FriendlyException exception) {
-                sender.sendMessage("Failed to play `" + this.toString() + " Radio`, is it offline?");
+                sender.sendMessage("Failed to play `" + name() + " Radio`, is it offline?");
             }
         });
     }
@@ -112,4 +114,9 @@ public enum Radio {
 
     }
 
+
+    @Override
+    public String toString() {
+        return name();
+    }
 }

@@ -1,7 +1,6 @@
 package com.nachtraben.tohsaka;
 
 import com.nachtraben.core.DiscordBot;
-import com.nachtraben.core.command.ConsoleCommandSender;
 import com.nachtraben.core.command.GuildCommandSender;
 import com.nachtraben.core.configuration.GuildConfig;
 import com.nachtraben.core.util.TimeUtil;
@@ -45,7 +44,6 @@ public class Tohsaka extends DiscordBot implements CommandEventListener {
         instance = this;
 
         setDebugging(debugging);
-        new ConsoleCommandSender();
         long start = System.currentTimeMillis();
         LOGGER.debug("Took " + (System.currentTimeMillis() - start) + "ms to load all shards.");
         registerCommands();
