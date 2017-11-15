@@ -13,7 +13,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 public class BotConfig implements CustomJsonIO {
@@ -30,6 +32,7 @@ public class BotConfig implements CustomJsonIO {
     Set<Long> ownerIDs;
     Set<Long> developerIDs;
     Set<Long> blacklistedIDs;
+    Map<String, Object> metadata;
 
     Long errorLogChannelID = -1L;
     transient TextChannel errorLogChannel;
@@ -49,6 +52,8 @@ public class BotConfig implements CustomJsonIO {
         this.developerIDs = new HashSet<>();
         developerIDs.add(118255810613608451L);
         this.blacklistedIDs = new HashSet<>();
+        this.metadata = new HashMap<>();
+        metadata.put("Test", "TestValue");
     }
 
     @Override
@@ -59,6 +64,7 @@ public class BotConfig implements CustomJsonIO {
         jo.add("prefixes", GSON.toJsonTree(prefixes));
         jo.add("ownerIDs", GSON.toJsonTree(ownerIDs));
         jo.add("developerIDs", GSON.toJsonTree(developerIDs));
+        jo.add("metadata", GSON.toJsonTree(metadata));
         jo.addProperty("errorLogChannelID", errorLogChannelID);
         JsonObject redis = new JsonObject();
         redis.addProperty("enabled", useRedis);
@@ -80,6 +86,8 @@ public class BotConfig implements CustomJsonIO {
                 prefixes = GSON.fromJson(jo.get("prefixes"), TypeToken.getParameterized(HashSet.class, String.class).getType());
                 ownerIDs = GSON.fromJson(jo.get("ownerIDs"), TypeToken.getParameterized(HashSet.class, Long.class).getType());
                 developerIDs = GSON.fromJson(jo.get("developerIDs"), TypeToken.getParameterized(HashSet.class, Long.class).getType());
+                if (jo.has("metadata"))
+                    metadata = GSON.fromJson(jo.get("metadata"), TypeToken.getParameterized(HashMap.class, String.class, Object.class).getType());
                 errorLogChannelID = jo.get("errorLogChannelID").getAsLong();
                 JsonObject redis = jo.getAsJsonObject("redis");
                 useRedis = redis.get("enabled").getAsBoolean();
@@ -121,6 +129,10 @@ public class BotConfig implements CustomJsonIO {
 
     public Set<Long> getDeveloperIDs() {
         return new HashSet<>(developerIDs);
+    }
+
+    public Map<String, Object> getMetadata() {
+        return metadata;
     }
 
     public void addDeveloper(Long id) {

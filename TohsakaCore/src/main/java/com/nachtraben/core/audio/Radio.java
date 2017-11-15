@@ -1,9 +1,9 @@
 package com.nachtraben.core.audio;
 
-import com.nachtraben.core.HiddenConstants;
 import com.nachtraben.core.command.GuildCommandSender;
 import com.nachtraben.core.managers.GuildMusicManager;
 import com.nachtraben.core.util.ChannelTarget;
+import com.nachtraben.tohsaka.Tohsaka;
 import com.sedmelluq.discord.lavaplayer.player.AudioLoadResultHandler;
 import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
 import com.sedmelluq.discord.lavaplayer.track.AudioPlaylist;
@@ -27,7 +27,9 @@ public enum Radio {
                     .setDescription("Non-stop music guaranteed to get ya buzzin'")
                     .build()),
     MOE("LISTEN.moe", "LISTEN.moe", "http://listen.moe/stream.m3u", null),
-    MONSTERCAT("Monstercat Radio", "dooley_labs", HiddenConstants.MONSTERCAT_STREAM, null);
+    MONSTERCAT("Monstercat Radio", "dooley_labs", (String) Tohsaka.getInstance().getConfig().getMetadata().get("monstercat_radio_address"), null),
+    ROOKERY("Rookery Radio", "Coolguy3289", "http://stream.rookeryradio.com:8000/live", null),
+    LI("Rookery Live", "Coolguy3289", "http://stream.rookeryradio.com:8000/livestream", null);
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Radio.class);
     private static Field titleField;
@@ -118,5 +120,12 @@ public enum Radio {
     @Override
     public String toString() {
         return name();
+    }
+
+    public static Radio getByAddress(String uri) {
+        for (Radio rad : values())
+            if (rad.url.equalsIgnoreCase(uri))
+                return rad;
+        return null;
     }
 }

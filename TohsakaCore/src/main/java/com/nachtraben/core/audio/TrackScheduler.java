@@ -22,7 +22,10 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.*;
+import java.util.concurrent.BlockingDeque;
+import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
 public class TrackScheduler extends AudioEventAdapter {
 
@@ -237,7 +240,10 @@ public class TrackScheduler extends AudioEventAdapter {
     @Override
     public void onTrackStuck(AudioPlayer player, AudioTrack track, long thresholdMs) {
         GuildCommandSender requestor = track.getUserData(GuildCommandSender.class);
-        requestor.sendMessage(ChannelTarget.MUSIC + "Got stuck while playing `" + track.getInfo().title + "`. It will be skipped.");
+        requestor.sendMessage(ChannelTarget.MUSIC, "Got stuck while playing `" + track.getInfo().title + "`. It will be skipped.");
+        Radio rad = Radio.getByAddress(track.getInfo().uri);
+        if (rad != null)
+            setRepeatTrack(false);
         skip();
     }
 

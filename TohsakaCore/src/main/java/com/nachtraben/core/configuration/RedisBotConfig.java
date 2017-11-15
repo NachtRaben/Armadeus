@@ -12,7 +12,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
@@ -44,6 +43,8 @@ public class RedisBotConfig extends BotConfig implements RedisConfig {
         prefixes = GSON.fromJson(config.get("prefixes"), TypeToken.getParameterized(HashSet.class, String.class).getType());
         ownerIDs = GSON.fromJson(config.get("ownerIDs"), TypeToken.getParameterized(HashSet.class, Long.class).getType());
         developerIDs = GSON.fromJson(config.get("developerIDs"), TypeToken.getParameterized(HashSet.class, Long.class).getType());
+        if (config.containsKey("metadata"))
+            metadata = GSON.fromJson(config.get("metadata"), TypeToken.getParameterized(HashMap.class, String.class, Object.class).getType());
         errorLogChannelID = Long.valueOf(config.get("errorLogChannelID"));
         return this;
     }
@@ -92,6 +93,7 @@ public class RedisBotConfig extends BotConfig implements RedisConfig {
         config.put("prefixes", GSON.toJson(getPrefixes()));
         config.put("ownerIDs", GSON.toJson(getOwnerIDs()));
         config.put("developerIDs", GSON.toJson(getDeveloperIDs()));
+        config.put("metadata", GSON.toJson(getMetadata()));
         config.put("blacklistedIDs", GSON.toJson(getBlacklistedIDs()));
         config.put("errorLogChannelID", String.valueOf(getErrorLogChannelID()));
         return config;
