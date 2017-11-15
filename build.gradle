@@ -17,8 +17,8 @@ subprojects {
     group = 'com.nachtraben'
     version '2.0'
 
-    sourceCompatibility = 1.8
-    targetCompatibility = 1.8
+    sourceCompatibility = 1.9
+    targetCompatibility = 1.9
     compileJava.options.encoding = 'UTF-8'
 
     repositories {
