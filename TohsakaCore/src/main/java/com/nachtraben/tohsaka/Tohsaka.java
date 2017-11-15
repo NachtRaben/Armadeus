@@ -42,7 +42,6 @@ public class Tohsaka extends DiscordBot implements CommandEventListener {
     public Tohsaka(String[] args, boolean debugging) {
         super(args);
         instance = this;
-        // Test
 
         setDebugging(debugging);
         long start = System.currentTimeMillis();
