@@ -1,10 +1,8 @@
 dependencies {
     compile 'net.dv8tion:JDA:3.3.1_303'
     compile 'com.sedmelluq:lavaplayer:1.2.44'
-//    compile 'com.github.NachtRaben:lavaplayer:5f8c30cbac'
     compile 'com.sedmelluq:jda-nas:1.0.5'
 
-//    compile 'com.nachtraben:OrangeSlice:1.0'
     compile 'com.github.NachtRaben:OrangeSlice:adb3f1b3bf'
     compile 'com.github.NachtRaben:LemonSlice:0d60bcfffe'
     compile 'com.github.NachtRaben:PineappleSlice:ba6dc9a04d'
