@@ -6,12 +6,19 @@ import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import net.dv8tion.jda.core.EmbedBuilder;
 
 import java.awt.*;
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutput;
+import java.io.ObjectOutputStream;
 import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 public class Utils {
 
@@ -42,6 +49,16 @@ public class Utils {
     public static void stopExecutors() {
         SCHEDULER.shutdown();
         EXEC.shutdown();
+        try {
+            EXEC.awaitTermination(10, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            EXEC.shutdownNow();
+        }
+        try {
+            SCHEDULER.awaitTermination(10, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            SCHEDULER.shutdownNow();
+        }
     }
 
     public static byte[] serialize(Object o) {

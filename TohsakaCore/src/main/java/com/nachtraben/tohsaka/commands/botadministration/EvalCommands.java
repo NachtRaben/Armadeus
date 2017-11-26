@@ -18,7 +18,7 @@ public class EvalCommands {
         if(sender instanceof DiscordCommandSender) {
             DiscordCommandSender sendee = (DiscordCommandSender) sender;
             BotConfig botConfig = sendee.getDbot().getConfig();
-            if(!botConfig.getOwnerIDs().contains(sendee.getUser().getIdLong()) && !botConfig.getDeveloperIDs().contains(sendee.getUser().getIdLong())) {
+            if (!botConfig.getOwnerIDs().contains(sendee.getUser().getIdLong())) {
                 sendee.sendMessage(ChannelTarget.GENERIC, "Sorry, but you're not allowed to use this.");
                 return;
             }

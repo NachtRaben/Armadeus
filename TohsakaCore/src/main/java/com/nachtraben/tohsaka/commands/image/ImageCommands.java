@@ -112,5 +112,4 @@ public class ImageCommands extends CommandTree {
             }
         });
     }
-
 }
