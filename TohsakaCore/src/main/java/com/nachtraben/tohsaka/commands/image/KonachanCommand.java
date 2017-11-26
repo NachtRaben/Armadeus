@@ -87,7 +87,7 @@ public class KonachanCommand extends Command {
                 cache.add(selection.getURL());
                 EmbedBuilder eb = new EmbedBuilder();
                 eb.setColor(Utils.randomColor());
-                eb.setAuthor(isSearch ? args.get("tag") : "Rule34", selection.getURL(), null);
+                eb.setAuthor(isSearch ? args.get("tag") : "Konachan", selection.getURL(), null);
 //                eb.setDescription("[link](" + selection.getImageUrl() + ")");
                 eb.setImage(selection.getURL());
                 eb.setFooter("Requested by: " + (gcs != null ? gcs.getMember().getEffectiveName() : sendee.getName()), sendee.getUser().getAvatarUrl());
