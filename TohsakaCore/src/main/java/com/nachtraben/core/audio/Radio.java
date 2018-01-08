@@ -25,6 +25,7 @@ public enum Radio {
             new EmbedBuilder().setColor(Color.YELLOW)
                     .setTitle("Radio provided by Hive365.", "https://hive365.co.uk/")
                     .setDescription("Non-stop music guaranteed to get ya buzzin'")
+                    .setThumbnail("https://hive365.co.uk/img/team/beekeeper.jpg")
                     .build()),
     MOE("LISTEN.moe", "LISTEN.moe", "http://listen.moe/stream.m3u", null),
     MONSTERCAT("Monstercat Radio", "dooley_labs", (String) Tohsaka.getInstance().getConfig().getMetadata().get("monstercat_radio_address"), null),
