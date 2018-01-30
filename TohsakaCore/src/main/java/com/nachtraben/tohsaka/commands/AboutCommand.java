@@ -35,7 +35,7 @@ public class AboutCommand extends Command {
             builder.setTitle("About Tohsaka:", null);
             builder.setDescription(info.getDescription());
             builder.addField("Links:","Invite me: [Invite](" + bot.getJDA().asBot().getInviteUrl(Permission.ADMINISTRATOR) + ")" +
-                    "\nSupport: [Discord](https://discord.gg/mmYZGGB)" +
+                    "\nSupport: [Discord](https://discord.gg/PzABqM2)" +
                     "\nDonations: [PayPal](https://paypal.me/nachtraben)", false);
             builder.setFooter(String.format("Author: %s#%s", info.getOwner().getName(), info.getOwner().getDiscriminator()), info.getOwner().getAvatarUrl());
 
