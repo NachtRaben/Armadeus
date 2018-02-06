@@ -20,18 +20,18 @@
 
     <appender name="Console" class="com.nachtraben.logback.TerminalConsoleAdaptor">
         <encoder>
-            <pattern>[%d{HH:mm:ss}][%hl(%-1level)][%green(%logger{0})]: %msg%n</pattern>
+            <pattern>[%d{HH:mm:ss}][%hl(%-1level)][%green(%logger{0})]%X{jda.shard}: %msg%n</pattern>
         </encoder>
     </appender>
 
     <appender name="File" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>${LOG_PATH}/latest.log</file>
         <encoder>
-            <pattern>[%d{HH:mm:ss}][%-1level][%logger{0}]: %msg%n</pattern>
+            <pattern>[%d{HH:mm:ss}][%-1level][%logger{0}][%X{jda.shard}]: %msg%n</pattern>
         </encoder>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
             <fileNamePattern>${LOG_ARCHIVE}/%d{MM-dd-yyyy}.log.gz</fileNamePattern>
-            <maxHistory>50</maxHistory>
+            <maxHistory>30</maxHistory>
         </rollingPolicy>
     </appender>
 

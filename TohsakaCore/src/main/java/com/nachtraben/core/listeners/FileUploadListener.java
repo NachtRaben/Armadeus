@@ -3,6 +3,7 @@ package com.nachtraben.core.listeners;
 import com.nachtraben.core.command.GuildCommandSender;
 import com.nachtraben.core.configuration.GuildConfig;
 import com.nachtraben.core.managers.GuildMusicManager;
+import com.nachtraben.core.util.AudioUtil;
 import com.nachtraben.core.util.ChannelTarget;
 import com.nachtraben.tohsaka.Tohsaka;
 import com.sedmelluq.discord.lavaplayer.player.AudioLoadResultHandler;
@@ -17,8 +18,6 @@ import net.dv8tion.jda.core.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.core.hooks.ListenerAdapter;
 
 import java.io.File;
-import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -28,8 +27,6 @@ public class FileUploadListener extends ListenerAdapter {
 
     private static final File CACHE_DIR = new File("temp");
     private static final Map<String, File> CACHE = new HashMap<>();
-    private static Field titleField;
-    private static Field artistField;
 
     static {
         if (!CACHE_DIR.exists())
@@ -39,30 +36,6 @@ public class FileUploadListener extends ListenerAdapter {
             if(f.isFile())
                 f.delete();
         }
-
-        try {
-            Class clz = AudioTrackInfo.class;
-            titleField = clz.getDeclaredField("title");
-            titleField.setAccessible(true);
-            artistField = clz.getDeclaredField("author");
-            artistField.setAccessible(true);
-
-            Field modifiersField = Field.class.getDeclaredField("modifiers");
-            modifiersField.setAccessible(true);
-
-            modifiersField.setInt(titleField, titleField.getModifiers() & ~Modifier.FINAL);
-            modifiersField.setInt(artistField, artistField.getModifiers() & ~Modifier.FINAL);
-        } catch (IllegalAccessException | NoSuchFieldException e) {
-        }
-    }
-
-    private void modifyTrackInfo(AudioTrackInfo info, String title, String artist) {
-        try {
-            if(titleField != null)
-                titleField.set(info, title);
-            if(artistField != null)
-                artistField.set(info, artist);
-        } catch (IllegalAccessException e) {}
     }
 
     @Override
@@ -106,7 +79,7 @@ public class FileUploadListener extends ListenerAdapter {
                             public void trackLoaded(AudioTrack track) {
                                 AudioTrackInfo inf = track.getInfo();
                                 if(inf.title.equalsIgnoreCase("unknown title"))
-                                    modifyTrackInfo(inf, att.getFileName().substring(0, att.getFileName().lastIndexOf(".")).replace("_", " "), "Unknown artist");
+                                    AudioUtil.transform(inf, att.getFileName().substring(0, att.getFileName().lastIndexOf(".")).replace("_", " "), "Unknown artist");
                                 sender.sendMessage(ChannelTarget.MUSIC, String.format("Adding to queue, `%s` by `%s`.", track.getInfo().title, track.getInfo().author));
                                 track.setUserData(sender);
                                 finalManager.getScheduler().queue(track);
