@@ -1,5 +1,5 @@
 dependencies {
-    compile 'net.dv8tion:JDA:3.3.1_307'
+    compile 'net.dv8tion:JDA:3.3.1_313'
     compile 'com.sedmelluq:lavaplayer:1.2.45'
     compile 'com.sedmelluq:jda-nas:1.0.6'
 
