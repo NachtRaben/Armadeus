@@ -479,7 +479,7 @@ public class CleanCommands extends CommandTree {
         // Filter matching
         else if (!filters.isEmpty())
             for (String filter : filters)
-                if (m.getRawContent().contains(filter))
+                if (m.getContentRaw().contains(filter))
                     return true;
 
         return false;
@@ -499,7 +499,7 @@ public class CleanCommands extends CommandTree {
             try {
                 message.delete().reason("Clear command.").complete();
             } catch (Exception ignored) {
-                LOGGER.debug("Failed to delete message: " + message.getRawContent(), ignored);
+                LOGGER.debug("Failed to delete message: " + message.getContentRaw(), ignored);
             }
         });
         bulkDelete.clear();

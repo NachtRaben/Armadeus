@@ -229,6 +229,7 @@ public class GuildConfig implements CustomJsonIO {
     }
 
     public GuildMusicManager getMusicManager(boolean instantiate) {
+        LOGGER.debug("Getting manager for " + guildID);
         if (musicManager == null && instantiate)
             return musicManager = new GuildMusicManager(getGuild(), GuildMusicManager.DEFAULT_PLAYER_MANAGER);
 

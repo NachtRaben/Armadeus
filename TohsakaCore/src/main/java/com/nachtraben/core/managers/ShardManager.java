@@ -6,7 +6,6 @@ import net.dv8tion.jda.core.AccountType;
 import net.dv8tion.jda.core.JDA;
 import net.dv8tion.jda.core.JDABuilder;
 import net.dv8tion.jda.core.entities.*;
-import net.dv8tion.jda.core.exceptions.RateLimitedException;
 import net.dv8tion.jda.core.hooks.EventListener;
 import net.dv8tion.jda.core.requests.SessionReconnectQueue;
 import okhttp3.OkHttpClient;
@@ -77,23 +76,15 @@ public class ShardManager {
         LOGGER.info("Starting shard " + shard + " [" + (shard + 1) + "/" + (shardCount) + "].");
         JDABuilder builder = initBuilder();
         if(shardCount == 1) {
-            builder.setGame(Game.of("shard [1/1]"));
+            builder.setGame(Game.of(Game.GameType.DEFAULT, "shard [1/1]"));
         } else {
-            builder.setGame(Game.of("shard [" + shard + "/" + (shardCount - 1) + "]"));
+            builder.setGame(Game.of(Game.GameType.DEFAULT, "shard [" + shard + "/" + (shardCount - 1) + "]"));
             builder.useSharding(shard, shardCount);
         }
         try {
             shards.add(shard, builder.buildAsync());
         } catch (LoginException e) {
             LOGGER.error("Failed to login to discord.", e);
-        } catch (RateLimitedException e) {
-            try {
-                LOGGER.warn(String.format("Failed to login shard { %s } due to rate-limiting, waiting { %s } ms before retrying.", shard, e.getRetryAfter()));
-                Thread.sleep(e.getRetryAfter());
-                shards.add(shard, builder.buildBlocking());
-            } catch (InterruptedException | LoginException | RateLimitedException e1) {
-                LOGGER.error("Failed to login to discord.", e1);
-            }
         }
     }
 

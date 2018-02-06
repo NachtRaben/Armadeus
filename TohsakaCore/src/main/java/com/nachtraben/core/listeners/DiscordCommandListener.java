@@ -33,16 +33,16 @@ public class DiscordCommandListener extends ListenerAdapter {
     @Override
     public void onMessageReceived(MessageReceivedEvent event) {
         Message message = event.getMessage();
-        String content = message.getRawContent();
+        String content = message.getContentRaw();
         List<User> mentions = message.getMentionedUsers();
         JDA jda = message.getJDA();
 
         if (!message.getAuthor().isBot() && !message.getAuthor().isFake() && content.length() > 0) {
 
             if (dbot.isLogMessages() && message.isFromType(ChannelType.TEXT)) {
-                LOGGER.debug(String.format("[Message][%s>>%s#%s]: %s", message.getGuild().getName(), message.getAuthor().getName(), message.getAuthor().getDiscriminator(), message.getContent()));
+                LOGGER.debug(String.format("[Message][%s>>%s#%s]: %s", message.getGuild().getName(), message.getAuthor().getName(), message.getAuthor().getDiscriminator(), message.getContentDisplay()));
             } else if (dbot.isLogMessages() && message.isFromType(ChannelType.PRIVATE)) {
-                LOGGER.debug(String.format("[Message][DM>>%s#%s]: %s", message.getAuthor().getName(), message.getAuthor().getDiscriminator(), message.getContent()));
+                LOGGER.debug(String.format("[Message][DM>>%s#%s]: %s", message.getAuthor().getName(), message.getAuthor().getDiscriminator(), message.getContentDisplay()));
             }
 
             DiscordCommandSender sender = null;

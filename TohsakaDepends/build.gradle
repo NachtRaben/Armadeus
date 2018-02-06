@@ -1,11 +1,11 @@
 dependencies {
-    compile 'net.dv8tion:JDA:3.3.1_313'
-    compile 'com.sedmelluq:lavaplayer:1.2.45'
+    compile 'net.dv8tion:JDA:3.5.0_334'
+    compile 'com.sedmelluq:lavaplayer:1.2.46'
     compile 'com.sedmelluq:jda-nas:1.0.6'
 
-    compile 'com.github.NachtRaben:OrangeSlice:adb3f1b3bf'
-    compile 'com.github.NachtRaben:LemonSlice:0d60bcfffe'
-    compile 'com.github.NachtRaben:PineappleSlice:ba6dc9a04d'
+    compile 'com.github.NachtRaben:OrangeSlice:760b4494a2'
+    compile 'com.github.NachtRaben:LemonSlice:5958b6e659'
+    compile 'com.github.NachtRaben:PineappleSlice:0825a28910'
 
     compile 'ch.qos.logback:logback-classic:1.2.3'
     compile 'com.mashape.unirest:unirest-java:1.4.9'
