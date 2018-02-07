@@ -70,7 +70,11 @@ public class HentaiCommand extends CommandTree {
                             images = board.get(page, 100).blocking();
                             if (images != null) {
                                 images = images.stream().filter(image -> image.getRating().equals(Rating.EXPLICIT)
-                                        && (image.getTags().stream().noneMatch(tag -> tag.equalsIgnoreCase("loli")))).collect(Collectors.toList());
+                                        && (image.getTags().stream().noneMatch(tag ->
+                                        tag.equalsIgnoreCase("loli") ||
+                                                tag.equalsIgnoreCase("shota") ||
+                                                tag.equalsIgnoreCase("lolicon") ||
+                                                tag.equalsIgnoreCase("shotacon")))).collect(Collectors.toList());
                                 if (!images.isEmpty())
                                     break;
                             }

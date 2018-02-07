@@ -60,7 +60,11 @@ public class KonachanCommand extends AbstractImageCommand {
                 List<KonachanImage> images = isSearch ? DefaultImageBoards.KONACHAN.search(100, args.get("tag").replace(" ", "_")).blocking() : DefaultImageBoards.KONACHAN.get(RAND.nextInt(1024)).blocking();
                 if (images != null) {
                     Set<String> cache = gcs != null ? guildSearchCache.computeIfAbsent(gcs.getGuildId(), set -> new HashSet<>()) : userSearchCache.computeIfAbsent(sendee.getUserID(), set -> new HashSet<>());
-                    images = images.stream().filter(image -> finalRating.equals(image.getRating()) && image.getTags().stream().noneMatch(tag -> tag.equalsIgnoreCase("loli"))).filter(image -> !cache.contains(image.getURL())).collect(Collectors.toList());
+                    images = images.stream().filter(image -> finalRating.equals(image.getRating()) && (image.getTags().stream().noneMatch(tag ->
+                            tag.equalsIgnoreCase("loli") ||
+                                    tag.equalsIgnoreCase("shota") ||
+                                    tag.equalsIgnoreCase("lolicon") ||
+                                    tag.equalsIgnoreCase("shotacon")))).filter(image -> !cache.contains(image.getURL())).collect(Collectors.toList());
                     if (images.isEmpty()) {
                         if (isSearch) {
                             if (!rating.equals(Rating.SAFE))

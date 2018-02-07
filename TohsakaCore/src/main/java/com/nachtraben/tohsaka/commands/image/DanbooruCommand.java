@@ -15,12 +15,7 @@ import net.kodehawa.lib.imageboards.entities.impl.DanbooruImage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -68,7 +63,11 @@ public class DanbooruCommand extends Command {
             List<DanbooruImage> images = isSearch ? DefaultImageBoards.DANBOORU.search(100, args.get("tag").replace(" ", "_")).blocking() : DefaultImageBoards.DANBOORU.get(RAND.nextInt(1024)).blocking();
             if (images != null) {
                 Set<String> cache = gcs != null ? guildSearchCache.computeIfAbsent(gcs.getGuildId(), set -> new HashSet<>()) : userSearchCache.computeIfAbsent(sendee.getUserID(), set -> new HashSet<>());
-                images = images.stream().filter(image -> finalRating.equals(image.getRating()) && image.getTags().stream().noneMatch(tag -> tag.equalsIgnoreCase("loli"))).filter(image -> !cache.contains(image.getURL())).collect(Collectors.toList());
+                images = images.stream().filter(image -> finalRating.equals(image.getRating()) && (image.getTags().stream().noneMatch(tag ->
+                        tag.equalsIgnoreCase("loli") ||
+                                tag.equalsIgnoreCase("shota") ||
+                                tag.equalsIgnoreCase("lolicon") ||
+                                tag.equalsIgnoreCase("shotacon")))).filter(image -> !cache.contains(image.getURL())).collect(Collectors.toList());
                 if (images.isEmpty()) {
                     if (isSearch) {
                         if (!rating.equals(Rating.SAFE))
