@@ -26,7 +26,7 @@ import java.util.stream.Collectors;
 
 public class ImageCommands extends CommandTree {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(ImageCommands.class);
+    private static final Logger log = LoggerFactory.getLogger(ImageCommands.class);
     private final Random RANDOM = new Random();
 
     private AtomicInteger runs = new AtomicInteger(0);
@@ -91,7 +91,7 @@ public class ImageCommands extends CommandTree {
                             } catch (InterruptedException ignored) {
                             }
                         } catch (QueryFailedException e) {
-                            LOGGER.debug("Failed to query " + board.getBoardType() + ", received a " + e.getCode() + ".");
+                            log.debug("Failed to query " + board.getBoardType() + ", received a " + e.getCode() + ".");
                             return;
                         }
                     }
@@ -105,7 +105,7 @@ public class ImageCommands extends CommandTree {
                     if (selection.getURL().toLowerCase().contains("null")) {
                         // TODO: Query again? Send user a message?
                         sendee.sendMessage("Unfortunately I was unable to fetch you an image, please try again.");
-                        LOGGER.error(board.getBoardType() + " returned invalid URL!\tType: " + selection.getClass().getSimpleName() + "\tURL: " + selection.getURL() + "\tErrors: " + errors.incrementAndGet() + "/" + runs.get());
+                        log.error(board.getBoardType() + " returned invalid URL!\tType: " + selection.getClass().getSimpleName() + "\tURL: " + selection.getURL() + "\tErrors: " + errors.incrementAndGet() + "/" + runs.get());
                         return;
                     }
                     if (finalRating.equals(Rating.SAFE))

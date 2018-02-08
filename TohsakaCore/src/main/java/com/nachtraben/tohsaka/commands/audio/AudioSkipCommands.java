@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Map;
 
 public class AudioSkipCommands {
-    private static final Logger LOGGER = LoggerFactory.getLogger(AudioSkipCommands.class);
+    private static final Logger log = LoggerFactory.getLogger(AudioSkipCommands.class);
 
     @Cmd(name = "skip", format = "", description = "Skips to the next track.")
     public void skip(CommandSender sender) {
@@ -77,7 +77,7 @@ public class AudioSkipCommands {
             if (finalDis > 0 && finalDis < distance) {
                 distance = finalDis;
                 track = t;
-                LOGGER.debug(String.format("Selecting %s with a distance of %s and a final diff of %s and a size diff of %s.", track.getInfo().title, dis, finalDis, sizeDiff));
+                log.debug(String.format("Selecting %s with a distance of %s and a final diff of %s and a size diff of %s.", track.getInfo().title, dis, finalDis, sizeDiff));
             }
         }
         return track;

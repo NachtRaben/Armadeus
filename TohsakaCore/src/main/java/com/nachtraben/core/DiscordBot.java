@@ -10,6 +10,7 @@ import com.nachtraben.core.listeners.LogbackListener;
 import com.nachtraben.core.managers.GuildManager;
 import com.nachtraben.core.managers.ShardManager;
 import com.nachtraben.core.util.DiscordMetrics;
+import com.nachtraben.core.util.RedisUtil;
 import com.nachtraben.core.util.Utils;
 import com.nachtraben.core.util.WebhookLogger;
 import com.nachtraben.orangeslice.CommandBase;
@@ -58,8 +59,9 @@ public abstract class DiscordBot {
         if (config.isUseRedis()) {
             logger.info("Using redis backend.");
             redisModule = new RedisModule(new RedisProperties(config.getRedisHost(), config.getRedisPort(), config.getRedisPassword(), config.getRedisTimeout()));
-            config = new RedisBotConfig(this, redisModule.getProvider()).load();
-            guildManager = new GuildManager(this, redisModule.getProvider());
+            RedisUtil.setModule(redisModule);
+            config = new RedisBotConfig(this).load();
+            guildManager = new GuildManager(this);
         } else {
             guildManager = new GuildManager(this);
         }
@@ -87,12 +89,12 @@ public abstract class DiscordBot {
             logger.error("Failed to initialize fine logger!", e);
             wlogger = null;
         }
-        try {
-            Thread.sleep(5000);
-            guildManager.loadPersistInformation();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+//        try {
+//            Thread.sleep(5000);
+//            guildManager.loadPersistInformation();
+//        } catch (InterruptedException e) {
+//            e.printStackTrace();
+//        }
     }
 
     public ShardManager getShardManager() {
@@ -159,7 +161,7 @@ public abstract class DiscordBot {
             Thread.sleep(4000);
         } catch (InterruptedException ignored) {
         }
-        guildManager.savePersistInformation();
+//        guildManager.savePersistInformation();
         DiscordMetrics.shutdown();
         shardManager.shutdownAllShards();
         wlogger.stop();
@@ -167,6 +169,9 @@ public abstract class DiscordBot {
         Runtime.getRuntime().halt(code);
     }
 
+
+    // Metrics
+    // TODO: Move these
     public int getTotalChannels() {
         int i = 0;
         for (JDA jda : getShardManager().getShards()) {

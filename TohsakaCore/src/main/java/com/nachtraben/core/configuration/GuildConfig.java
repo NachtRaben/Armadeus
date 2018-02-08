@@ -33,9 +33,9 @@ public class GuildConfig implements CustomJsonIO {
 
     // TODO: Don't hold on to JDA Objects.
 
-    private transient static Logger LOGGER = LoggerFactory.getLogger(GuildConfig.class);
-    public transient static final File GUILD_DIR = new File("guilds");
-    public transient static final File PERSIST_DIR = new File("persists");
+    private static final transient Logger log = LoggerFactory.getLogger(GuildConfig.class);
+    private static final transient File GUILD_DIR = new File("guilds");
+    private static final transient File PERSIST_DIR = new File("persists");
     protected transient static final Gson GSON = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
 
     static {
@@ -51,15 +51,14 @@ public class GuildConfig implements CustomJsonIO {
     private transient Long guildID;
     private transient Map<ChannelTarget, TextChannel> channelCache;
 
-    boolean deleteCommands = false;
-
-    Set<String> prefixes;
-    Map<String, Set<Long>> disabledCommands;
-    boolean isBlacklist = true;
-    Set<Long> blacklistedIDs;
-    Map<String, Long> logChannels;
-    Map<String, String> metadata;
-    long cooldown;
+    protected boolean deleteCommands = false;
+    protected Set<String> prefixes;
+    protected Map<String, Set<Long>> disabledCommands;
+    protected boolean isBlacklist;
+    protected Set<Long> blacklistedIDs;
+    protected Map<String, Long> logChannels;
+    protected Map<String, String> metadata;
+    protected long cooldown;
 
     public GuildConfig(GuildManager manager, Long guild) {
         this.guildManager = manager;
@@ -119,7 +118,7 @@ public class GuildConfig implements CustomJsonIO {
     public void savePersistInfo() {
         GuildMusicManager music = getMusicManager(false);
         if (music != null && music.getScheduler().isPersist() && music.getScheduler().isPlaying()) {
-            LOGGER.debug("Saving persist info for: " + getGuildID());
+            log.debug("Saving persist info for: " + getGuildID());
             TrackScheduler sched = music.getScheduler();
             try (DataOutputStream out = new DataOutputStream(new FileOutputStream(new File(PERSIST_DIR, getGuildID() + ".persist")))) {
                 /*
@@ -140,16 +139,16 @@ public class GuildConfig implements CustomJsonIO {
                 int count = 0;
                 for (AudioTrack track : tracks) {
                     if(track == null) {
-                        LOGGER.error("Wtf, null track in `" + getGuild().getName() + "`. O.o");
+                        log.error("Wtf, null track in `" + getGuild().getName() + "`. O.o");
                         continue;
                     }
                     AudioSourceManager sm = track.getSourceManager();
                     if(sm == null) {
-                        LOGGER.debug("Invalid source manager in " + getGuild().getName() + "?");
-                        LOGGER.debug(track.getIdentifier());
-                        LOGGER.debug(String.valueOf(track.getInfo()));
-                        LOGGER.debug(String.valueOf(track.getState()));
-                        LOGGER.debug(String.valueOf(track.getUserData()));
+                        log.debug("Invalid source manager in " + getGuild().getName() + "?");
+                        log.debug(track.getIdentifier());
+                        log.debug(String.valueOf(track.getInfo()));
+                        log.debug(String.valueOf(track.getState()));
+                        log.debug(String.valueOf(track.getUserData()));
                     } else if (track.getSourceManager().isTrackEncodable(track)) {
                         getMusicManager().getPlayerManager().encodeTrack(mout, track);
                         byte[] userdata = Utils.serialize(track.getUserData(GuildCommandSender.class));
@@ -157,10 +156,10 @@ public class GuildConfig implements CustomJsonIO {
                         out.write(userdata);
                         count++;
                     } else {
-                        LOGGER.debug("Can't encode track: " + track.getIdentifier());
+                        log.debug("Can't encode track: " + track.getIdentifier());
                     }
                 }
-                LOGGER.debug("Encoded " + count + " tracks.");
+                log.debug("Encoded " + count + " tracks.");
                 out.flush();
                 out.close();
             } catch (IOException e) {
@@ -171,7 +170,7 @@ public class GuildConfig implements CustomJsonIO {
     }
 
     public void loadPersistInfo(File f) {
-        LOGGER.debug("Loading persist info for: " + getGuildID());
+        log.debug("Loading persist info for: " + getGuildID());
         try (DataInputStream in = new DataInputStream(new FileInputStream(f))) {
             TrackScheduler sched = getMusicManager().getScheduler();
             sched.setPersist(in.readBoolean());
@@ -180,7 +179,7 @@ public class GuildConfig implements CustomJsonIO {
             try {
                 Long channel = in.readLong();
                 if(channel == -1) {
-                    LOGGER.debug("Invalid voice channel, returning.");
+                    log.debug("Invalid voice channel, returning.");
                     f.delete();
                     return;
                 }
@@ -190,9 +189,9 @@ public class GuildConfig implements CustomJsonIO {
                     Thread.sleep(100);
                 }
                 VoiceChannel v = getGuild().getAudioManager().getConnectedChannel();
-                LOGGER.debug("Successfully joined: " + getGuild().getName() + ">>" + v.getName());
+                log.debug("Successfully joined: " + getGuild().getName() + ">>" + v.getName());
             } catch (Exception e) {
-                LOGGER.debug("Failed to join voice channel.");
+                log.debug("Failed to join voice channel.");
                 f.delete();
                 return;
             }
@@ -213,9 +212,9 @@ public class GuildConfig implements CustomJsonIO {
                     count++;
                 }
             } catch (EOFException ignored) {}
-            LOGGER.debug("Decoded " + count + " tracks.");
+            log.debug("Decoded " + count + " tracks.");
         } catch (Exception e) {
-            LOGGER.warn("Failed to resume persist state for, " + getGuildID() + ".", e);
+            log.warn("Failed to resume persist state for, " + getGuildID() + ".", e);
         }
         f.delete();
     }
@@ -229,7 +228,7 @@ public class GuildConfig implements CustomJsonIO {
     }
 
     public GuildMusicManager getMusicManager(boolean instantiate) {
-        LOGGER.debug("Getting manager for " + guildID);
+        log.debug("Getting manager for " + guildID);
         if (musicManager == null && instantiate)
             return musicManager = new GuildMusicManager(getGuild(), GuildMusicManager.DEFAULT_PLAYER_MANAGER);
 
@@ -391,7 +390,7 @@ public class GuildConfig implements CustomJsonIO {
                 int volume = Integer.parseInt(metadata.get("volume"));
                 volume = Math.min(Math.max(volume, 0), 150);
                 getMusicManager().getPlayer().setVolume(volume);
-                LOGGER.info("Setting resume volume of { " + getGuild().getName() + " } to " + volume + ".");
+                log.info("Setting resume volume of { " + getGuild().getName() + " } to " + volume + ".");
             } catch (NumberFormatException e) {
                 metadata.remove("volume");
                 save();

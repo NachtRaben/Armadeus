@@ -19,7 +19,7 @@ import java.util.concurrent.Future;
 
 public class ConsoleCommandSender implements CommandSender, Runnable {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(ConsoleCommandSender.class);
+    private static final Logger log = LoggerFactory.getLogger(ConsoleCommandSender.class);
 
     private static ConsoleCommandSender instance;
     private static Scanner input;
@@ -39,14 +39,14 @@ public class ConsoleCommandSender implements CommandSender, Runnable {
         Asserts.check(stopped, "The ConsoleCommandSender has already been started.");
         stopped = false;
         initTerminal();
-        LOGGER.info("Console initialized and started.");
+        log.info("Console initialized and started.");
         Utils.getExecutor().execute(instance);
     }
 
     public static void stop() {
         Asserts.check(!stopped, "The ConsoleCommandSender isn't started.");
         stopped = true;
-        LOGGER.info("Console has been shutdown.");
+        log.info("Console has been shutdown.");
     }
 
     private static void initTerminal() {
@@ -62,7 +62,7 @@ public class ConsoleCommandSender implements CommandSender, Runnable {
 
     @Override
     public void sendMessage(String s) {
-        LOGGER.info("MESSAGE: " + s);
+        log.info("MESSAGE: " + s);
     }
 
     @Override
@@ -83,7 +83,7 @@ public class ConsoleCommandSender implements CommandSender, Runnable {
             if (reader != null) {
                 try {
                     String line;
-                    LOGGER.info("Started.");
+                    log.info("Started.");
                     while (true) {
                         try {
                             line = reader.readLine("> ");
@@ -116,7 +116,7 @@ public class ConsoleCommandSender implements CommandSender, Runnable {
                     runCommand(command, args);
                 }
             } else {
-                LOGGER.error("The LineReader and Scanner are both null! Wtf? Closing thread.");
+                log.error("The LineReader and Scanner are both null! Wtf? Closing thread.");
                 break;
             }
         }

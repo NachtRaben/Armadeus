@@ -19,7 +19,7 @@ import java.util.Map;
 
 public class AudioPlayCommand extends Command {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(AudioPlayCommand.class);
+    private static final Logger log = LoggerFactory.getLogger(AudioPlayCommand.class);
 
     public AudioPlayCommand() {
         super("play", "{track}", "Plays the desired track, searching youtube if necessary.");
@@ -78,7 +78,7 @@ public class AudioPlayCommand extends Command {
             @Override
             public void loadFailed(FriendlyException exception) {
                 sender.sendMessage(ChannelTarget.MUSIC, "Failed to load the track, `" + exception.getMessage().replace("`", "") + "`.");
-                LOGGER.warn("An exception occurred while searching for a track.", exception);
+                log.warn("An exception occurred while searching for a track.", exception);
             }
         });
     }

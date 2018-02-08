@@ -29,7 +29,7 @@ import java.util.concurrent.TimeUnit;
 
 public class TrackScheduler extends AudioEventAdapter {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(TrackScheduler.class);
+    private static final Logger log = LoggerFactory.getLogger(TrackScheduler.class);
 
     public static boolean debug = Tohsaka.getInstance().isDebugging();
 
@@ -59,7 +59,7 @@ public class TrackScheduler extends AudioEventAdapter {
                 if (v != null) {
                     if (leave != -1)
                         if (debug)
-                            LOGGER.debug("Leaving { " + g.getName() + " } in: " + TimeUtil.fromLong(leave - System.currentTimeMillis(), TimeUtil.FormatType.STRING));
+                            log.debug("Leaving { " + g.getName() + " } in: " + TimeUtil.fromLong(leave - System.currentTimeMillis(), TimeUtil.FormatType.STRING));
                     if ((v.getMembers().size() < 2 || currentTrack == null) && leave == -1) {
                         leave = TimeUnit.MINUTES.toMillis(2) + System.currentTimeMillis();
                     } else if (v.getMembers().size() > 1 && currentTrack != null && leave != -1) {
@@ -93,7 +93,7 @@ public class TrackScheduler extends AudioEventAdapter {
 
     public void stop() {
         if (debug)
-            LOGGER.debug("Stopped");
+            log.debug("Stopped");
         synchronized (queue) {
             repeatTrack = false;
             repeatQueue = false;
@@ -117,15 +117,15 @@ public class TrackScheduler extends AudioEventAdapter {
                 queue.addLast(getCurrentTrack());
             if (queue.isEmpty() && isPlaying()) {
                 if (debug)
-                    LOGGER.debug("Skipped and stopping.");
+                    log.debug("Skipped and stopping.");
                 stop();
             } else if (!queue.isEmpty()) {
                 if (debug)
-                    LOGGER.debug("Skipping");
+                    log.debug("Skipping");
                 play(queue.poll());
             } else {
                 if (debug)
-                    LOGGER.debug("Wut? " + isPlaying());
+                    log.debug("Wut? " + isPlaying());
             }
         }
     }
@@ -159,7 +159,7 @@ public class TrackScheduler extends AudioEventAdapter {
             } else if (!channelLock) {
                 if (reqChannel != null) {
                     if (debug)
-                        LOGGER.debug("Not locked and requester connected.");
+                        log.debug("Not locked and requester connected.");
                     try {
                         channelLock = true;
                         try {
@@ -172,11 +172,11 @@ public class TrackScheduler extends AudioEventAdapter {
                         return true;
                     } catch (Exception e) {
                         channelLock = false;
-                        LOGGER.error("Failed to join " + reqChannel.getName() + ".", e);
+                        log.error("Failed to join " + reqChannel.getName() + ".", e);
                     }
                 } else if (connected != null) {
                     if (debug)
-                        LOGGER.debug("Not locked and connected.");
+                        log.debug("Not locked and connected.");
                     channelLock = true;
                     return true;
                 }
@@ -188,7 +188,7 @@ public class TrackScheduler extends AudioEventAdapter {
     @Override
     public void onTrackStart(AudioPlayer player, AudioTrack track) {
         if (debug)
-            LOGGER.debug("TrackStartEvent");
+            log.debug("TrackStartEvent");
         GuildCommandSender requestor = track.getUserData(GuildCommandSender.class);
         if (requestor != null) {
             Guild guild = requestor.getGuild();
@@ -216,14 +216,14 @@ public class TrackScheduler extends AudioEventAdapter {
     @Override
     public void onTrackEnd(AudioPlayer player, AudioTrack track, AudioTrackEndReason endReason) {
         if (debug)
-            LOGGER.debug("TrackStopEvent");
+            log.debug("TrackStopEvent");
         if (endReason.mayStartNext && repeatTrack) {
             player.playTrack(getCurrentTrack());
         } else if (endReason.mayStartNext) {
             skip();
         } else {
             if (debug)
-                LOGGER.debug("What happened... " + endReason.name());
+                log.debug("What happened... " + endReason.name());
         }
     }
 
@@ -234,7 +234,7 @@ public class TrackScheduler extends AudioEventAdapter {
             repeatTrack = false;
         GuildCommandSender requestor = track.getUserData(GuildCommandSender.class);
         requestor.sendMessage(ChannelTarget.MUSIC, String.format("Failed to play `%s` because, `%s`.", track.getInfo().title, exception.getMessage()));
-        LOGGER.warn("Something went wrong with lavaplayer.", exception);
+        log.warn("Something went wrong with lavaplayer.", exception);
     }
 
     @Override

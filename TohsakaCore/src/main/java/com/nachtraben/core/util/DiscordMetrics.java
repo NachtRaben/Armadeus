@@ -1,13 +1,6 @@
 package com.nachtraben.core.util;
 
 import com.nachtraben.core.DiscordBot;
-import net.dv8tion.jda.core.JDA;
-import net.dv8tion.jda.core.Permission;
-import net.dv8tion.jda.core.entities.Guild;
-import net.dv8tion.jda.core.entities.Member;
-import net.dv8tion.jda.core.entities.TextChannel;
-import net.dv8tion.jda.core.entities.VoiceChannel;
-import net.dv8tion.jda.core.utils.PermissionUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,7 +13,7 @@ import java.util.concurrent.TimeUnit;
 
 public class DiscordMetrics implements Runnable {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(DiscordMetrics.class);
+    private static final Logger log = LoggerFactory.getLogger(DiscordMetrics.class);
     private static final ScheduledExecutorService EXEC = Executors.newSingleThreadScheduledExecutor();
 
     private DiscordBot dbot;
@@ -36,7 +29,7 @@ public class DiscordMetrics implements Runnable {
                 e.printStackTrace();
             }
         }
-        LOGGER.debug("Took " + (System.currentTimeMillis() - start) + "ms for the self user to initialize!");
+        log.debug("Took " + (System.currentTimeMillis() - start) + "ms for the self user to initialize!");
         output = new File(dbot.getShardManager().getShards().get(0).getSelfUser().getId() + ".metrics");
         if (!output.exists()) {
             try {
@@ -46,12 +39,12 @@ public class DiscordMetrics implements Runnable {
             }
         }
         EXEC.scheduleAtFixedRate(this, 5L, 60L, TimeUnit.MINUTES);
-        LOGGER.debug("Initialized new DiscordMetrics for: " + output.getName());
+        log.debug("Initialized new DiscordMetrics for: " + output.getName());
     }
 
     @Override
     public void run() {
-        LOGGER.info("Writing DiscordMetrics to: " + output.getName());
+        log.info("Writing DiscordMetrics to: " + output.getName());
         try (FileWriter fw = new FileWriter(output, true);
              BufferedWriter bw = new BufferedWriter(fw);
              PrintWriter out = new PrintWriter(bw)) {
@@ -62,9 +55,9 @@ public class DiscordMetrics implements Runnable {
             if(!dbot.isDebugging())
                 out.write(toWrite);
             else
-                LOGGER.debug("[Metrics] >> " + toWrite);
+                log.debug("[Metrics] >> " + toWrite);
         } catch (IOException e) {
-            LOGGER.error(e.getMessage(), e);
+            log.error(e.getMessage(), e);
         }
     }
 

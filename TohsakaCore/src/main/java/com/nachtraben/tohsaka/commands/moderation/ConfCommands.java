@@ -17,7 +17,7 @@ import java.util.*;
 
 public class ConfCommands {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(ConfCommands.class);
+    private static final Logger log = LoggerFactory.getLogger(ConfCommands.class);
 
     @Cmd(name = "conf", format = "set prefixes (prefixes)", description = "Sets the prefixes for the selected guild.")
     public void setPrefixes(CommandSender sender, Map<String, String> args, Map<String, String> flags) {

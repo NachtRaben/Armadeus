@@ -25,7 +25,7 @@ import java.util.concurrent.TimeUnit;
 
 public class ShardManager {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(ShardManager.class);
+    private static final Logger log = LoggerFactory.getLogger(ShardManager.class);
 
     private SessionReconnectQueue queue;
     private DiscordBot bot;
@@ -41,13 +41,13 @@ public class ShardManager {
         defaultListeners = new HashSet<>();
         shardCount = bot.getConfig().getShardCount();
         if(shardCount == -1) {
-            LOGGER.warn("Getting recommended shard count from discord...");
+            log.warn("Getting recommended shard count from discord...");
             shardCount = getRecommendedShardCount();
         }
         if(shardCount < 1 || shardCount == 2)
             throw new IllegalArgumentException("Shard count must be at least 1 or greater than 3!");
 
-        LOGGER.info("Initializing with { " + shardCount + " } shards.");
+        log.info("Initializing with { " + shardCount + " } shards.");
     }
 
     public void connectShard(int shard) {
@@ -57,7 +57,7 @@ public class ShardManager {
         long wait = nextRestart - System.currentTimeMillis();
         if(wait > 0) {
             try {
-                LOGGER.warn("Waiting { " + wait + " }ms before starting next shard.");
+                log.warn("Waiting { " + wait + " }ms before starting next shard.");
                 Thread.sleep(wait);
                 nextRestart = System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(5);
             } catch (InterruptedException e) {
@@ -68,12 +68,12 @@ public class ShardManager {
         if(shard < shards.size()) {
             JDA jda = shards.get(shard);
             if(jda != null && !jda.getStatus().equals(JDA.Status.DISCONNECTED)) {
-                LOGGER.warn("Attempted to shut down a running shard, restarting it for you.");
+                log.warn("Attempted to shut down a running shard, restarting it for you.");
                 jda.shutdown();
             }
         }
 
-        LOGGER.info("Starting shard " + shard + " [" + (shard + 1) + "/" + (shardCount) + "].");
+        log.info("Starting shard " + shard + " [" + (shard + 1) + "/" + (shardCount) + "].");
         JDABuilder builder = initBuilder();
         if(shardCount == 1) {
             builder.setGame(Game.of(Game.GameType.DEFAULT, "shard [1/1]"));
@@ -84,7 +84,7 @@ public class ShardManager {
         try {
             shards.add(shard, builder.buildAsync());
         } catch (LoginException e) {
-            LOGGER.error("Failed to login to discord.", e);
+            log.error("Failed to login to discord.", e);
         }
     }
 
@@ -135,7 +135,7 @@ public class ShardManager {
             reader.close();
             return json.getInt("shards");
         } catch(Exception e) {
-            LOGGER.warn("Failed to get recommended shard count, assuming 1.", e);
+            log.warn("Failed to get recommended shard count, assuming 1.", e);
             return 1;
         }
     }

@@ -22,7 +22,7 @@ import java.util.concurrent.TimeUnit;
 
 public class CleanCommands extends CommandTree {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(CleanCommands.class);
+    private static final Logger log = LoggerFactory.getLogger(CleanCommands.class);
     private static Set<Long> purges = new HashSet<>();
 
     // TODO: Clean [amount] --date=date --time=time --silent --message=
@@ -39,7 +39,7 @@ public class CleanCommands extends CommandTree {
             @Override
             public void run(CommandSender sender, Map<String, String> args, Map<String, String> flags) {
                 if (sender instanceof GuildCommandSender) {
-                    LOGGER.debug("CLEAN COMMAND!!");
+                    log.debug("CLEAN COMMAND!!");
                     GuildCommandSender sendee = (GuildCommandSender) sender;
 
                     boolean isSilent = flags.containsKey("silent") || flags.containsKey("s");
@@ -67,14 +67,14 @@ public class CleanCommands extends CommandTree {
 
                     // Parse amount
                     if (hasAmount) {
-                        LOGGER.debug("amount");
+                        log.debug("amount");
                         amount = parseAmount(sendee, args.get("amount"), isSilent);
                         if (amount <= 0)
                             return;
                     }
                     // Parse message id
                     else if (hasMessage) {
-                        LOGGER.debug("message");
+                        log.debug("message");
                         try {
                             messageId = Long.parseLong(flags.get("message"));
                         } catch (NumberFormatException e) {
@@ -91,7 +91,7 @@ public class CleanCommands extends CommandTree {
                     }
                     // Parse date/time
                     else if (hasDate || hasTime) {
-                        LOGGER.debug("date/time");
+                        log.debug("date/time");
                         date = parseDate(sendee, flags.get("date"), flags.get("time"), isSilent);
                         if (date == null)
                             return;
@@ -143,14 +143,14 @@ public class CleanCommands extends CommandTree {
 
                     // Parse amount
                     if (hasAmount) {
-                        LOGGER.debug("amount");
+                        log.debug("amount");
                         amount = parseAmount(sendee, args.get("amount"), isSilent);
                         if (amount <= 0)
                             return;
                     }
                     // Parse message id
                     else if (hasMessage) {
-                        LOGGER.debug("message");
+                        log.debug("message");
                         try {
                             messageId = Long.parseLong(flags.get("message"));
                         } catch (NumberFormatException e) {
@@ -167,7 +167,7 @@ public class CleanCommands extends CommandTree {
                     }
                     // Parse date/time
                     else if (hasDate || hasTime) {
-                        LOGGER.debug("date/time");
+                        log.debug("date/time");
                         date = parseDate(sendee, flags.get("date"), flags.get("time"), isSilent);
                         if (date == null)
                             return;
@@ -219,14 +219,14 @@ public class CleanCommands extends CommandTree {
 
                     // Parse amount
                     if (hasAmount) {
-                        LOGGER.debug("amount");
+                        log.debug("amount");
                         amount = parseAmount(sendee, flags.get("amount"), isSilent);
                         if (amount <= 0)
                             return;
                     }
                     // Parse message id
                     else if (hasMessage) {
-                        LOGGER.debug("message");
+                        log.debug("message");
                         try {
                             messageId = Long.parseLong(flags.get("message"));
                         } catch (NumberFormatException e) {
@@ -243,7 +243,7 @@ public class CleanCommands extends CommandTree {
                     }
                     // Parse date/time
                     else if (hasDate || hasTime) {
-                        LOGGER.debug("date/time");
+                        log.debug("date/time");
                         date = parseDate(sendee, flags.get("date"), flags.get("time"), isSilent);
                         if (date == null)
                             return;
@@ -288,16 +288,16 @@ public class CleanCommands extends CommandTree {
     }
 
     private LocalDateTime parseDate(GuildCommandSender sender, String date, String time, boolean silent) {
-        LOGGER.debug("Date: " + date + "\tTime: " + time);
+        log.debug("Date: " + date + "\tTime: " + time);
         LocalDateTime result = null;
         if (date != null && time != null) {
-            LOGGER.debug("DATE-TIME");
+            log.debug("DATE-TIME");
             result = DateTimeUtil.parseDateTime(date, time);
             if (result == null)
                 if (!silent)
                     sender.sendMessage(ChannelTarget.GENERIC, "Sorry but you didn't specify a valid date/time combo, try something like `--date=07/21/17 --time=8:30am`.");
         } else if (date != null) {
-            LOGGER.debug("DATE");
+            log.debug("DATE");
             LocalDate parsedDate = DateTimeUtil.parseDate(date);
             if (parsedDate == null) {
                 if (!silent)
@@ -306,7 +306,7 @@ public class CleanCommands extends CommandTree {
                 result = LocalDateTime.of(parsedDate, LocalTime.of(0, 0));
             }
         } else if (time != null) {
-            LOGGER.debug("TIME");
+            log.debug("TIME");
             LocalTime parsedTime = DateTimeUtil.parseTime(time);
             if (parsedTime != null) {
                 result = LocalDateTime.of(LocalDate.now(), parsedTime);
@@ -318,7 +318,7 @@ public class CleanCommands extends CommandTree {
                     sender.sendMessage(ChannelTarget.GENERIC, "Sorry but you did not specify a valid time, try something like `--time=8:30am` or `--time=30m` for a time-frame.");
             }
         }
-        LOGGER.debug(String.valueOf(result));
+        log.debug(String.valueOf(result));
         if (result != null && result.isBefore(LocalDateTime.now().minusWeeks(4))) {
             if (!silent)
                 sender.sendMessage(ChannelTarget.GENERIC, "Sorry but you can't perform a date purge on anything older than a month.");
@@ -348,15 +348,15 @@ public class CleanCommands extends CommandTree {
         MessageHistory history = new MessageHistory(sender.getTextChannel());
         if (date != null) {
             // TODO: Deal with date
-            LOGGER.debug(time.toString());
+            log.debug(time.toString());
             while (!finished) {
                 if (cycles <= 0) {
                     if (!silent)
                         sender.sendMessage(ChannelTarget.GENERIC, "Sorry, but you have hit the purge limit with `" + deletions + "` deletions.");
-                    LOGGER.error("Scanning for too many messages!", new RuntimeException());
+                    log.error("Scanning for too many messages!", new RuntimeException());
                     break;
                 }
-                LOGGER.debug("Cycles remaining: " + cycles);
+                log.debug("Cycles remaining: " + cycles);
                 List<Message> messages = history.retrievePast(100).complete();
                 if (messages.isEmpty())
                     break;
@@ -367,11 +367,11 @@ public class CleanCommands extends CommandTree {
                             continue;
 
                         if (shouldDelete(m, ids, filters, preserve)) {
-                            LOGGER.debug("Deleting message: " + m.getIdLong() + " from " + m.getCreationTime().toString());
+                            log.debug("Deleting message: " + m.getIdLong() + " from " + m.getCreationTime().toString());
                             processMessage(m, bulkDelete, singleDelete);
                         }
                     } else {
-                        LOGGER.debug("Finished, found message before Date.");
+                        log.debug("Finished, found message before Date.");
                         finished = true;
                         break;
                     }
@@ -382,15 +382,15 @@ public class CleanCommands extends CommandTree {
                 delete(sender, bulkDelete, singleDelete);
             }
         } else if (messageID > 0) {
-            LOGGER.debug("Deleting until I found message: " + messageID);
+            log.debug("Deleting until I found message: " + messageID);
             while (!finished) {
                 if (cycles <= 0) {
                     if (!silent)
                         sender.sendMessage(ChannelTarget.GENERIC, "Sorry, but you have hit the purge limit with `" + deletions + "` deletions.");
-                    LOGGER.error("Scanning for too many messages!", new RuntimeException());
+                    log.error("Scanning for too many messages!", new RuntimeException());
                     break;
                 }
-                LOGGER.debug("Cycles remaining: " + cycles);
+                log.debug("Cycles remaining: " + cycles);
                 List<Message> messages = history.retrievePast(100).complete();
                 if (messages.isEmpty())
                     break;
@@ -401,11 +401,11 @@ public class CleanCommands extends CommandTree {
                             continue;
 
                         if (shouldDelete(m, ids, filters, preserve)) {
-                            LOGGER.debug("Deleting message: " + m.getIdLong());
+                            log.debug("Deleting message: " + m.getIdLong());
                             processMessage(m, bulkDelete, singleDelete);
                         }
                     } else {
-                        LOGGER.debug("Finished, found message with ID.");
+                        log.debug("Finished, found message with ID.");
                         finished = true;
                         break;
                     }
@@ -421,10 +421,10 @@ public class CleanCommands extends CommandTree {
                 if (cycles <= 0) {
                     if (!silent)
                         sender.sendMessage(ChannelTarget.GENERIC, "Sorry, but you have hit the purge limit with `" + deletions + "` deletions.");
-                    LOGGER.error("Scanning for too many messages!", new RuntimeException());
+                    log.error("Scanning for too many messages!", new RuntimeException());
                     break;
                 }
-                LOGGER.debug("Cycles remaining: " + cycles);
+                log.debug("Cycles remaining: " + cycles);
                 List<Message> messages = history.retrievePast(Math.min(100, amount)).complete();
                 if (messages.isEmpty())
                     break;
@@ -434,18 +434,18 @@ public class CleanCommands extends CommandTree {
                         continue;
 
                     if (shouldDelete(m, ids, filters, preserve)) {
-                        LOGGER.debug("Deleting message: " + m.getIdLong());
+                        log.debug("Deleting message: " + m.getIdLong());
                         processMessage(m, bulkDelete, singleDelete);
                     }
                 }
-                LOGGER.debug("Amount: " + amount);
+                log.debug("Amount: " + amount);
                 cycles--;
                 deletions += bulkDelete.size();
                 deletions += singleDelete.size();
                 amount -= Math.min(100, amount);
                 delete(sender, bulkDelete, singleDelete);
             }
-            LOGGER.debug("Finished, processed Amount.");
+            log.debug("Finished, processed Amount.");
         }
         if(!silent) {
             sender.sendMessage(ChannelTarget.GENERIC, "Purged `" + deletions + "` messages in " + sender.getTextChannel().getAsMention() + (date != null ? (" since `" + date.toString() + "`.") : ""));
@@ -490,7 +490,7 @@ public class CleanCommands extends CommandTree {
             try {
                 sender.getTextChannel().deleteMessages(bulkDelete).complete();
             } catch (Exception ignored) {
-                LOGGER.debug("Failed to bulk delete messages", ignored);
+                log.debug("Failed to bulk delete messages", ignored);
             }
         } else {
             singleDelete.addAll(bulkDelete);
@@ -499,7 +499,7 @@ public class CleanCommands extends CommandTree {
             try {
                 message.delete().reason("Clear command.").complete();
             } catch (Exception ignored) {
-                LOGGER.debug("Failed to delete message: " + message.getContentRaw(), ignored);
+                log.debug("Failed to delete message: " + message.getContentRaw(), ignored);
             }
         });
         bulkDelete.clear();

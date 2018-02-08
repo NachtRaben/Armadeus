@@ -5,7 +5,10 @@ import com.nachtraben.core.util.ChannelTarget;
 import com.nachtraben.orangeslice.CommandResult;
 import com.nachtraben.orangeslice.CommandSender;
 import net.dv8tion.jda.core.JDA;
-import net.dv8tion.jda.core.entities.*;
+import net.dv8tion.jda.core.entities.Message;
+import net.dv8tion.jda.core.entities.MessageChannel;
+import net.dv8tion.jda.core.entities.MessageEmbed;
+import net.dv8tion.jda.core.entities.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -14,7 +17,7 @@ import java.util.concurrent.Future;
 
 public class DiscordCommandSender implements CommandSender, Serializable {
 
-    private transient static final Logger LOGGER = LoggerFactory.getLogger(DiscordCommandSender.class);
+    private transient static final Logger log = LoggerFactory.getLogger(DiscordCommandSender.class);
 
     private transient DiscordBot dbot;
 

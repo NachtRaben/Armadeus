@@ -8,7 +8,7 @@ import org.slf4j.LoggerFactory;
 
 public class AudioPlayerSendHandler implements AudioSendHandler {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(AudioSendHandler.class);
+    private static final Logger log = LoggerFactory.getLogger(AudioSendHandler.class);
 
     public static boolean DEBUG = false;
     private final AudioPlayer player;
@@ -21,7 +21,7 @@ public class AudioPlayerSendHandler implements AudioSendHandler {
     @Override
     public boolean canProvide() {
         if (DEBUG)
-            LOGGER.debug("Debugging.");
+            log.debug("Debugging.");
         getFrame();
         return lastFrame != null;
     }
@@ -29,7 +29,7 @@ public class AudioPlayerSendHandler implements AudioSendHandler {
     @Override
     public byte[] provide20MsAudio() {
         if (DEBUG)
-            LOGGER.debug("Providing");
+            log.debug("Providing");
         getFrame();
         byte[] data = lastFrame != null ? lastFrame.data : null;
         lastFrame = null;
@@ -39,10 +39,10 @@ public class AudioPlayerSendHandler implements AudioSendHandler {
     private AudioFrame getFrame() {
         if (lastFrame == null) {
             if (DEBUG)
-                LOGGER.debug("Calling player.provide()");
+                log.debug("Calling player.provide()");
             lastFrame = player.provide();
             if (DEBUG)
-                LOGGER.debug(String.valueOf(lastFrame.data));
+                log.debug(String.valueOf(lastFrame.data));
         }
         return lastFrame;
     }

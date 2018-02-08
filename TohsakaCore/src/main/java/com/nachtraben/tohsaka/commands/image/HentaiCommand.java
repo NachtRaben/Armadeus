@@ -24,7 +24,7 @@ import java.util.stream.Collectors;
 public class HentaiCommand extends CommandTree {
 
     private static List<ImageBoard<? extends BoardImage>> boards;
-    private static final Logger LOGGER = LoggerFactory.getLogger(HentaiCommand.class);
+    private static final Logger log = LoggerFactory.getLogger(HentaiCommand.class);
 
     static {
         boards = new ArrayList<>();
@@ -80,7 +80,7 @@ public class HentaiCommand extends CommandTree {
                             }
 
                         } catch (QueryFailedException e) {
-                            LOGGER.debug("Failed to query " + board.getBoardType() + ", received a " + e.getCode() + ".");
+                            log.debug("Failed to query " + board.getBoardType() + ", received a " + e.getCode() + ".");
                             return;
                         }
                         try {
@@ -100,7 +100,7 @@ public class HentaiCommand extends CommandTree {
                     if (selection.getURL().toLowerCase().contains("null")) {
                         // TODO: Query again? Send user a message?
                         sendee.sendMessage("Unfortunately I was unable to fetch you an image, please try again.");
-                        LOGGER.error(board.getBoardType() + " returned invalid URL!\tType: " + selection.getClass().getSimpleName() + "\tURL: " + selection.getURL() + "\tErrors: " + errors.incrementAndGet() + "/" + runs.get());
+                        log.error(board.getBoardType() + " returned invalid URL!\tType: " + selection.getClass().getSimpleName() + "\tURL: " + selection.getURL() + "\tErrors: " + errors.incrementAndGet() + "/" + runs.get());
                         return;
                     }
                     sendee.sendMessage(ChannelTarget.NSFW, eb.build());

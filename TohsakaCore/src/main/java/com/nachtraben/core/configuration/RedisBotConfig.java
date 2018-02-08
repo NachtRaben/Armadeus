@@ -4,30 +4,24 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import com.nachtraben.core.DiscordBot;
+import com.nachtraben.core.util.RedisUtil;
 import com.nachtraben.core.util.Utils;
-import com.nachtraben.pineappleslice.redis.Redis;
-import com.nachtraben.pineappleslice.redis.RedisProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Function;
 
 public class RedisBotConfig extends BotConfig implements RedisConfig {
 
-    private static final Object CONNECTION_LOCK = new Object();
-    private static final Logger LOGGER = LoggerFactory.getLogger(RedisBotConfig.class);
+    private static final Logger log = LoggerFactory.getLogger(RedisBotConfig.class);
     private static final Gson GSON = new GsonBuilder().disableHtmlEscaping().create();
 
-    private RedisProvider provider;
-    private Redis connection;
     private ScheduledFuture<?> debugFuture;
 
-    public RedisBotConfig(DiscordBot bot, RedisProvider provider) {
+    public RedisBotConfig(DiscordBot bot) {
         super(bot);
-        this.provider = provider;
     }
 
     @Override
@@ -37,7 +31,7 @@ public class RedisBotConfig extends BotConfig implements RedisConfig {
         if (arguments.contains("--reconfigure")) {
             reconfigure();
         }
-        Map<String, String> config = runQuery(redis -> redis.hgetall("config"));
+        Map<String, String> config = RedisUtil.runLegacyQuery(15, redis -> redis.hgetall("config"));
         botToken = config.get("botToken");
         shardCount = Integer.parseInt(config.get("shardCount"));
         prefixes = GSON.fromJson(config.get("prefixes"), TypeToken.getParameterized(HashSet.class, String.class).getType());
@@ -51,37 +45,30 @@ public class RedisBotConfig extends BotConfig implements RedisConfig {
 
     @Override
     public BotConfig save() {
-        runQuery(redis -> {
+        RedisUtil.runLegacyQuery(15, redis -> {
             redis.hmset("config", toMap());
             return null;
         });
         return this;
     }
 
-    public Redis getConnection() {
-        if(connection == null) {
-            return connection = provider.getSession(15);
-        }
-        return connection;
-    }
-
     private void reconfigure() {
-        LOGGER.warn("Reconfiguration requested!");
+        log.warn("Reconfiguration requested!");
         Scanner scanner = new Scanner(System.in);
         Boolean yn;
         String response;
         do {
-            LOGGER.info("Do you wish to export the current config to provider? [Y/N]:");
+            log.info("Do you wish to export the current config to provider? [Y/N]:");
             response = scanner.nextLine();
         } while (!response.matches("[YyNn]"));
         yn = response.matches("[Yy]");
         if (yn) {
-            LOGGER.info("Exporting config to provider...");
-            runQuery(redis -> redis.del("config"));
+            log.info("Exporting config to provider...");
+            RedisUtil.runLegacyQuery(15, redis -> redis.del("config"));
             save();
-            LOGGER.info("Export finished!");
+            log.info("Export finished!");
         } else {
-            LOGGER.info("Skipping reconfiguration.");
+            log.info("Skipping reconfiguration.");
         }
     }
 
@@ -101,7 +88,7 @@ public class RedisBotConfig extends BotConfig implements RedisConfig {
 
     public boolean isDebugging() {
         try {
-            return runQuery(redis -> redis.get("debug") != null);
+            return RedisUtil.runLegacyQuery(15, redis -> redis.get("debug") != null);
         } catch (Exception ignored){}
         return false;
     }
@@ -109,27 +96,21 @@ public class RedisBotConfig extends BotConfig implements RedisConfig {
     public void setDebugging(boolean debugging) {
         try {
             if(debugging && debugFuture == null) {
-                LOGGER.debug("Starting debug update task for redis.");
+                log.debug("Starting debug update task for redis.");
                 debugFuture = Utils.getScheduler().scheduleAtFixedRate(() -> {
-                    runQuery(redis -> {
+                    RedisUtil.runLegacyQuery(15, redis -> {
                         redis.getJedis().setnx("debug", String.valueOf(true));
                         redis.expire("debug", 10);
                         return null;
                     });
                 }, 0L, 5L, TimeUnit.SECONDS);
             } else if(!debugging && debugFuture != null) {
-                LOGGER.debug("Stopping debug update task for redis.");
+                log.debug("Stopping debug update task for redis.");
                 debugFuture.cancel(false);
                 debugFuture = null;
             }
         } catch (Exception e) {
-            LOGGER.warn("Failed to set debugging state.", e);
-        }
-    }
-
-    private <T> T runQuery(Function<Redis, T> query) {
-        synchronized (CONNECTION_LOCK) {
-            return query.apply(getConnection());
+            log.warn("Failed to set debugging state.", e);
         }
     }
 

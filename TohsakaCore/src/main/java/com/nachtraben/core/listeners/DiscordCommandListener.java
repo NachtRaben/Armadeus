@@ -22,7 +22,7 @@ import java.util.Arrays;
 import java.util.List;
 
 public class DiscordCommandListener extends ListenerAdapter {
-    private static final Logger LOGGER = LoggerFactory.getLogger(DiscordCommandListener.class);
+    private static final Logger log = LoggerFactory.getLogger(DiscordCommandListener.class);
 
     private DiscordBot dbot;
 
@@ -40,9 +40,9 @@ public class DiscordCommandListener extends ListenerAdapter {
         if (!message.getAuthor().isBot() && !message.getAuthor().isFake() && content.length() > 0) {
 
             if (dbot.isLogMessages() && message.isFromType(ChannelType.TEXT)) {
-                LOGGER.debug(String.format("[Message][%s>>%s#%s]: %s", message.getGuild().getName(), message.getAuthor().getName(), message.getAuthor().getDiscriminator(), message.getContentDisplay()));
+                log.debug(String.format("[Message][%s>>%s#%s]: %s", message.getGuild().getName(), message.getAuthor().getName(), message.getAuthor().getDiscriminator(), message.getContentDisplay()));
             } else if (dbot.isLogMessages() && message.isFromType(ChannelType.PRIVATE)) {
-                LOGGER.debug(String.format("[Message][DM>>%s#%s]: %s", message.getAuthor().getName(), message.getAuthor().getDiscriminator(), message.getContentDisplay()));
+                log.debug(String.format("[Message][DM>>%s#%s]: %s", message.getAuthor().getName(), message.getAuthor().getDiscriminator(), message.getContentDisplay()));
             }
 
             DiscordCommandSender sender = null;
@@ -55,7 +55,7 @@ public class DiscordCommandListener extends ListenerAdapter {
 
                 if (!mentions.isEmpty() && mentions.get(0).equals(jda.getSelfUser()) && content.startsWith(mentions.get(0).getAsMention())) {
                     if (dbot.getConfig() instanceof RedisBotConfig && !dbot.isDebugging() && ((RedisBotConfig) dbot.getConfig()).isDebugging()) {
-                        LOGGER.warn("Ignoring user mention prefix as a developer instance is running.");
+                        log.warn("Ignoring user mention prefix as a developer instance is running.");
                     } else {
                         prefix = mentions.get(0).getAsMention() + " ";
                     }
@@ -67,7 +67,7 @@ public class DiscordCommandListener extends ListenerAdapter {
                         Member botMember = message.getGuild().getMember(jda.getSelfUser());
                         if (!mentions.isEmpty() && mentions.get(0).equals(jda.getSelfUser()) && content.startsWith(botMember.getAsMention())) {
                             if (dbot.getConfig() instanceof RedisBotConfig && !dbot.isDebugging() && ((RedisBotConfig) dbot.getConfig()).isDebugging()) {
-                                LOGGER.warn("Ignoring member mention prefix as a developer instance is running.");
+                                log.warn("Ignoring member mention prefix as a developer instance is running.");
                             } else {
                                 prefix = botMember.getAsMention() + " ";
                             }
@@ -85,7 +85,7 @@ public class DiscordCommandListener extends ListenerAdapter {
                 } else if (message.isFromType(ChannelType.PRIVATE)) {
                     sender = new PrivateCommandSender(dbot, message);
                 } else {
-                    LOGGER.warn("Received message from unsupported currentChannel type { " + message.getChannelType() + " }.");
+                    log.warn("Received message from unsupported currentChannel type { " + message.getChannelType() + " }.");
                 }
 
                 if (!dbot.isDebugging() && prefix == null) {
@@ -108,14 +108,14 @@ public class DiscordCommandListener extends ListenerAdapter {
                         sender.runCommand(command, args).get();
                     } catch (Exception e) {
                         sender.sendMessage(ChannelTarget.GENERIC, "I was unable to process your command, please try again later.");
-                        LOGGER.error("An exception occurred while attempting to run a command.", e);
+                        log.error("An exception occurred while attempting to run a command.", e);
                     }
                 }
 
             } catch (Exception e) {
                 if (sender != null)
                     sender.sendMessage(ChannelTarget.GENERIC, "I was unable to process your command, please try again later.");
-                LOGGER.error("An exception occurred while trying to query the database.", e);
+                log.error("An exception occurred while trying to query the database.", e);
             }
         }
     }

@@ -22,7 +22,7 @@ import java.util.stream.Collectors;
 public class YandereCommand extends Command {
 
     private static final Random RAND = new Random();
-    private static final Logger LOGGER = LoggerFactory.getLogger(YandereCommand.class);
+    private static final Logger log = LoggerFactory.getLogger(YandereCommand.class);
     private TimedCache<Long, Set<String>> guildSearchCache = new TimedCache<>(TimeUnit.MINUTES.toMillis(30), TimedCache.TimeoutPolicy.ACCESS);
     private TimedCache<Long, Set<String>> userSearchCache = new TimedCache<>(TimeUnit.MINUTES.toMillis(30), TimedCache.TimeoutPolicy.ACCESS);
 

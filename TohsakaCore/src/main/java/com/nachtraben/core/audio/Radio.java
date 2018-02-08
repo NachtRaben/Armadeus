@@ -30,7 +30,7 @@ public enum Radio {
     MONSTERCAT("Monstercat Radio", "dooley_labs", (String) Tohsaka.getInstance().getConfig().getMetadata().get("monstercat_radio_address"), null),
     ROOKERY("Rookery Radio", "Coolguy3289", "http://stream.rookeryradio.com:8088/live", null),
     NOLIFE("NoLife-Radio", "NoLife", "http://nolife-radio.com/radio/NoLife-radio.m3u", null);
-    private static final Logger LOGGER = LoggerFactory.getLogger(Radio.class);
+    private static final Logger log = LoggerFactory.getLogger(Radio.class);
 
     private String title;
     private String artist;
@@ -59,13 +59,13 @@ public enum Radio {
 
             @Override
             public void playlistLoaded(AudioPlaylist playlist) {
-                LOGGER.debug("Somehow loaded a playlist when trying to play, " + this.toString());
+                log.debug("Somehow loaded a playlist when trying to play, " + this.toString());
                 sender.sendMessage(ChannelTarget.MUSIC, "Something went wrong while playing the radio, the bot author has been notified. FOUND_PLAYLIST");
             }
 
             @Override
             public void noMatches() {
-                LOGGER.debug("Couldn't load radio when attempt to play, " + this.toString());
+                log.debug("Couldn't load radio when attempt to play, " + this.toString());
                 sender.sendMessage("Something went wrong while playing the radio, the bot author has been notified. NO_MATCH");
             }
 
