@@ -23,6 +23,7 @@ import org.reflections.util.FilterBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.HashMap;
@@ -66,25 +67,31 @@ public class Tohsaka extends DiscordBot implements CommandEventListener {
             if (!classes.contains(m.getDeclaringClass())) {
                 classes.add(m.getDeclaringClass());
                 try {
-                    getCommandBase().registerCommands(m.getDeclaringClass().newInstance());
+                    getCommandBase().registerCommands(m.getDeclaringClass().getConstructor().newInstance());
                 } catch (InstantiationException | IllegalAccessException e) {
                     LOGGER.error("Failed to register command class, " + m.getDeclaringClass() + ".", e);
+                } catch (NoSuchMethodException | InvocationTargetException e) {
+                    e.printStackTrace();
                 }
             }
         }
         for (Class s : reflections.getSubTypesOf(Command.class)) {
             try {
                 if (!s.isSynthetic() && !s.isAnonymousClass() && !Modifier.isAbstract(s.getModifiers()))
-                    getCommandBase().registerCommands(s.newInstance());
+                    getCommandBase().registerCommands(s.getConstructor().newInstance());
             } catch (InstantiationException | IllegalAccessException e) {
                 LOGGER.error("Failed to instantiate command class, " + s.getSimpleName() + ".", e);
+            } catch (NoSuchMethodException | InvocationTargetException e) {
+                e.printStackTrace();
             }
         }
         for (Class s : reflections.getSubTypesOf(CommandTree.class)) {
             try {
-                getCommandBase().registerCommands(s.newInstance());
+                getCommandBase().registerCommands(s.getConstructor().newInstance());
             } catch (IllegalAccessException | InstantiationException e) {
                 LOGGER.error("Failed to instantiate command class, " + s.getSimpleName() + ".", e);
+            } catch (NoSuchMethodException | InvocationTargetException e) {
+                e.printStackTrace();
             }
         }
     }

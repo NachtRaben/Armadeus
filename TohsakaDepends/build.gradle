@@ -1,6 +1,6 @@
 dependencies {
     compile 'net.dv8tion:JDA:3.5.0_334'
-    compile 'com.sedmelluq:lavaplayer:1.2.46'
+    compile 'com.sedmelluq:lavaplayer:1.2.47'
     compile 'com.sedmelluq:jda-nas:1.0.6'
 
     compile 'com.github.NachtRaben:OrangeSlice:760b4494a2'
