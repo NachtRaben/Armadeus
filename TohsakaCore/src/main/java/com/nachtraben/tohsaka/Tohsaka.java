@@ -4,6 +4,7 @@ import com.nachtraben.core.DiscordBot;
 import com.nachtraben.core.command.GuildCommandSender;
 import com.nachtraben.core.configuration.GuildConfig;
 import com.nachtraben.core.util.TimeUtil;
+import com.nachtraben.core.util.Utils;
 import com.nachtraben.orangeslice.CommandResult;
 import com.nachtraben.orangeslice.command.Cmd;
 import com.nachtraben.orangeslice.command.Command;
@@ -14,6 +15,7 @@ import com.nachtraben.orangeslice.event.CommandPostProcessEvent;
 import com.nachtraben.orangeslice.event.CommandPreProcessEvent;
 import net.dv8tion.jda.core.Permission;
 import net.dv8tion.jda.core.entities.Member;
+import net.dv8tion.jda.core.entities.TextChannel;
 import org.reflections.Reflections;
 import org.reflections.scanners.MethodAnnotationsScanner;
 import org.reflections.scanners.SubTypesScanner;
@@ -23,9 +25,12 @@ import org.reflections.util.FilterBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.net.ServerSocket;
+import java.net.Socket;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -37,6 +42,8 @@ public class Tohsaka extends DiscordBot implements CommandEventListener {
     private static final Logger log = LoggerFactory.getLogger(Tohsaka.class);
 
     private static Tohsaka instance;
+
+    private ServerSocket sock;
 
     private ConcurrentHashMap<Long, Map<Long, Long>> cooldowns = new ConcurrentHashMap<>();
 
@@ -51,6 +58,25 @@ public class Tohsaka extends DiscordBot implements CommandEventListener {
         getCommandBase().registerEventListener(this);
         getShardManager().connectAllShards();
         postStart();
+
+        Utils.getExecutor().execute(() -> {
+            try {
+                sock = new ServerSocket(13380);
+                log.info("Now listening for update notifications.");
+                while (isRunning()) {
+                    Socket s = sock.accept();
+                    log.info("Received update notification. Waiting 5 seconds before notifying.");
+                    TextChannel channel = getConfig().getErrorLogChannel();
+                    if (channel == null)
+                        return;
+                    Thread.sleep(5000);
+                    channel.sendMessage("Received update notification. Feel free to reboot once you see this.");
+                }
+                sock.close();
+            } catch (IOException | InterruptedException e) {
+            }
+        });
+
     }
 
     private void registerCommands() {
@@ -98,6 +124,15 @@ public class Tohsaka extends DiscordBot implements CommandEventListener {
 
     public static Tohsaka getInstance() {
         return instance;
+    }
+
+    @Override
+    public void shutdown(int code) {
+        try {
+            sock.close();
+        } catch (IOException ignored) {
+        }
+        super.shutdown(code);
     }
 
     public static void main(String[] args) {

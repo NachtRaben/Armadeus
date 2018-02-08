@@ -32,5 +32,20 @@ subprojects {
     shadowJar {
         classifier = ""
     }
+
+    task pushLocally(dependsOn: shadowJar) {
+        doLast {
+            def failed = tasks.shadowJar.state.failure
+            if(failed)
+                return
+            try {
+                def connection = new Socket("tohsaka-vps", 13380)
+                connection.close()
+            } catch (Exception e) {
+                e.printStackTrace()
+            }
+        }
+    }
+
 }
 
