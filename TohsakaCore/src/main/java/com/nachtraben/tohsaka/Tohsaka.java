@@ -47,6 +47,8 @@ public class Tohsaka extends DiscordBot implements CommandEventListener {
 
     private ConcurrentHashMap<Long, Map<Long, Long>> cooldowns = new ConcurrentHashMap<>();
 
+    private boolean ignore = false;
+
     public Tohsaka(String[] args, boolean debugging) {
         super(args);
         instance = this;
@@ -66,6 +68,13 @@ public class Tohsaka extends DiscordBot implements CommandEventListener {
                 while (isRunning()) {
                     Socket s = sock.accept();
                     s.close();
+
+                    if (ignore) {
+                        ignore = !ignore;
+                        continue;
+                    } else
+                        ignore = true;
+
                     log.info("Received update notification. Waiting 5 seconds before notifying.");
                     TextChannel channel = getConfig().getErrorLogChannel();
                     if (channel == null)
@@ -74,7 +83,7 @@ public class Tohsaka extends DiscordBot implements CommandEventListener {
                     channel.sendMessage("Received update notification. Feel free to reboot once you see this.").queue();
                 }
                 sock.close();
-            } catch (IOException | InterruptedException e) {
+            } catch (IOException | InterruptedException ignored) {
             }
         });
 
