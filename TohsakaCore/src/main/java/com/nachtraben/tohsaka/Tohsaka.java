@@ -65,12 +65,13 @@ public class Tohsaka extends DiscordBot implements CommandEventListener {
                 log.info("Now listening for update notifications.");
                 while (isRunning()) {
                     Socket s = sock.accept();
+                    s.close();
                     log.info("Received update notification. Waiting 5 seconds before notifying.");
                     TextChannel channel = getConfig().getErrorLogChannel();
                     if (channel == null)
                         return;
                     Thread.sleep(5000);
-                    channel.sendMessage("Received update notification. Feel free to reboot once you see this.");
+                    channel.sendMessage("Received update notification. Feel free to reboot once you see this.").queue();
                 }
                 sock.close();
             } catch (IOException | InterruptedException e) {
