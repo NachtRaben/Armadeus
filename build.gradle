@@ -39,7 +39,7 @@ subprojects {
             if(failed)
                 return
             try {
-                def connection = new Socket("localhost", 13380)
+                def connection = new Socket("tohsaka-vps", 13380)
                 connection.close()
             } catch (Exception e) {
                 e.printStackTrace()
