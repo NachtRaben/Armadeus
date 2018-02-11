@@ -27,7 +27,7 @@ public class WelcomeListener extends ListenerAdapter {
         // Filter out and replace some tags.
         final String msg = message.replaceAll("%username%", e.getMember().getUser().getName())
             .replaceAll("%nickname%", e.getMember().getEffectiveName())
-            .replaceAll("%guild", e.getGuild().getName())
+            .replaceAll("%guild%", e.getGuild().getName())
             .replaceAll("%mention%", e.getUser().getAsMention());
 
 
