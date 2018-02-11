@@ -175,6 +175,58 @@ public class ConfCommands {
         }
     }
 
+    @Cmd(name = "conf", format = "set greeting <type> {greeting}", description = "Sets the greeting for the server.")
+    public void setGreeting(CommandSender sender, Map<String, String> args, Map<String, String> flags) {
+        if (sender instanceof GuildCommandSender) {
+            GuildCommandSender sendee = (GuildCommandSender) sender;
+
+            if (!hasPerms(sendee)) {
+                sendee.sendMessage(ChannelTarget.GENERIC, "Sorry but you just aren't good enough for that command.");
+                return;
+            }
+
+            GuildConfig config = sendee.getDbot().getGuildManager().getConfigurationFor(sendee.getGuild());
+
+            String action = args.get("type").toLowerCase();
+            if(!action.equals("message") && !action.equals("dm")) {
+                sender.sendMessage("Valid actions are `<Message/DM>`.");
+                return;
+            }
+
+            String message = args.get("greeting").trim();
+
+            config.getMetadata().put("welcome_action", action);
+            config.getMetadata().put("welcome_message", message);
+            sender.sendMessage("The welcome message is now, `" + message + "`.");
+            config.save();
+
+        } else {
+            sender.sendMessage("Sorry but that command is only available in guilds I'm a part of.");
+        }
+    }
+
+    @Cmd(name = "conf", format = "remove greeting", description = "Removes the greeting for the server.")
+    public void removeGreeting(CommandSender sender, Map<String, String> args, Map<String, String> flags) {
+        if (sender instanceof GuildCommandSender) {
+            GuildCommandSender sendee = (GuildCommandSender) sender;
+
+            if (!hasPerms(sendee)) {
+                sendee.sendMessage(ChannelTarget.GENERIC, "Sorry but you just aren't good enough for that command.");
+                return;
+            }
+
+            GuildConfig config = sendee.getDbot().getGuildManager().getConfigurationFor(sendee.getGuild());
+
+            config.getMetadata().remove("welcome_action");
+            config.getMetadata().remove("welcome_message");
+            sender.sendMessage("The welcome message is now removed.");
+            config.save();
+
+        } else {
+            sender.sendMessage("Sorry but that command is only available in guilds I'm a part of.");
+        }
+    }
+
     private boolean hasPerms(GuildCommandSender sendee) {
         BotConfig botConfig = Tohsaka.getInstance().getConfig();
         if (sendee.getMember().hasPermission(Permission.ADMINISTRATOR) || botConfig.getDeveloperIDs().contains(sendee.getUser().getIdLong()) || botConfig.getOwnerIDs().contains(sendee.getUser().getIdLong())) {

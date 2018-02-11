@@ -25,7 +25,7 @@ public class InviteCommand extends Command {
             SelfUser bot = sendee.getUser().getJDA().getSelfUser();
             embedBuilder.setAuthor(bot.getName(), "https://tohsakabot.com", bot.getAvatarUrl());
             embedBuilder.setDescription("Invite me: [link](" + sendee.getMessage().getJDA().asBot().getInviteUrl(Permission.ADMINISTRATOR) + ")" +
-                    "\nSupport: [link](https://discord.gg/mmYZGGB)");
+                    "\nSupport: [link](https://discord.gg/jmKhbar)");
             sendee.sendMessage(ChannelTarget.GENERIC, embedBuilder.build());
         }
     }
