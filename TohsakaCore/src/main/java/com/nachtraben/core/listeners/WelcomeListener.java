@@ -29,7 +29,7 @@ public class WelcomeListener extends ListenerAdapter {
             .replaceAll("%nickname%", e.getMember().getEffectiveName())
             .replaceAll("%guild", e.getGuild().getName())
             .replaceAll("%mention%", e.getUser().getAsMention());
-        
+
 
         // Send based on action.
         // TODO: Implement setting this metadata
