@@ -7,9 +7,9 @@ import com.nachtraben.orangeslice.CommandSender;
 import com.nachtraben.orangeslice.command.Cmd;
 import com.nachtraben.tohsaka.Tohsaka;
 
-import java.util.HashSet;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 public class ImageBlacklist {
 
@@ -25,8 +25,9 @@ public class ImageBlacklist {
                 return;
             }
 
-            Set<String> urls = (Set<String>) config.getMetadata().computeIfAbsent("blacklisted-urls", k -> new HashSet<String>());
-            urls.add(args.get("url"));
+            List<String> urls = (List<String>) config.getMetadata().computeIfAbsent("blacklisted-urls", k -> new ArrayList<>());
+            if (!urls.contains(args.get("url")))
+                urls.add(args.get("url"));
             config.save();
             sendee.sendMessage("The url has been added to the blacklist.");
         }

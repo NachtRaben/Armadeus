@@ -15,9 +15,7 @@ import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 public class NekoLifeCommands {
@@ -69,7 +67,7 @@ public class NekoLifeCommands {
                 }
                 if (response.has("neko")) {
                     url = response.getString("neko");
-                    Set<String> urls = (Set<String>) Tohsaka.getInstance().getConfig().getMetadata().computeIfAbsent("blacklisted-urls", k -> new HashSet<String>());
+                    List<String> urls = (List<String>) Tohsaka.getInstance().getConfig().getMetadata().computeIfAbsent("blacklisted-urls", k -> new ArrayList<String>());
                     if (urls.contains(url)) {
                         LOGGER.info("Stopping blacklisted URL: " + url);
                         url = null;
