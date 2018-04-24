@@ -81,6 +81,7 @@ public class GuildConfig implements CustomJsonIO {
     @Override
     public void read(JsonElement jsonElement) {
         if (jsonElement instanceof JsonObject) {
+            preInit();
             JsonObject jo = jsonElement.getAsJsonObject();
             if (jo.has("deleteCommands"))
                 deleteCommands = jo.get("deleteCommands").getAsBoolean();
