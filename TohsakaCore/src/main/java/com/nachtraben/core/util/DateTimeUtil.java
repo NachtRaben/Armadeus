@@ -16,7 +16,7 @@ import java.util.concurrent.TimeUnit;
 
 public class DateTimeUtil {
 
-    private static final Logger log = LoggerFactory.getLogger(DateTimeUtil.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(DateTimeUtil.class);
 
     private static final DateTimeFormatter DATE_TIME_ZONE = DateTimeFormatter.ofPattern("MM/dd/yy-h:mma z", Locale.ENGLISH);
     private static final DateTimeFormatter DATE_TIME = DateTimeFormatter.ofPattern("M/d/yy-h:mma", Locale.ENGLISH);
@@ -39,7 +39,7 @@ public class DateTimeUtil {
             if (millis != 0) {
                 return LocalTime.now().plusSeconds(TimeUnit.MILLISECONDS.toSeconds(millis));
             } else {
-                log.error("Failed to parse " + time + " to LocalTime.", e);
+                LOGGER.error("Failed to parse " + time + " to LocalTime.", e);
             }
         }
         return null;
@@ -50,7 +50,7 @@ public class DateTimeUtil {
         try {
             return LocalDate.parse(date, selected);
         } catch (DateTimeParseException e) {
-            log.error("Failed to parse " + date + " to LocalDate", e);
+            LOGGER.error("Failed to parse " + date + " to LocalDate", e);
         }
         return null;
     }

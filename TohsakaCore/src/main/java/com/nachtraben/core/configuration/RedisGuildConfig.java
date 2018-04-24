@@ -1,9 +1,8 @@
 package com.nachtraben.core.configuration;
 
-import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
 import com.nachtraben.core.managers.GuildManager;
-import com.nachtraben.core.util.RedisUtil;
+import com.nachtraben.core.util.ChannelTarget;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -14,7 +13,7 @@ import java.util.stream.Collectors;
 
 public class RedisGuildConfig extends GuildConfig implements RedisConfig {
 
-    private static final transient Logger log = LoggerFactory.getLogger(RedisGuildConfig.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(RedisGuildConfig.class);
 
     public RedisGuildConfig(GuildManager manager, Long guild) {
         super(manager, guild);
@@ -25,15 +24,25 @@ public class RedisGuildConfig extends GuildConfig implements RedisConfig {
             super.load();
 
         super.preInit();
-        Map<String, String> config = RedisUtil.runQuery(redis -> redis.hgetall(String.valueOf(getGuildID())));
-        if (config == null)
-            throw new IllegalStateException("Failed to load guild configuration, non-existent or null?");
+        Map<String, String> config = getGuildManager().runQuery(redis -> redis.hgetall(String.valueOf(getGuildID())));
         if (config.containsKey("deleteCommands"))
             deleteCommands = Boolean.parseBoolean(config.get("deleteCommands"));
         if (config.containsKey("prefixes"))
             prefixes = GSON.fromJson(config.get("prefixes"), TypeToken.getParameterized(HashSet.class, String.class).getType());
-        if (config.containsKey("disabledCommands"))
-            disabledCommands = GSON.fromJson(config.get("disabledCommands"), TypeToken.getParameterized(HashMap.class, String.class, TypeToken.getParameterized(HashSet.class, String.class).getType()).getType());
+        if (config.containsKey("disabledCommands")) {
+            try {
+                disabledCommands = GSON.fromJson(config.get("disabledCommands"), new TypeToken<HashMap<String, HashSet<Long>>>() {
+                }.getType());
+            } catch (Exception e) {
+                try {
+                    disabledCommands =
+                            ((HashSet<String>) GSON.fromJson(config.get("disabledCommands"), TypeToken.getParameterized(HashSet.class, String.class).getType()))
+                                    .stream().collect(Collectors.toMap(cmd -> cmd, value -> new HashSet<Long>()));
+                } catch (Exception e2) {
+                    LOGGER.error("Failed to convert disabled commands.", e2);
+                }
+            }
+        }
         if (config.containsKey("isBlacklist"))
             isBlacklist = Boolean.parseBoolean(config.get("isBlacklist"));
         if (config.containsKey("blacklistedIDs"))
@@ -45,12 +54,26 @@ public class RedisGuildConfig extends GuildConfig implements RedisConfig {
         if (config.containsKey("cooldown"))
             cooldown = Long.parseLong(config.get("cooldown"));
 
+        if (config.containsKey("genericLogChannelID")) {
+            long id = Long.parseLong(config.get("genericLogChannelID"));
+            if (id > 0)
+                logChannels.put(ChannelTarget.GENERIC.toString().toLowerCase(), id);
+            getGuildManager().runQuery(redis -> redis.hdel(String.valueOf(getGuildID()), "genericLogChannelID"));
+            save();
+        }
+        if (config.containsKey("musicLogChannelID")) {
+            long id = Long.parseLong(config.get("musicLogChannelID"));
+            if (id > 0)
+                logChannels.put(ChannelTarget.MUSIC.toString().toLowerCase(), id);
+            getGuildManager().runQuery(redis -> redis.hdel(String.valueOf(getGuildID()), "musicLogChannelID"));
+            save();
+        }
         super.postInit();
         return this;
     }
 
     public RedisGuildConfig save() {
-        RedisUtil.runQuery(redis -> {
+        getGuildManager().runQuery(redis -> {
             redis.hmset(String.valueOf(getGuildID()), toMap());
             return null;
         });
@@ -59,19 +82,16 @@ public class RedisGuildConfig extends GuildConfig implements RedisConfig {
 
     @Override
     public Map<String, String> toMap() {
-        JsonObject jo = (JsonObject) GSON.toJsonTree(this);
-        Map<String, String> result = jo.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, entry -> entry.getValue().toString()));
+        Map<String, String> result = new HashMap<>();
+        result.put("deleteCommands", String.valueOf(shouldDeleteCommands()));
+        result.put("prefixes", GSON.toJson(getPrefixes()));
+        result.put("disabledCommands", GSON.toJson(getDisabledCommands()));
+        result.put("isBlacklist", String.valueOf(isBlacklist));
+        result.put("blacklistedIDs", GSON.toJson(getBlacklistedIDs()));
+        result.put("logChannels", GSON.toJson(getLogChannels()));
+        result.put("metadata", GSON.toJson(getMetadata()));
+        result.put("cooldown", GSON.toJson(getCooldown()));
         return result;
-
-//        result.put("deleteCommands", String.valueOf(shouldDeleteCommands()));
-//        result.put("prefixes", GSON.toJson(getPrefixes()));
-//        result.put("disabledCommands", GSON.toJson(getDisabledCommands()));
-//        result.put("isBlacklist", String.valueOf(isBlacklist));
-//        result.put("blacklistedIDs", GSON.toJson(getBlacklistedIDs()));
-//        result.put("logChannels", GSON.toJson(getLogChannels()));
-//        result.put("metadata", GSON.toJson(getMetadata()));
-//        result.put("cooldown", GSON.toJson(getCooldown()));
-//        return result;
     }
 
 }

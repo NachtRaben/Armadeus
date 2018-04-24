@@ -21,7 +21,7 @@ import java.io.StringWriter;
 import java.util.Date;
 
 
-public class LogbackListener extends AppenderBase<ILoggingEvent> {
+public class LogbackListener<E> extends AppenderBase<E> {
 
     private DiscordBot bot;
 
@@ -30,38 +30,40 @@ public class LogbackListener extends AppenderBase<ILoggingEvent> {
     }
 
     @Override
-    protected void append(ILoggingEvent event) {
-        WebhookLogger logger = bot.getWlogger();
-        Level level = event.getLevel();
-        String message = event.getFormattedMessage();
-        if (level.isGreaterOrEqual(Level.ERROR)) {
-            TextChannel channel = bot.getConfig().getErrorLogChannel();
-            if (channel != null) {
-                try {
-                    EmbedBuilder eb = new EmbedBuilder();
-                    eb.setDescription(String.format("***[%s]: %s***", level.levelStr, message.substring(0, Math.min(event.getMessage().length(), MessageEmbed.TEXT_MAX_LENGTH))));
-                    eb.setColor(Utils.randomColor());
-                    if (logger != null)
-                        logger.send(String.format("[%s][%s][%s]: %s", DateTimeUtil.formatTime(event.getTimeStamp()), level.levelStr, name, message));
+    protected void append(E eventObject) {
+        if (eventObject instanceof ILoggingEvent) {
+            ILoggingEvent event = (ILoggingEvent) eventObject;
+            WebhookLogger logger = bot.getWlogger();
+            Level level = event.getLevel();
+            if (level.isGreaterOrEqual(Level.ERROR)) {
+                TextChannel channel = bot.getConfig().getErrorLogChannel();
+                if (channel != null) {
+                    try {
+                        EmbedBuilder eb = new EmbedBuilder();
+                        eb.setDescription(String.format("***[%s]: %s***", level.levelStr, event.getMessage().substring(0, Math.min(event.getMessage().length(), MessageEmbed.TEXT_MAX_LENGTH))));
+                        eb.setColor(Utils.randomColor());
+                        if (logger != null)
+                            logger.send(String.format("[%s][%s][%s]: %s", DateTimeUtil.formatTime(event.getTimeStamp()), level.levelStr, name, event.getFormattedMessage()));
+                        if (event.getThrowableProxy() != null) {
+                            String throwable = getStackTrace(event);
+                            if (logger != null)
+                                logger.send(String.format("[%s][%s][%s]: %s", DateTimeUtil.formatTime(event.getTimeStamp()), level.levelStr, name, throwable));
+                            eb.addField("Stack:", throwable.substring(0, Math.min(throwable.length(), MessageEmbed.VALUE_MAX_LENGTH - eb.getDescriptionBuilder().length())), false);
+                        }
+                        eb.setFooter(new Date(event.getTimeStamp()).toString(), null);
+                        channel.sendMessage(eb.build()).queue();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            } else {
+                if (logger != null) {
+                    String name = event.getLoggerName().contains(".") ? event.getLoggerName().substring(event.getLoggerName().lastIndexOf(".") + 1, event.getLoggerName().length()) : event.getLoggerName();
+                    logger.send(String.format("[%s][%s][%s]: %s", DateTimeUtil.formatTime(event.getTimeStamp()), level.levelStr, name, event.getFormattedMessage()));
                     if (event.getThrowableProxy() != null) {
                         String throwable = getStackTrace(event);
-                        if (logger != null)
-                            logger.send(String.format("[%s][%s][%s]: %s", DateTimeUtil.formatTime(event.getTimeStamp()), level.levelStr, name, throwable));
-                        eb.addField("Stack:", throwable.substring(0, Math.min(throwable.length(), MessageEmbed.VALUE_MAX_LENGTH - eb.getDescriptionBuilder().length())), false);
+                        logger.send(String.format("[%s][%s][%s]: %s", DateTimeUtil.formatTime(event.getTimeStamp()), level.levelStr, name, throwable));
                     }
-                    eb.setFooter(new Date(event.getTimeStamp()).toString(), null);
-                    channel.sendMessage(eb.build()).queue();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        } else {
-            if (logger != null) {
-                String name = event.getLoggerName().contains(".") ? event.getLoggerName().substring(event.getLoggerName().lastIndexOf(".") + 1, event.getLoggerName().length()) : event.getLoggerName();
-                logger.send(String.format("[%s][%s][%s]: %s", DateTimeUtil.formatTime(event.getTimeStamp()), level.levelStr, name, message));
-                if (event.getThrowableProxy() != null) {
-                    String throwable = getStackTrace(event);
-                    logger.send(String.format("[%s][%s][%s]: %s", DateTimeUtil.formatTime(event.getTimeStamp()), level.levelStr, name, throwable));
                 }
             }
         }
@@ -83,7 +85,7 @@ public class LogbackListener extends AppenderBase<ILoggingEvent> {
         ple.setPattern("%msg");
         ple.setContext(lc);
         ple.start();
-        LogbackListener listener = new LogbackListener(bot);
+        LogbackListener<ILoggingEvent> listener = new LogbackListener<>(bot);
         listener.setContext(lc);
         listener.start();
         ((ch.qos.logback.classic.Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME)).addAppender(listener);

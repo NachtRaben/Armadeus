@@ -19,7 +19,7 @@ import java.util.concurrent.TimeUnit;
 
 public class BirbCommand extends Command {
 
-    private static final Logger log = LoggerFactory.getLogger(BirbCommand.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(BirbCommand.class);
 
     private static final String IMGURL = "https://random.birb.pw/img/";
     private static final String NAMEURL = "http://random.birb.pw/tweet/";
@@ -52,7 +52,7 @@ public class BirbCommand extends Command {
                     }
                 }
             } catch (UnirestException e) {
-                log.warn("Failed to query birb api!", e);
+                LOGGER.warn("Failed to query birb api!", e);
                 sender.sendMessage("Sorry but I was unable to query the website.");
                 return;
             }

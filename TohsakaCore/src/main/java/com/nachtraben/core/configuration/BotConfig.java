@@ -20,21 +20,22 @@ import java.util.Set;
 
 public class BotConfig implements CustomJsonIO {
 
-    private static final Logger log = LoggerFactory.getLogger(BotConfig.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(BotConfig.class);
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
 
     private transient DiscordBot bot;
 
-    protected String botToken = "";
-    protected int shardCount = -1;
-    protected Set<String> prefixes;
-    protected Set<Long> ownerIDs;
-    protected Set<Long> developerIDs;
-    protected Set<Long> blacklistedIDs;
-    protected Map<String, Object> metadata;
+    String botToken = "";
+    int shardCount = -1;
+    Set<String> prefixes;
 
-    protected Long errorLogChannelID = -1L;
-    protected transient TextChannel errorLogChannel;
+    Set<Long> ownerIDs;
+    Set<Long> developerIDs;
+    Set<Long> blacklistedIDs;
+    Map<String, Object> metadata;
+
+    Long errorLogChannelID = -1L;
+    transient TextChannel errorLogChannel;
 
     private boolean useRedis = false;
     private String redisHost = "localhost";
@@ -95,7 +96,7 @@ public class BotConfig implements CustomJsonIO {
                 redisPassword = redis.get("password").getAsString();
                 redisTimeout = redis.get("timeout").getAsInt();
             } catch (Exception e) {
-                log.error("Something went wrong while reading the configuration.", e);
+                LOGGER.error("Something went wrong while reading the configuration.", e);
             }
         }
     }

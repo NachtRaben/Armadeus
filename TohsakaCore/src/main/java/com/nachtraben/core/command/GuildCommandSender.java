@@ -12,7 +12,7 @@ import java.io.Serializable;
 
 public class GuildCommandSender extends DiscordCommandSender implements Serializable {
 
-    private transient static final Logger log = LoggerFactory.getLogger(GuildCommandSender.class);
+    private transient static final Logger LOGGER = LoggerFactory.getLogger(GuildCommandSender.class);
 
     private long guildId;
     private long textChannelId;

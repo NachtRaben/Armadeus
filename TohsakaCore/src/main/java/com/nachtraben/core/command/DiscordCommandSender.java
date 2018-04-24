@@ -17,7 +17,7 @@ import java.util.concurrent.Future;
 
 public class DiscordCommandSender implements CommandSender, Serializable {
 
-    private transient static final Logger log = LoggerFactory.getLogger(DiscordCommandSender.class);
+    private transient static final Logger LOGGER = LoggerFactory.getLogger(DiscordCommandSender.class);
 
     private transient DiscordBot dbot;
 

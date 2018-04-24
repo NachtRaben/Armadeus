@@ -22,7 +22,7 @@ import java.util.stream.Collectors;
 public class r34Command extends Command {
 
     private static final Random RAND = new Random();
-    private static final Logger log = LoggerFactory.getLogger(r34Command.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(r34Command.class);
     private TimedCache<Long, Set<String>> guildSearchCache = new TimedCache<>(TimeUnit.MINUTES.toMillis(30), TimedCache.TimeoutPolicy.ACCESS);
     private TimedCache<Long, Set<String>> userSearchCache = new TimedCache<>(TimeUnit.MINUTES.toMillis(30), TimedCache.TimeoutPolicy.ACCESS);
 
@@ -63,11 +63,7 @@ public class r34Command extends Command {
             List<Rule34Image> images = isSearch ? DefaultImageBoards.RULE34.search(100, args.get("tag").replace(" ", "_")).blocking() : DefaultImageBoards.RULE34.get(RAND.nextInt(1024)).blocking();
             if (images != null) {
                 Set<String> cache = gcs != null ? guildSearchCache.computeIfAbsent(gcs.getGuildId(), set -> new HashSet<>()) : userSearchCache.computeIfAbsent(sendee.getUserID(), set -> new HashSet<>());
-                images = images.stream().filter(image -> finalRating.equals(image.getRating()) && (image.getTags().stream().noneMatch(tag ->
-                        tag.equalsIgnoreCase("loli") ||
-                                tag.equalsIgnoreCase("shota") ||
-                                tag.equalsIgnoreCase("lolicon") ||
-                                tag.equalsIgnoreCase("shotacon")))).collect(Collectors.toList());
+                images = images.stream().filter(image -> finalRating.equals(image.getRating()) && image.getTags().stream().noneMatch(tag -> tag.equalsIgnoreCase("loli"))).filter(image -> !cache.contains(image.getURL())).collect(Collectors.toList());
                 if (images.isEmpty()) {
                     if (isSearch) {
                         if (!rating.equals(Rating.SAFE))

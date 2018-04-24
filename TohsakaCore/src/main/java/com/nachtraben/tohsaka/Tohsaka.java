@@ -4,7 +4,6 @@ import com.nachtraben.core.DiscordBot;
 import com.nachtraben.core.command.GuildCommandSender;
 import com.nachtraben.core.configuration.GuildConfig;
 import com.nachtraben.core.util.TimeUtil;
-import com.nachtraben.core.util.Utils;
 import com.nachtraben.orangeslice.CommandResult;
 import com.nachtraben.orangeslice.command.Cmd;
 import com.nachtraben.orangeslice.command.Command;
@@ -15,7 +14,6 @@ import com.nachtraben.orangeslice.event.CommandPostProcessEvent;
 import com.nachtraben.orangeslice.event.CommandPreProcessEvent;
 import net.dv8tion.jda.core.Permission;
 import net.dv8tion.jda.core.entities.Member;
-import net.dv8tion.jda.core.entities.TextChannel;
 import org.reflections.Reflections;
 import org.reflections.scanners.MethodAnnotationsScanner;
 import org.reflections.scanners.SubTypesScanner;
@@ -25,12 +23,8 @@ import org.reflections.util.FilterBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.net.ServerSocket;
-import java.net.Socket;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -39,15 +33,11 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class Tohsaka extends DiscordBot implements CommandEventListener {
 
-    private static final Logger log = LoggerFactory.getLogger(Tohsaka.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(Tohsaka.class);
 
     private static Tohsaka instance;
 
-    private ServerSocket sock;
-
     private ConcurrentHashMap<Long, Map<Long, Long>> cooldowns = new ConcurrentHashMap<>();
-
-    private boolean ignore = false;
 
     public Tohsaka(String[] args, boolean debugging) {
         super(args);
@@ -55,38 +45,11 @@ public class Tohsaka extends DiscordBot implements CommandEventListener {
 
         setDebugging(debugging);
         long start = System.currentTimeMillis();
-        log.debug("Took " + (System.currentTimeMillis() - start) + "ms to load all shards.");
+        LOGGER.debug("Took " + (System.currentTimeMillis() - start) + "ms to load all shards.");
         registerCommands();
         getCommandBase().registerEventListener(this);
         getShardManager().connectAllShards();
         postStart();
-
-        Utils.getExecutor().execute(() -> {
-            try {
-                sock = new ServerSocket(13380);
-                log.info("Now listening for update notifications.");
-                while (isRunning()) {
-                    Socket s = sock.accept();
-                    s.close();
-
-                    if (ignore) {
-                        ignore = !ignore;
-                        continue;
-                    } else
-                        ignore = true;
-
-                    log.info("Received update notification. Waiting 5 seconds before notifying.");
-                    TextChannel channel = getConfig().getErrorLogChannel();
-                    if (channel == null)
-                        return;
-                    Thread.sleep(5000);
-                    channel.sendMessage("Received update notification. Feel free to reboot once you see this.").queue();
-                }
-                sock.close();
-            } catch (IOException | InterruptedException ignored) {
-            }
-        });
-
     }
 
     private void registerCommands() {
@@ -103,46 +66,31 @@ public class Tohsaka extends DiscordBot implements CommandEventListener {
             if (!classes.contains(m.getDeclaringClass())) {
                 classes.add(m.getDeclaringClass());
                 try {
-                    getCommandBase().registerCommands(m.getDeclaringClass().getConstructor().newInstance());
+                    getCommandBase().registerCommands(m.getDeclaringClass().newInstance());
                 } catch (InstantiationException | IllegalAccessException e) {
-                    log.error("Failed to register command class, " + m.getDeclaringClass() + ".", e);
-                } catch (NoSuchMethodException | InvocationTargetException e) {
-                    e.printStackTrace();
+                    LOGGER.error("Failed to register command class, " + m.getDeclaringClass() + ".", e);
                 }
             }
         }
         for (Class s : reflections.getSubTypesOf(Command.class)) {
             try {
                 if (!s.isSynthetic() && !s.isAnonymousClass() && !Modifier.isAbstract(s.getModifiers()))
-                    getCommandBase().registerCommands(s.getConstructor().newInstance());
+                    getCommandBase().registerCommands(s.newInstance());
             } catch (InstantiationException | IllegalAccessException e) {
-                log.error("Failed to instantiate command class, " + s.getSimpleName() + ".", e);
-            } catch (NoSuchMethodException | InvocationTargetException e) {
-                e.printStackTrace();
+                LOGGER.error("Failed to instantiate command class, " + s.getSimpleName() + ".", e);
             }
         }
         for (Class s : reflections.getSubTypesOf(CommandTree.class)) {
             try {
-                getCommandBase().registerCommands(s.getConstructor().newInstance());
+                getCommandBase().registerCommands(s.newInstance());
             } catch (IllegalAccessException | InstantiationException e) {
-                log.error("Failed to instantiate command class, " + s.getSimpleName() + ".", e);
-            } catch (NoSuchMethodException | InvocationTargetException e) {
-                e.printStackTrace();
+                LOGGER.error("Failed to instantiate command class, " + s.getSimpleName() + ".", e);
             }
         }
     }
 
     public static Tohsaka getInstance() {
         return instance;
-    }
-
-    @Override
-    public void shutdown(int code) {
-        try {
-            sock.close();
-        } catch (IOException ignored) {
-        }
-        super.shutdown(code);
     }
 
     public static void main(String[] args) {
@@ -154,7 +102,7 @@ public class Tohsaka extends DiscordBot implements CommandEventListener {
         if (e.getSender() instanceof GuildCommandSender) {
             GuildCommandSender sendee = (GuildCommandSender) e.getSender();
             GuildConfig config = sendee.getGuildConfig();
-            log.debug(String.format("CommandPreProcess >> Sender: %s#{%s}, Args: %s, Flags: %s, Command: %s", sendee.getMember().getEffectiveName(), sendee.getGuild().getName(), e.getArgs(), e.getFlags(), e.getCommand().getName()));
+            LOGGER.debug(String.format("CommandPreProcess >> Sender: %s#{%s}, Args: %s, Flags: %s, Command: %s", sendee.getMember().getEffectiveName(), sendee.getGuild().getName(), e.getArgs(), e.getFlags(), e.getCommand().getName()));
             if (sendee.getMember().isOwner() || sendee.getMember().hasPermission(Permission.ADMINISTRATOR) || getConfig().getOwnerIDs().contains(sendee.getUserID()) || getConfig().getDeveloperIDs().contains(sendee.getUserID()))
                 return;
 
@@ -163,11 +111,11 @@ public class Tohsaka extends DiscordBot implements CommandEventListener {
                 Set<Long> blacklistedRoles = blacklistedCommands.get(e.getCommand().getName());
                 boolean hasRole = blacklistedRoles.contains(-1L) || sendee.getMember().getRoles().stream().anyMatch(role -> blacklistedRoles.contains(role.getIdLong()));
                 if (config.isBlacklist() && hasRole) {
-                    log.info(sendee.getName() + " was denied access cause they had the role.");
+                    LOGGER.info(sendee.getName() + " was denied access cause they had the role.");
                     sendee.sendPrivateMessage("Sorry but `" + sendee.getGuild().getName() + " doesn't have that command enabled for your roles.");
                     e.setCancelled();
                 } else if (!config.isBlacklist() && !hasRole) {
-                    log.info(sendee.getName() + " was denied access cause they didn't have the role.");
+                    LOGGER.info(sendee.getName() + " was denied access cause they didn't have the role.");
                     sendee.sendPrivateMessage("Sorry but `" + sendee.getGuild().getName() + " doesn't have that command enabled for your roles.");
                     e.setCancelled();
                 }
@@ -182,7 +130,7 @@ public class Tohsaka extends DiscordBot implements CommandEventListener {
                     if (System.currentTimeMillis() > reset) {
                         times.replace(sendee.getUserID(), System.currentTimeMillis() + config.getCooldown());
                     } else {
-                        log.info(sendee.getName() + " was denied the ability to run command cause he was on cooldown for " + TimeUtil.fromLong(reset - System.currentTimeMillis(), TimeUtil.FormatType.STRING));
+                        LOGGER.info(sendee.getName() + " was denied the ability to run command cause he was on cooldown for " + TimeUtil.fromLong(reset - System.currentTimeMillis(), TimeUtil.FormatType.STRING));
                         sendee.sendPrivateMessage("Sorry, but you are currently under cooldown in `" + sendee.getGuild().getName() + "` for `" + TimeUtil.fromLong(reset - System.currentTimeMillis(), TimeUtil.FormatType.STRING) + "`.");
                         e.setCancelled();
                         return;
@@ -191,7 +139,7 @@ public class Tohsaka extends DiscordBot implements CommandEventListener {
             }
 
         } else {
-            log.debug(String.format("CommandPreProcess >> Sender: %s, Args: %s, Flags: %s, Command: %s", e.getSender().getName(), e.getArgs(), e.getFlags(), e.getCommand().getName()));
+            LOGGER.debug(String.format("CommandPreProcess >> Sender: %s, Args: %s, Flags: %s, Command: %s", e.getSender().getName(), e.getArgs(), e.getFlags(), e.getCommand().getName()));
         }
     }
 
@@ -201,7 +149,7 @@ public class Tohsaka extends DiscordBot implements CommandEventListener {
             return;
         if (e.getSender() instanceof GuildCommandSender) {
             GuildCommandSender sendee = (GuildCommandSender) e.getSender();
-            log.debug(String.format("CommandPostProcess >> Sender: %s#{%s}, Args: %s, Flags:%s, Command: %s, Result: %s", sendee.getMember().getEffectiveName(), sendee.getGuild().getName(), e.getArgs(), e.getFlags(), e.getCommand().getName(), e.getResult()));
+            LOGGER.debug(String.format("CommandPostProcess >> Sender: %s#{%s}, Args: %s, Flags:%s, Command: %s, Result: %s", sendee.getMember().getEffectiveName(), sendee.getGuild().getName(), e.getArgs(), e.getFlags(), e.getCommand().getName(), e.getResult()));
             Member bot = sendee.getGuild().getMember(sendee.getGuild().getJDA().getSelfUser());
             if (sendee.getGuildConfig().shouldDeleteCommands() && bot.hasPermission(Permission.MESSAGE_MANAGE)) {
                 try {
@@ -211,7 +159,7 @@ public class Tohsaka extends DiscordBot implements CommandEventListener {
                 }
             }
         } else {
-            log.debug(String.format("CommandPostProcess >> Sender: %s, Args: %s, Flags:%s, Command: %s, Result: %s", e.getSender().getName(), e.getArgs(), e.getFlags(), e.getCommand().getName(), e.getResult()));
+            LOGGER.debug(String.format("CommandPostProcess >> Sender: %s, Args: %s, Flags:%s, Command: %s, Result: %s", e.getSender().getName(), e.getArgs(), e.getFlags(), e.getCommand().getName(), e.getResult()));
         }
         if (e.getResult().equals(CommandResult.INVALID_FLAGS))
             e.getSender().sendMessage("Sorry, but you provided invalid flags for that command. {`" + e.getException().getMessage() + "`}");
@@ -220,6 +168,6 @@ public class Tohsaka extends DiscordBot implements CommandEventListener {
     @Override
     public void onCommandException(CommandExceptionEvent e) {
         e.getSender().sendMessage("Unfortunately an error has occurred with your request. The bot author has been notified.");
-        log.error("An error occurred during command execution.", e.getException());
+        LOGGER.error("An error occurred during command execution.", e.getException());
     }
 }

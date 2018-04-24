@@ -3,7 +3,6 @@ package com.nachtraben.tohsaka.commands;
 import com.nachtraben.core.command.DiscordCommandSender;
 import com.nachtraben.core.command.GuildCommandSender;
 import com.nachtraben.core.configuration.GuildConfig;
-import com.nachtraben.core.managers.GuildManager;
 import com.nachtraben.core.util.ChannelTarget;
 import com.nachtraben.core.util.Utils;
 import com.nachtraben.orangeslice.CommandSender;
@@ -35,7 +34,7 @@ public class AboutCommand extends Command {
             builder.setTitle("About Tohsaka:", null);
             builder.setDescription(info.getDescription());
             builder.addField("Links:","Invite me: [Invite](" + bot.getJDA().asBot().getInviteUrl(Permission.ADMINISTRATOR) + ")" +
-                    "\nSupport: [Discord](https://discord.gg/jmKhbar)" +
+                    "\nSupport: [Discord](https://discord.gg/mmYZGGB)" +
                     "\nDonations: [PayPal](https://paypal.me/nachtraben)", false);
             builder.setFooter(String.format("Author: %s#%s", info.getOwner().getName(), info.getOwner().getDiscriminator()), info.getOwner().getAvatarUrl());
 

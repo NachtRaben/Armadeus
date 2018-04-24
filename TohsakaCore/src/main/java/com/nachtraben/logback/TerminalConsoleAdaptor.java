@@ -12,7 +12,7 @@ import java.io.IOException;
 
 public class TerminalConsoleAdaptor extends ConsoleAppender<ILoggingEvent> {
 
-    private static final Logger log = LoggerFactory.getLogger(TerminalConsoleAdaptor.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(TerminalConsoleAdaptor.class);
 
     public static final String JLINE_OVERRIDE_PROPERTY = "terminal.jline";
     public static final String ANSI_OVERRIDE_PROPERTY = "terminal.ansi";
@@ -44,11 +44,11 @@ public class TerminalConsoleAdaptor extends ConsoleAppender<ILoggingEvent> {
                     if (isAnsiSupported())
                         instance.setWithJansi(true);
                     instance.setOutputStream(terminal.output());
-                    log.info("Using JLine terminal.");
+                    LOGGER.info("Using JLine terminal.");
                 } catch (IllegalStateException e) {
-                    log.warn("JLine terminal disabled, running in an unsupported environment.");
+                    LOGGER.warn("JLine terminal disabled, running in an unsupported environment.");
                 } catch (IOException e) {
-                    log.error("Failed to initialize terminal. Falling back to stdout.", e);
+                    LOGGER.error("Failed to initialize terminal. Falling back to stdout.", e);
                 }
             }
         }
@@ -97,7 +97,7 @@ public class TerminalConsoleAdaptor extends ConsoleAppender<ILoggingEvent> {
     public void stop() {
         if (initialized) {
             if (terminal != null) {
-                log.info("Stopping terminal.");
+                LOGGER.info("Stopping terminal.");
                 try {
                     reader = null;
                     terminal.close();
