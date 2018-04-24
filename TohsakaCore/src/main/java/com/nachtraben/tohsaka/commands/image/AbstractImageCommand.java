@@ -11,8 +11,8 @@ import java.util.concurrent.TimeUnit;
 
 public abstract class AbstractImageCommand extends Command {
 
-    private static final Random RAND = new Random();
-    private static final Logger LOGGER = LoggerFactory.getLogger(KonachanCommand.class);
+    protected static final Random RAND = new Random();
+    private static final Logger LOGGER = LoggerFactory.getLogger(AbstractImageCommand.class);
 
     protected TimedCache<Long, Set<String>> guildSearchCache = new TimedCache<>(TimeUnit.MINUTES.toMillis(30), TimedCache.TimeoutPolicy.ACCESS);
     protected TimedCache<Long, Set<String>> userSearchCache = new TimedCache<>(TimeUnit.MINUTES.toMillis(30), TimedCache.TimeoutPolicy.ACCESS);
