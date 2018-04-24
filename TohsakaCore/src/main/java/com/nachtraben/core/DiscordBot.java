@@ -62,7 +62,7 @@ public abstract class DiscordBot {
             redisModule = new RedisModule(new RedisProperties(config.getRedisHost(), config.getRedisPort(), config.getRedisPassword(), config.getRedisTimeout()));
             RedisUtil.setModule(redisModule);
             config = new RedisBotConfig(this).load();
-            guildManager = new GuildManager(this);
+            guildManager = new GuildManager(this, redisModule.getProvider());
         } else {
             guildManager = new GuildManager(this);
         }
