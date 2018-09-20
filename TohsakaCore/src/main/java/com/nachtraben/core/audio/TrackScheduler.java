@@ -232,6 +232,11 @@ public class TrackScheduler extends AudioEventAdapter {
         // TODO: Prevent requeue if error is unrecoverable.
         if (repeatTrack)
             repeatTrack = false;
+        LOGGER.warn(String.valueOf(exception.severity));
+        if (exception.getCause().getMessage().toLowerCase().contains("read timed out")) {
+            queue.addFirst(track.makeClone());
+            return;
+        }
         GuildCommandSender requestor = track.getUserData(GuildCommandSender.class);
         requestor.sendMessage(ChannelTarget.MUSIC, String.format("Failed to play `%s` because, `%s`.", track.getInfo().title, exception.getMessage()));
         LOGGER.warn("Something went wrong with lavaplayer.", exception);

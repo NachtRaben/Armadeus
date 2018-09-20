@@ -3,7 +3,7 @@ apply plugin: 'application'
 mainClassName = 'com.nachtraben.tohsaka.Tohsaka'
 
 dependencies {
-    compile project(':TohsakaDepends')
+    shadow project(':TohsakaDepends')
     compileOnly 'org.projectlombok:lombok:1.16.18'
 }
 
@@ -14,4 +14,3 @@ jar {
         attributes["Class-Path"] = "./TohsakaDepends-2.0.jar"
     }
 }
-

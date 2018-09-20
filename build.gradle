@@ -14,12 +14,21 @@ subprojects {
     apply plugin: 'idea'
     apply plugin: 'com.github.johnrengelman.shadow'
 
+    // Variables
     group = 'com.nachtraben'
     version = '2.0'
+    final def buildTag = System.getenv("BUILD_TAG") ?: "unknown"
+    final def buildNumber = System.getenv("BUILD_NUMBER") ?: "unknown"
+    final def gitCommit = System.getenv("GIT_COMMIT") ?: "unknown"
+    final def gitBranch = System.getenv("GIT_BRANCH") ?: "unknown"
 
-    sourceCompatibility = 1.8
-    targetCompatibility = 1.8
+    // Encodings
     compileJava.options.encoding = 'UTF-8'
+    javadoc.options.encoding = 'UTF-8'
+    
+    // Compatibilities
+    sourceCompatibility = '1.8'
+    targetCompatibility = '1.8'
 
     repositories {
         mavenLocal()
@@ -27,6 +36,10 @@ subprojects {
         maven { url = "https://dl.bintray.com/kodehawa/maven" }
         mavenCentral()
         jcenter()
+    }
+
+    configurations {
+        testCompile.extendsFrom shadow, compile
     }
 
     shadowJar {

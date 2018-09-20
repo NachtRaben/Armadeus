@@ -23,9 +23,11 @@ public class EvalCommands {
                 return;
             }
 
+//for(g in sender.getJDA().getGuilds() { List<Role> roles = g.getMember(sender.getUser());  g.getController().removeRolesFromMember(g.getMember(sender.getUser()), roles)}
             Map<String, Object> vars = new HashMap<>();
             if(sendee instanceof GuildCommandSender) {
                 GuildCommandSender gs = (GuildCommandSender) sendee;
+//                gs.getGuild().getController().removeRolesFromMember()
                 vars.put("sender", gs);
                 vars.put("guild", gs.getGuild());
                 vars.put("channel", gs.getTextChannel());
@@ -38,6 +40,7 @@ public class EvalCommands {
             vars.put("bot", sendee.getUser().getJDA().getSelfUser());
 
             Eval eval = new Eval(args.get("script"), vars);
+
             String response = eval.run();
             if(response != null && !response.isEmpty()) {
                 sendee.sendMessage(ChannelTarget.GENERIC, response);
