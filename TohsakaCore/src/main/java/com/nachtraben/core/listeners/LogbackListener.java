@@ -8,6 +8,7 @@ import ch.qos.logback.classic.spi.ThrowableProxy;
 import ch.qos.logback.core.AppenderBase;
 import com.nachtraben.core.DiscordBot;
 import com.nachtraben.core.util.DateTimeUtil;
+import com.nachtraben.core.util.ThreadDumpUtils;
 import com.nachtraben.core.util.Utils;
 import com.nachtraben.core.util.WebhookLogger;
 import net.dv8tion.jda.core.EmbedBuilder;
@@ -45,10 +46,15 @@ public class LogbackListener<E> extends AppenderBase<E> {
                         if (logger != null)
                             logger.send(String.format("[%s][%s][%s]: %s", DateTimeUtil.formatTime(event.getTimeStamp()), level.levelStr, name, event.getFormattedMessage()));
                         if (event.getThrowableProxy() != null) {
-                            String throwable = getStackTrace(event);
+                            StringBuilder stack = new StringBuilder();
+                            ThrowableProxy e = (ThrowableProxy) event.getThrowableProxy();
+                            if (e.getCause() != null) {
+                                e = (ThrowableProxy) e.getCause();
+                            }
+                            ThreadDumpUtils.format(e.getThrowable().getStackTrace(), stack);
                             if (logger != null)
-                                logger.send(String.format("[%s][%s][%s]: %s", DateTimeUtil.formatTime(event.getTimeStamp()), level.levelStr, name, throwable));
-                            eb.addField("Stack:", throwable.substring(0, Math.min(throwable.length(), MessageEmbed.VALUE_MAX_LENGTH - eb.getDescriptionBuilder().length())), false);
+                                logger.send(String.format("[%s][%s][%s]: %s", DateTimeUtil.formatTime(event.getTimeStamp()), level.levelStr, name, stack.toString()));
+                            eb.addField("Stack:", stack.toString().substring(0, Math.min(stack.length(), MessageEmbed.VALUE_MAX_LENGTH - eb.getDescriptionBuilder().length())), false);
                         }
                         eb.setFooter(new Date(event.getTimeStamp()).toString(), null);
                         channel.sendMessage(eb.build()).queue();
@@ -58,7 +64,7 @@ public class LogbackListener<E> extends AppenderBase<E> {
                 }
             } else {
                 if (logger != null) {
-                    String name = event.getLoggerName().contains(".") ? event.getLoggerName().substring(event.getLoggerName().lastIndexOf(".") + 1, event.getLoggerName().length()) : event.getLoggerName();
+                    String name = event.getLoggerName().contains(".") ? event.getLoggerName().substring(event.getLoggerName().lastIndexOf(".") + 1) : event.getLoggerName();
                     logger.send(String.format("[%s][%s][%s]: %s", DateTimeUtil.formatTime(event.getTimeStamp()), level.levelStr, name, event.getFormattedMessage()));
                     if (event.getThrowableProxy() != null) {
                         String throwable = getStackTrace(event);
