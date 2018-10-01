@@ -19,6 +19,7 @@ public class RedisGuildConfig extends GuildConfig implements RedisConfig {
         super(manager, guild);
     }
 
+    @Override
     public RedisGuildConfig load() {
         if (getConfigFile().exists())
             super.load();
@@ -72,6 +73,7 @@ public class RedisGuildConfig extends GuildConfig implements RedisConfig {
         return this;
     }
 
+    @Override
     public RedisGuildConfig save() {
         getGuildManager().runQuery(redis -> {
             redis.hmset(String.valueOf(getGuildID()), toMap());

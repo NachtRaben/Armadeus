@@ -3,6 +3,7 @@ package com.nachtraben.core;
 import com.nachtraben.core.audio.AudioPlayerSendHandler;
 import com.nachtraben.core.command.ConsoleCommandSender;
 import com.nachtraben.core.configuration.BotConfig;
+import com.nachtraben.core.configuration.GuildConfig;
 import com.nachtraben.core.configuration.RedisBotConfig;
 import com.nachtraben.core.listeners.DiscordCommandListener;
 import com.nachtraben.core.listeners.FileUploadListener;
@@ -14,6 +15,7 @@ import com.nachtraben.core.util.DiscordMetrics;
 import com.nachtraben.core.util.RedisUtil;
 import com.nachtraben.core.util.Utils;
 import com.nachtraben.core.util.WebhookLogger;
+import com.nachtraben.lemonslice.ConfigurationUtils;
 import com.nachtraben.orangeslice.CommandBase;
 import com.nachtraben.pineappleslice.redis.RedisModule;
 import com.nachtraben.pineappleslice.redis.RedisProperties;
@@ -21,6 +23,10 @@ import net.dv8tion.jda.core.JDA;
 import net.dv8tion.jda.core.entities.Guild;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.Arrays;
+
+import static com.nachtraben.core.configuration.GuildConfig.GUILD_DIR;
 
 public abstract class DiscordBot {
 
@@ -90,12 +96,25 @@ public abstract class DiscordBot {
             logger.error("Failed to initialize fine logger!", e);
             wlogger = null;
         }
+        if (Arrays.asList(PROGRAM_ARGS).contains("--dump") && config instanceof RedisBotConfig) {
+            dumpGuildData();
+        }
 //        try {
 //            Thread.sleep(5000);
 //            guildManager.loadPersistInformation();
 //        } catch (InterruptedException e) {
 //            e.printStackTrace();
 //        }
+    }
+
+    private void dumpGuildData() {
+        shardManager.getShards().forEach(shard -> {
+            for (Guild guild : shard.getGuilds()) {
+                logger.warn("Dumping guild configuration for " + guild);
+                GuildConfig config = getGuildManager().getConfigurationFor(guild);
+                ConfigurationUtils.saveData(guild.getId() + ".json", GUILD_DIR, config);
+            }
+        });
     }
 
     public ShardManager getShardManager() {
