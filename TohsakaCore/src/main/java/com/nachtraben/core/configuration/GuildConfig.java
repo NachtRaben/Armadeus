@@ -108,7 +108,9 @@ public class GuildConfig implements CustomJsonIO {
     }
 
     public GuildConfig load() {
+        preInit()
         ConfigurationUtils.load(guildID + ".json", GUILD_DIR, this);
+        postInit()
         return this;
     }
 
