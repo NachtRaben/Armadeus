@@ -28,8 +28,7 @@ public enum Radio {
                     .build()),
     MOE("LISTEN.moe", "LISTEN.moe", "http://listen.moe/stream.m3u", null),
     MONSTERCAT("Monstercat Radio", "dooley_labs", (String) Tohsaka.getInstance().getConfig().getMetadata().get("monstercat_radio_address"), null),
-    ROOKERY("Rookery Radio", "Coolguy3289", "http://stream.rookeryradio.com:8000/live", null),
-    LI("Rookery Live", "Coolguy3289", "http://stream.rookeryradio.com:8000/livestream", null),
+    ROOKERY("Rookery Radio", "Real College Radio", "http://stream.rookeryradio.com:8088/live", null),
     NOLIFE("NoLife-Radio", "NoLife", "http://nolife-radio.com/radio/NoLife-radio.m3u", null);
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Radio.class);
