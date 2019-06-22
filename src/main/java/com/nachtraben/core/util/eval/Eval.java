@@ -32,12 +32,12 @@ public class Eval {
             Object result = shell.evaluate(script);
             StringBuilder sb = new StringBuilder();
             if (result != null)
-                sb.append("Result: ").append(result.toString());
+                sb.append("Result: ").append(result);
 
             if (!writer.toString().isEmpty()) {
                 if (sb.length() != 0)
                     sb.append("\n");
-                sb.append("Output: \n").append(writer.toString());
+                sb.append("Output: \n").append(writer);
             }
 
             if (sb.toString().length() < 2048) {

@@ -448,7 +448,7 @@ public class CleanCommands extends CommandTree {
             log.debug("Finished, processed Amount.");
         }
         if(!silent) {
-            sender.sendMessage(ChannelTarget.GENERIC, "Purged `" + deletions + "` messages in " + sender.getTextChannel().getAsMention() + (date != null ? (" since `" + date.toString() + "`.") : ""));
+            sender.sendMessage(ChannelTarget.GENERIC, "Purged `" + deletions + "` messages in " + sender.getTextChannel().getAsMention() + (date != null ? (" since `" + date + "`.") : ""));
         }
         purges.remove(sender.getGuild().getIdLong());
     }

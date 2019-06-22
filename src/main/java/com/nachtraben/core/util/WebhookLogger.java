@@ -8,7 +8,9 @@ import net.dv8tion.jda.webhook.WebhookClientBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
@@ -21,7 +23,6 @@ public class WebhookLogger implements Runnable {
 
     private long guildId;
     private long channelId;
-    private DiscordBot dbot;
 
     private WebhookClient webhook;
     private ScheduledFuture future;

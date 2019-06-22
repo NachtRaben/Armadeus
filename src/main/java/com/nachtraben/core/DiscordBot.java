@@ -19,8 +19,8 @@ import com.nachtraben.lemonslice.ConfigurationUtils;
 import com.nachtraben.orangeslice.CommandBase;
 import com.nachtraben.pineappleslice.redis.RedisModule;
 import com.nachtraben.pineappleslice.redis.RedisProperties;
-import net.dv8tion.jda.core.JDA;
 import net.dv8tion.jda.core.entities.Guild;
+import net.dv8tion.jda.core.entities.ISnowflake;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -99,12 +99,12 @@ public abstract class DiscordBot {
         if (Arrays.asList(PROGRAM_ARGS).contains("--dump") && config instanceof RedisBotConfig) {
             dumpGuildData();
         }
-//        try {
-//            Thread.sleep(5000);
-//            guildManager.loadPersistInformation();
-//        } catch (InterruptedException e) {
-//            e.printStackTrace();
-//        }
+        try {
+            Thread.sleep(5000);
+            guildManager.loadPersistInformation();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
     private void dumpGuildData() {
@@ -193,62 +193,32 @@ public abstract class DiscordBot {
     // Metrics
     // TODO: Move these
     public int getTotalChannels() {
-        int i = 0;
-        for (JDA jda : getShardManager().getShards()) {
-            i += jda.getTextChannels().size();
-            i += jda.getVoiceChannels().size();
-            i += jda.getPrivateChannels().size();
-        }
-        return i;
+        return getShardManager().getShards().stream().mapToInt(shard -> shard.getTextChannels().size() + shard.getVoiceChannels().size() + shard.getPrivateChannels().size()).sum();
     }
 
     public int getTextChannels() {
-        int i = 0;
-        for (JDA jda : getShardManager().getShards()) {
-            i += jda.getTextChannels().size();
-        }
-        return i;
+        return getShardManager().getShards().stream().mapToInt(shard -> shard.getTextChannels().size()).sum();
     }
 
     public int getVoiceChannels() {
-        int i = 0;
-        for (JDA jda : getShardManager().getShards()) {
-            i += jda.getVoiceChannels().size();
-        }
-        return i;
+        return getShardManager().getShards().stream().mapToInt(shard -> shard.getVoiceChannels().size()).sum();
+
     }
 
     public int getPrivateChannels() {
-        int i = 0;
-        for (JDA jda : getShardManager().getShards()) {
-            i += jda.getPrivateChannels().size();
-        }
-        return i;
+        return getShardManager().getShards().stream().mapToInt(shard -> shard.getPrivateChannels().size()).sum();
+
     }
 
     public int getGuildCount() {
-        int i = 0;
-        for (JDA jda : getShardManager().getShards()) {
-            i += jda.getGuilds().size();
-        }
-        return i;
+        return getShardManager().getShards().stream().mapToInt(shard -> shard.getGuilds().size()).sum();
     }
 
     public int getUserCount() {
-        int i = 0;
-        for (JDA jda : getShardManager().getShards()) {
-            i += jda.getUsers().size();
-        }
-        return i;
+        return (int) getShardManager().getShards().stream().flatMap(jda -> jda.getUsers().stream().map(ISnowflake::getIdLong)).distinct().count();
     }
 
     public int getConnectedVoiceChannels() {
-        int i = 0;
-        for(JDA jda : getShardManager().getShards()) {
-            for(Guild g : jda.getGuilds())
-                if(g.getAudioManager().isConnected())
-                    i++;
-        }
-        return i;
+        return (int) getShardManager().getShards().stream().flatMap(shard -> shard.getGuilds().stream().filter(guild -> guild.getAudioManager().isConnected())).count();
     }
 }

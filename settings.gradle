@@ -1,2 +1,1 @@
 rootProject.name = 'Tohsaka2.0'
-include 'TohsakaCore', 'TohsakaDepends'

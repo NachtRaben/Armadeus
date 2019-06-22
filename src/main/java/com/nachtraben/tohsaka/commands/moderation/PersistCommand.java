@@ -5,7 +5,6 @@ import com.nachtraben.core.command.GuildCommandSender;
 import com.nachtraben.core.configuration.BotConfig;
 import com.nachtraben.core.util.ChannelTarget;
 import com.nachtraben.orangeslice.CommandSender;
-import com.nachtraben.orangeslice.command.Command;
 import com.nachtraben.orangeslice.command.CommandTree;
 import com.nachtraben.orangeslice.command.SubCommand;
 

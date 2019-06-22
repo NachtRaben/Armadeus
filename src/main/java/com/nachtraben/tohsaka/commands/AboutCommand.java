@@ -44,7 +44,7 @@ public class AboutCommand extends Command {
                 GuildCommandSender sendeee = (GuildCommandSender) sendee;
                 GuildConfig config = Tohsaka.getInstance().getGuildManager().getConfigurationFor(sendeee.getGuild().getIdLong());
                 if(!config.getPrefixes().isEmpty())
-                    sb.append(config.getPrefixes().toString());
+                    sb.append(config.getPrefixes());
                 else
                     sb.append(Tohsaka.getInstance().getConfig().getPrefixes());
             } else {
