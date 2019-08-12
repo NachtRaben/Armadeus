@@ -44,7 +44,8 @@ public class StatsCommand extends Command {
             "Java: " + System.getProperty("java.version"),
             "",
             "__**Developers**__",
-            "NachtRaben#8307: Its my child, deal with it.");
+            "NachtRaben#8307: Its my child, deal with it.",
+            "Coolguy3289#2290: For the occasional change, maybe.);
 
 
 
