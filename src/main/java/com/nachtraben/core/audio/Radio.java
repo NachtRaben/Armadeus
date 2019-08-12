@@ -20,14 +20,16 @@ import java.lang.reflect.Modifier;
 
 public enum Radio {
 
-    SPOTIFY("Spotify Radio", "NachtRaben", "http://localhost:13375", null),
+    // Commented unless in dev.
+    // SPOTIFY("Spotify Radio", "NachtRaben", "http://localhost:13375", null),
     HIVE("Hive Radio", "Hive365", "http://stream.hive365.co.uk:8088/live",
             new EmbedBuilder().setColor(Color.YELLOW)
                     .setTitle("Radio provided by Hive365.", "https://hive365.co.uk/")
                     .setDescription("Non-stop music guaranteed to get ya buzzin'")
                     .build()),
-    MOE("LISTEN.moe", "LISTEN.moe", "http://listen.moe/stream.m3u", null),
-    MONSTERCAT("Monstercat Radio", "dooley_labs", (String) Tohsaka.getInstance().getConfig().getMetadata().get("monstercat_radio_address"), null),
+    MOE("LISTEN.moe", "LISTEN.moe", "https://listen.moe/m3u8/jpop.m3u", null),
+    // Removed until Dooley returns.
+    // MONSTERCAT("Monstercat Radio", "dooley_labs", (String) Tohsaka.getInstance().getConfig().getMetadata().get("monstercat_radio_address"), null),
     ROOKERY("Rookery Radio", "Real College Radio", "http://stream.rookeryradio.com:8088/live", null),
     NOLIFE("NoLife-Radio", "NoLife", "http://nolife-radio.com/radio/NoLife-radio.m3u", null);
 
