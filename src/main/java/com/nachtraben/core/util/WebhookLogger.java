@@ -21,6 +21,7 @@ public class WebhookLogger implements Runnable {
     private final Object lock = new Object();
     private List<String> messages;
 
+    private DiscordBot dbot;
     private long guildId;
     private long channelId;
 

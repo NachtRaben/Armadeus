@@ -1,11 +1,15 @@
 package com.nachtraben.core.managers;
 
 import com.nachtraben.core.DiscordBot;
+import com.nachtraben.core.listeners.DiscordCommandListener;
+import com.nachtraben.core.listeners.FileUploadListener;
+import com.nachtraben.core.listeners.WelcomeListener;
 import com.sedmelluq.discord.lavaplayer.jdaudp.NativeAudioSendFactory;
 import net.dv8tion.jda.core.AccountType;
 import net.dv8tion.jda.core.JDA;
 import net.dv8tion.jda.core.JDABuilder;
 import net.dv8tion.jda.core.entities.*;
+import net.dv8tion.jda.core.hooks.ListenerAdapter;
 import net.dv8tion.jda.core.utils.SessionController;
 import net.dv8tion.jda.core.utils.SessionControllerAdapter;
 import okhttp3.OkHttpClient;
@@ -30,7 +34,7 @@ public class ShardManager {
     private SessionController queue;
     private DiscordBot bot;
     private List<JDA> shards;
-    private Set<EventListener> defaultListeners;
+    private Set<ListenerAdapter> defaultListeners;
     private int shardCount;
     private long nextRestart = System.currentTimeMillis();
 
@@ -106,7 +110,7 @@ public class ShardManager {
         shards.forEach(JDA::shutdown);
     }
 
-    public void addDefaultListener(EventListener... listeners) {
+    public void addDefaultListener(ListenerAdapter... listeners) {
         Collections.addAll(defaultListeners, listeners);
     }
 
@@ -174,7 +178,7 @@ public class ShardManager {
         return shards;
     }
 
-    public Set<EventListener> getDefaultListeners() {
+    public Set<ListenerAdapter> getDefaultListeners() {
         return new HashSet<>(defaultListeners);
     }
 

@@ -45,6 +45,7 @@ public abstract class DiscordBot {
 
     private WebhookLogger wlogger;
 
+
     private boolean running = false;
     private boolean debugging = false;
     private boolean logMessages = false;
@@ -78,7 +79,7 @@ public abstract class DiscordBot {
         commandListener = new DiscordCommandListener(this);
 
         shardManager = new ShardManager(this);
-        shardManager.addDefaultListener(new DiscordCommandListener(this), new FileUploadListener(), new WelcomeListener(this));
+        shardManager.addDefaultListener(new DiscordCommandListener(this), new WelcomeListener(this));
         LogbackListener.install(this);
     }
 
