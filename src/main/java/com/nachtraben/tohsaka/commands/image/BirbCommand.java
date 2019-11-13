@@ -8,7 +8,7 @@ import com.nachtraben.core.util.TimedCache;
 import com.nachtraben.core.util.Utils;
 import com.nachtraben.orangeslice.CommandSender;
 import com.nachtraben.orangeslice.command.Command;
-import net.dv8tion.jda.core.EmbedBuilder;
+import net.dv8tion.jda.api.EmbedBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

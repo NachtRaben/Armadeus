@@ -6,7 +6,7 @@ import com.nachtraben.core.configuration.GuildConfig;
 import com.nachtraben.core.configuration.RedisGuildConfig;
 import com.nachtraben.pineappleslice.redis.Redis;
 import com.nachtraben.pineappleslice.redis.RedisProvider;
-import net.dv8tion.jda.core.entities.Guild;
+import net.dv8tion.jda.api.entities.Guild;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

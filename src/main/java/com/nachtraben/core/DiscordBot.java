@@ -19,8 +19,8 @@ import com.nachtraben.lemonslice.ConfigurationUtils;
 import com.nachtraben.orangeslice.CommandBase;
 import com.nachtraben.pineappleslice.redis.RedisModule;
 import com.nachtraben.pineappleslice.redis.RedisProperties;
-import net.dv8tion.jda.core.entities.Guild;
-import net.dv8tion.jda.core.entities.ISnowflake;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.ISnowflake;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

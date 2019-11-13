@@ -5,13 +5,13 @@ import com.nachtraben.core.listeners.DiscordCommandListener;
 import com.nachtraben.core.listeners.FileUploadListener;
 import com.nachtraben.core.listeners.WelcomeListener;
 import com.sedmelluq.discord.lavaplayer.jdaudp.NativeAudioSendFactory;
-import net.dv8tion.jda.core.AccountType;
-import net.dv8tion.jda.core.JDA;
-import net.dv8tion.jda.core.JDABuilder;
-import net.dv8tion.jda.core.entities.*;
-import net.dv8tion.jda.core.hooks.ListenerAdapter;
-import net.dv8tion.jda.core.utils.SessionController;
-import net.dv8tion.jda.core.utils.SessionControllerAdapter;
+import net.dv8tion.jda.api.AccountType;
+import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.JDABuilder;
+import net.dv8tion.jda.api.entities.*;
+import net.dv8tion.jda.api.hooks.ListenerAdapter;
+import net.dv8tion.jda.api.utils.SessionController;
+import net.dv8tion.jda.api.utils.SessionControllerAdapter;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -80,13 +80,13 @@ public class ShardManager {
         log.info("Starting shard " + shard + " [" + (shard + 1) + "/" + (shardCount) + "].");
         JDABuilder builder = initBuilder();
         if(shardCount == 1) {
-            builder.setGame(Game.of(Game.GameType.DEFAULT, "shard [1/1]"));
+            builder.setActivity(Activity.of(Activity.ActivityType.DEFAULT, "shard [1/1]"));
         } else {
-            builder.setGame(Game.of(Game.GameType.DEFAULT, "shard [" + shard + "/" + (shardCount - 1) + "]"));
+            builder.setActivity(Activity.of(Activity.ActivityType.DEFAULT, "shard [" + shard + "/" + (shardCount - 1) + "]"));
             builder.useSharding(shard, shardCount);
         }
         try {
-            shards.add(shard, builder.buildAsync());
+            shards.add(shard, builder.build());
         } catch (LoginException e) {
             log.error("Failed to login to discord.", e);
         }
@@ -119,7 +119,7 @@ public class ShardManager {
         builder.setEventManager(new ExecutorServiceEventManager());
         builder.setSessionController(queue);
         builder.setAudioSendFactory(new NativeAudioSendFactory());
-        defaultListeners.forEach(builder::addEventListener);
+        defaultListeners.forEach(builder::addEventListeners);
         return builder;
     }
 

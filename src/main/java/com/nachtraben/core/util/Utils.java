@@ -3,7 +3,7 @@ package com.nachtraben.core.util;
 import com.nachtraben.core.command.GuildCommandSender;
 import com.sedmelluq.discord.lavaplayer.source.youtube.YoutubeAudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
-import net.dv8tion.jda.core.EmbedBuilder;
+import net.dv8tion.jda.api.EmbedBuilder;
 
 import java.awt.*;
 import java.io.*;

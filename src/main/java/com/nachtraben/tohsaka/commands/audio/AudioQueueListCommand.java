@@ -9,9 +9,9 @@ import com.nachtraben.orangeslice.CommandSender;
 import com.nachtraben.orangeslice.command.Command;
 import com.nachtraben.tohsaka.Tohsaka;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
-import net.dv8tion.jda.core.EmbedBuilder;
-import net.dv8tion.jda.core.entities.Member;
-import net.dv8tion.jda.core.entities.MessageEmbed;
+import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.MessageEmbed;
 
 import java.util.List;
 import java.util.Map;

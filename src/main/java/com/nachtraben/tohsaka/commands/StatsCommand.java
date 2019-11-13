@@ -7,9 +7,9 @@ import com.nachtraben.orangeslice.CommandSender;
 import com.nachtraben.orangeslice.command.Command;
 import com.nachtraben.tohsaka.Tohsaka;
 import com.sedmelluq.discord.lavaplayer.tools.PlayerLibrary;
-import net.dv8tion.jda.core.EmbedBuilder;
-import net.dv8tion.jda.core.JDA;
-import net.dv8tion.jda.core.JDAInfo;
+import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.JDAInfo;
 
 import java.text.DecimalFormat;
 import java.util.Map;

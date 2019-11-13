@@ -4,11 +4,11 @@ import com.nachtraben.core.DiscordBot;
 import com.nachtraben.core.util.ChannelTarget;
 import com.nachtraben.orangeslice.CommandResult;
 import com.nachtraben.orangeslice.CommandSender;
-import net.dv8tion.jda.core.JDA;
-import net.dv8tion.jda.core.entities.Message;
-import net.dv8tion.jda.core.entities.MessageChannel;
-import net.dv8tion.jda.core.entities.MessageEmbed;
-import net.dv8tion.jda.core.entities.User;
+import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.MessageChannel;
+import net.dv8tion.jda.api.entities.MessageEmbed;
+import net.dv8tion.jda.api.entities.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -58,7 +58,7 @@ public class DiscordCommandSender implements CommandSender, Serializable {
     public Message getMessage() {
         MessageChannel channel = getMessageChannel();
         if (channel != null) {
-            return channel.getMessageById(messageID).complete();
+            return channel.retrieveMessageById(messageID).complete();
         }
         return null;
     }

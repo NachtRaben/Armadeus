@@ -11,9 +11,9 @@ import com.nachtraben.core.util.DateTimeUtil;
 import com.nachtraben.core.util.ThreadDumpUtils;
 import com.nachtraben.core.util.Utils;
 import com.nachtraben.core.util.WebhookLogger;
-import net.dv8tion.jda.core.EmbedBuilder;
-import net.dv8tion.jda.core.entities.MessageEmbed;
-import net.dv8tion.jda.core.entities.TextChannel;
+import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.entities.MessageEmbed;
+import net.dv8tion.jda.api.entities.TextChannel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

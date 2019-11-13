@@ -7,7 +7,7 @@ import com.nachtraben.core.util.ChannelTarget;
 import com.nachtraben.orangeslice.CommandSender;
 import com.nachtraben.orangeslice.command.CommandTree;
 import com.nachtraben.orangeslice.command.SubCommand;
-import net.dv8tion.jda.core.Permission;
+import net.dv8tion.jda.api.Permission;
 
 import java.util.Map;
 

@@ -3,8 +3,8 @@ package com.nachtraben.core.command;
 import com.nachtraben.core.DiscordBot;
 import com.nachtraben.core.configuration.GuildConfig;
 import com.nachtraben.core.util.ChannelTarget;
-import net.dv8tion.jda.core.MessageBuilder;
-import net.dv8tion.jda.core.entities.*;
+import net.dv8tion.jda.api.MessageBuilder;
+import net.dv8tion.jda.api.entities.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

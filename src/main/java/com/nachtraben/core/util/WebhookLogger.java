@@ -1,10 +1,11 @@
 package com.nachtraben.core.util;
 
+import club.minnced.discord.webhook.WebhookClient;
+import club.minnced.discord.webhook.WebhookClientBuilder;
 import com.nachtraben.core.DiscordBot;
-import net.dv8tion.jda.core.entities.Guild;
-import net.dv8tion.jda.core.entities.Webhook;
-import net.dv8tion.jda.webhook.WebhookClient;
-import net.dv8tion.jda.webhook.WebhookClientBuilder;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.Webhook;
+import net.dv8tion.jda.api.managers.WebhookManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,7 +26,8 @@ public class WebhookLogger implements Runnable {
     private long guildId;
     private long channelId;
 
-    private WebhookClient webhook;
+    private WebhookClient webhookC;
+    private String hook;
     private ScheduledFuture future;
 
     public WebhookLogger(DiscordBot bot, long guildId, long channelId) {
@@ -37,14 +39,24 @@ public class WebhookLogger implements Runnable {
 
     public void start() {
         Guild g = dbot.getShardManager().getGuildByID(guildId);
-        Webhook webhook = g.getWebhooks().complete().stream().filter(wh -> wh.getChannel().getIdLong() == channelId).findFirst().orElse(null);
+        Webhook webhook = g.retrieveWebhooks().complete().stream().filter(wh -> wh.getChannel().getIdLong() == channelId).findFirst().orElse(null);
         if(webhook == null)
             throw new IllegalArgumentException("Cannot find webhook in " + g.getName() + " with id " + channelId);
-        this.webhook = new WebhookClientBuilder(webhook).build();
+        this.hook = webhook.toString();
         messages = new ArrayList<>();
         future = Utils.getScheduler().scheduleWithFixedDelay(this, 0L, 2L, TimeUnit.SECONDS);
         log.info("Logger started for " + webhook.getName());
+        WebhookClientBuilder builder = new WebhookClientBuilder(hook);
+        builder.setThreadFactory((job) -> {
+            Thread thread = new Thread(job);
+            thread.setName("Webhook Logger");
+            thread.setDaemon(true);
+            return thread;
+        });
+        builder.setWait(true);
+        WebhookClient client = builder.build();
     }
+
 
     @Override
     public void run() {
@@ -69,7 +81,7 @@ public class WebhookLogger implements Runnable {
                 builder.append("```");
                 toSend.add(builder.toString());
                 for (String message : toSend)
-                    webhook.send(message);
+                    webhookC.send(message);
             }
         }
     }
@@ -82,8 +94,12 @@ public class WebhookLogger implements Runnable {
 
     public void stop() {
         log.info("Shutting down webhook logger.");
-        if(webhook != null)
-            webhook.close();
+//        if(webhook != null)
+//            webhook.close();
+        try (WebhookClient client = WebhookClient.withUrl(hook)) {
+            client.send("Webhook Logger Shutting Down");
+        } // client.close() automated
+
         if(future != null && !future.isCancelled() && !future.isDone())
             future.cancel(false);
     }

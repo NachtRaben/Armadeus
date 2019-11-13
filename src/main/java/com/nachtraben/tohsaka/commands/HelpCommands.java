@@ -8,8 +8,8 @@ import com.nachtraben.orangeslice.CommandSender;
 import com.nachtraben.orangeslice.command.Cmd;
 import com.nachtraben.orangeslice.command.Command;
 import com.nachtraben.tohsaka.Tohsaka;
-import net.dv8tion.jda.core.EmbedBuilder;
-import net.dv8tion.jda.core.entities.MessageEmbed;
+import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.entities.MessageEmbed;
 
 import java.util.ArrayList;
 import java.util.List;

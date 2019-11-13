@@ -8,8 +8,8 @@ import com.nachtraben.orangeslice.CommandSender;
 import com.nachtraben.orangeslice.command.Command;
 import com.nachtraben.orangeslice.command.CommandTree;
 import com.nachtraben.orangeslice.command.SubCommand;
-import net.dv8tion.jda.core.Permission;
-import net.dv8tion.jda.core.entities.Role;
+import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.Role;
 
 import java.util.HashSet;
 import java.util.List;

@@ -10,11 +10,11 @@ import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
 import com.sedmelluq.discord.lavaplayer.track.AudioPlaylist;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackInfo;
-import net.dv8tion.jda.core.entities.Guild;
-import net.dv8tion.jda.core.entities.Message;
-import net.dv8tion.jda.core.entities.TextChannel;
-import net.dv8tion.jda.core.events.message.guild.GuildMessageReceivedEvent;
-import net.dv8tion.jda.core.hooks.ListenerAdapter;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.TextChannel;
+import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
+import net.dv8tion.jda.api.hooks.ListenerAdapter;
 
 import java.io.File;
 import java.lang.reflect.Field;
@@ -100,7 +100,7 @@ public class FileUploadListener extends ListenerAdapter {
                         if (f == null)
                             return;
 
-                        att.download(f);
+                        att.downloadToFile(f);
                         GuildMusicManager finalManager = manager;
                         manager.getPlayerManager().loadItemOrdered(f, f.getAbsolutePath(), new AudioLoadResultHandler() {
                             @Override

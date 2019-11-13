@@ -4,9 +4,9 @@ import com.nachtraben.core.command.DiscordCommandSender;
 import com.nachtraben.core.util.ChannelTarget;
 import com.nachtraben.orangeslice.CommandSender;
 import com.nachtraben.orangeslice.command.Command;
-import net.dv8tion.jda.core.EmbedBuilder;
-import net.dv8tion.jda.core.Permission;
-import net.dv8tion.jda.core.entities.SelfUser;
+import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.SelfUser;
 
 import java.util.Map;
 
@@ -23,7 +23,7 @@ public class InviteCommand extends Command {
             EmbedBuilder embedBuilder = new EmbedBuilder();
             SelfUser bot = sendee.getUser().getJDA().getSelfUser();
             embedBuilder.setAuthor(bot.getName(), "https://tohsakabot.com", bot.getAvatarUrl());
-            embedBuilder.setDescription("Invite me: [link](" + sendee.getMessage().getJDA().asBot().getInviteUrl(Permission.ADMINISTRATOR) + ")" +
+            embedBuilder.setDescription("Invite me: [link](" + sendee.getMessage().getJDA().getInviteUrl(Permission.ADMINISTRATOR) + ")" +
                     "\nSupport: [link](https://discord.gg/jmKhbar)");
             sendee.sendMessage(ChannelTarget.GENERIC, embedBuilder.build());
         }
