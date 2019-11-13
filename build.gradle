@@ -8,7 +8,7 @@ plugins {
 apply from: 'https://savage.games/commons.gradle'
 
 group = 'com.nachtraben'
-version = '3.0'
+version = '3.5'
 
 jar {
     baseName = rootProject.name
