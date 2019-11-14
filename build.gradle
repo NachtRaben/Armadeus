@@ -2,7 +2,7 @@ plugins {
     id 'idea'
     id 'java'
     id 'application'
-    id "com.github.johnrengelman.shadow" version "4.0.3"
+    id "com.github.johnrengelman.shadow" version "5.1.0"
 }
 
 apply from: 'https://savage.games/commons.gradle'
@@ -38,15 +38,15 @@ dependencies {
 
     compile 'ch.qos.logback:logback-classic:1.2.3'
     compile 'com.mashape.unirest:unirest-java:1.4.9'
-    compile 'com.vdurmont:emoji-java:4.0.0'
-    compile 'net.kodehawa:imageboard-api:2.0.3_2'
-    compile 'org.codehaus.groovy:groovy-all:2.4.15'
+    compile 'com.vdurmont:emoji-java:5.1.1'
+    compile 'net.kodehawa:imageboard-api:2.1'
+    compile 'org.codehaus.groovy:groovy-all:2.4.4'
     compile 'org.reflections:reflections:0.9.11'
 
-    compile 'org.jline:jline:3.7.0'
-    compile 'net.java.dev.jna:jna:4.5.1'
-    compile 'org.fusesource.jansi:jansi:1.17.1'
-    compileOnly 'org.projectlombok:lombok:1.16.18'
+    compile 'org.jline:jline:3.13.1'
+    compile 'net.java.dev.jna:jna:5.5.0'
+    compile 'org.fusesource.jansi:jansi:1.18'
+    compileOnly 'org.projectlombok:lombok:1.18.10'
 }
 
 configurations {

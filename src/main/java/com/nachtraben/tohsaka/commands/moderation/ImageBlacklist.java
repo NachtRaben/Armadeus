@@ -20,7 +20,7 @@ public class ImageBlacklist {
 
             long id = sendee.getUser().getIdLong();
             BotConfig config = Tohsaka.getInstance().getConfig();
-            if (!config.getOwnerIDs().contains(id) && !config.getDeveloperIDs().contains(id)) {
+            if (!config.getOwnerIDs().contains(id) && !config.getDeveloperIDs().contains(id) && id==sendee.getGuild().getOwnerIdLong()) {
                 sendee.sendMessage(ChannelTarget.GENERIC, "Sorry but you can't shut me down.");
                 return;
             }
