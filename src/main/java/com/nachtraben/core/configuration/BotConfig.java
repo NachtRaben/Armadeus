@@ -8,7 +8,7 @@ import com.google.gson.reflect.TypeToken;
 import com.nachtraben.core.DiscordBot;
 import com.nachtraben.lemonslice.ConfigurationUtils;
 import com.nachtraben.lemonslice.CustomJsonIO;
-import net.dv8tion.jda.core.entities.TextChannel;
+import net.dv8tion.jda.api.entities.TextChannel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

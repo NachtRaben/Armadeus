@@ -8,8 +8,8 @@ import com.nachtraben.core.util.TimeUtil;
 import com.nachtraben.orangeslice.CommandSender;
 import com.nachtraben.orangeslice.command.Cmd;
 import com.nachtraben.tohsaka.Tohsaka;
-import net.dv8tion.jda.core.Permission;
-import net.dv8tion.jda.core.entities.TextChannel;
+import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.TextChannel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

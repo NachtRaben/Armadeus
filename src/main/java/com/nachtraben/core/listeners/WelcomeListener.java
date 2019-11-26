@@ -2,8 +2,8 @@ package com.nachtraben.core.listeners;
 
 import com.nachtraben.core.DiscordBot;
 import com.nachtraben.core.configuration.GuildConfig;
-import net.dv8tion.jda.core.events.guild.member.GuildMemberJoinEvent;
-import net.dv8tion.jda.core.hooks.ListenerAdapter;
+import net.dv8tion.jda.api.events.guild.member.GuildMemberJoinEvent;
+import net.dv8tion.jda.api.hooks.ListenerAdapter;
 
 public class WelcomeListener extends ListenerAdapter {
 

@@ -5,7 +5,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
 import com.nachtraben.lemonslice.ConfigurationUtils;
 import com.nachtraben.lemonslice.CustomJsonIO;
-import net.dv8tion.jda.core.entities.TextChannel;
+import net.dv8tion.jda.api.entities.TextChannel;
 
 import java.lang.reflect.Type;
 import java.util.List;

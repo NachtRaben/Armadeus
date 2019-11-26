@@ -8,11 +8,11 @@ import com.nachtraben.core.util.TimeUtil;
 import com.nachtraben.orangeslice.CommandSender;
 import com.nachtraben.orangeslice.command.CommandTree;
 import com.nachtraben.orangeslice.command.SubCommand;
-import net.dv8tion.jda.core.Permission;
-import net.dv8tion.jda.core.entities.Message;
-import net.dv8tion.jda.core.entities.MessageEmbed;
-import net.dv8tion.jda.core.entities.MessageHistory;
-import net.dv8tion.jda.core.entities.User;
+import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.MessageEmbed;
+import net.dv8tion.jda.api.entities.MessageHistory;
+import net.dv8tion.jda.api.entities.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -82,7 +82,7 @@ public class CleanCommands extends CommandTree {
                                 sendee.sendMessage("You didn't provide a valid channel ID. The ID of your message was `" + sendee.getMessage().getIdLong() + "`.");
                             return;
                         }
-                        Message m = sendee.getTextChannel().getMessageById(messageId).complete();
+                        Message m = sendee.getTextChannel().retrieveMessageById(messageId).complete();
                         if (m == null) {
                             if (!isSilent)
                                 sendee.sendMessage(ChannelTarget.GENERIC, "Sorry, but the message you asked for doesn't exist.");
@@ -158,7 +158,7 @@ public class CleanCommands extends CommandTree {
                                 sendee.sendMessage("You didn't provide a valid channel ID. The ID of your message was `" + sendee.getMessage().getIdLong() + "`.");
                             return;
                         }
-                        Message m = sendee.getTextChannel().getMessageById(messageId).complete();
+                        Message m = sendee.getTextChannel().retrieveMessageById(messageId).complete();
                         if (m == null) {
                             if (!isSilent)
                                 sendee.sendMessage(ChannelTarget.GENERIC, "Sorry, but the message you asked for doesn't exist.");
@@ -234,7 +234,7 @@ public class CleanCommands extends CommandTree {
                                 sendee.sendMessage("You didn't provide a valid channel ID. The ID of your message was `" + sendee.getMessage().getIdLong() + "`.");
                             return;
                         }
-                        Message m = sendee.getTextChannel().getMessageById(messageId).complete();
+                        Message m = sendee.getTextChannel().retrieveMessageById(messageId).complete();
                         if (m == null) {
                             if (!isSilent)
                                 sendee.sendMessage(ChannelTarget.GENERIC, "Sorry, but the message you asked for doesn't exist.");
@@ -362,12 +362,12 @@ public class CleanCommands extends CommandTree {
                     break;
 
                 for (Message m : messages) {
-                    if (m.getCreationTime().isAfter(time)) {
+                    if (m.getTimeCreated().isAfter(time)) {
                         if (ignore && m.equals(sender.getMessage()))
                             continue;
 
                         if (shouldDelete(m, ids, filters, preserve)) {
-                            log.debug("Deleting message: " + m.getIdLong() + " from " + m.getCreationTime().toString());
+                            log.debug("Deleting message: " + m.getIdLong() + " from " + m.getTimeCreated().toString());
                             processMessage(m, bulkDelete, singleDelete);
                         }
                     } else {
@@ -454,7 +454,7 @@ public class CleanCommands extends CommandTree {
     }
 
     private void processMessage(Message m, List<Message> bulkDelete, List<Message> singleDelete) {
-        if (!m.getCreationTime().isBefore(OffsetDateTime.now().minusWeeks(2)))
+        if (!m.getTimeCreated().isBefore(OffsetDateTime.now().minusWeeks(2)))
             bulkDelete.add(m);
         else
             singleDelete.add(m);

@@ -10,7 +10,7 @@ import com.nachtraben.orangeslice.CommandSender;
 import com.nachtraben.orangeslice.command.Cmd;
 import com.nachtraben.tohsaka.Tohsaka;
 import com.vdurmont.emoji.EmojiParser;
-import net.dv8tion.jda.core.EmbedBuilder;
+import net.dv8tion.jda.api.EmbedBuilder;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

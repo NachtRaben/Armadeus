@@ -7,7 +7,7 @@ import com.nachtraben.core.util.ChannelTarget;
 import com.nachtraben.core.util.Utils;
 import com.nachtraben.orangeslice.CommandSender;
 import com.vdurmont.emoji.EmojiParser;
-import net.dv8tion.jda.core.EmbedBuilder;
+import net.dv8tion.jda.api.EmbedBuilder;
 import net.kodehawa.lib.imageboards.DefaultImageBoards;
 import net.kodehawa.lib.imageboards.entities.Rating;
 import net.kodehawa.lib.imageboards.entities.impl.KonachanImage;

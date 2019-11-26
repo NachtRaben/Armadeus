@@ -1,9 +1,9 @@
 package com.nachtraben.core.command;
 
 import com.nachtraben.core.DiscordBot;
-import net.dv8tion.jda.core.entities.ChannelType;
-import net.dv8tion.jda.core.entities.Message;
-import net.dv8tion.jda.core.entities.PrivateChannel;
+import net.dv8tion.jda.api.entities.ChannelType;
+import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.PrivateChannel;
 
 public class PrivateCommandSender extends DiscordCommandSender {
 

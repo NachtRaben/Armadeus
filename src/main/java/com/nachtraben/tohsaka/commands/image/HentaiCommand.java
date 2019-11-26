@@ -8,7 +8,7 @@ import com.nachtraben.orangeslice.CommandSender;
 import com.nachtraben.orangeslice.command.CommandTree;
 import com.nachtraben.orangeslice.command.SubCommand;
 import com.vdurmont.emoji.EmojiParser;
-import net.dv8tion.jda.core.EmbedBuilder;
+import net.dv8tion.jda.api.EmbedBuilder;
 import net.kodehawa.lib.imageboards.DefaultImageBoards;
 import net.kodehawa.lib.imageboards.ImageBoard;
 import net.kodehawa.lib.imageboards.entities.BoardImage;
