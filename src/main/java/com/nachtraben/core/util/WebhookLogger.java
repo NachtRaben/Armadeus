@@ -5,7 +5,6 @@ import club.minnced.discord.webhook.WebhookClientBuilder;
 import com.nachtraben.core.DiscordBot;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Webhook;
-import net.dv8tion.jda.api.managers.WebhookManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,7 +41,7 @@ public class WebhookLogger implements Runnable {
         Webhook webhook = g.retrieveWebhooks().complete().stream().filter(wh -> wh.getChannel().getIdLong() == channelId).findFirst().orElse(null);
         if(webhook == null)
             throw new IllegalArgumentException("Cannot find webhook in " + g.getName() + " with id " + channelId);
-        this.hook = webhook.toString();
+        this.hook = webhook.getUrl();
         messages = new ArrayList<>();
         future = Utils.getScheduler().scheduleWithFixedDelay(this, 0L, 2L, TimeUnit.SECONDS);
         log.info("Logger started for " + webhook.getName());

@@ -22,12 +22,10 @@ public class DiscordMetrics implements Runnable {
     public DiscordMetrics(DiscordBot dbot) {
         this.dbot = dbot;
         long start = System.currentTimeMillis();
-        while (dbot.isRunning() && dbot.getShardManager().getShards().get(0).getSelfUser() == null) {
-            try {
-                Thread.sleep(50);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+        try {
+            dbot.getShardManager().getShards().get(0).awaitReady();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
         LOGGER.debug("Took " + (System.currentTimeMillis() - start) + "ms for the self user to initialize!");
         output = new File(dbot.getShardManager().getShards().get(0).getSelfUser().getId() + ".metrics");
