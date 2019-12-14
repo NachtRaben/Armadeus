@@ -53,16 +53,14 @@ public class TrackScheduler extends AudioEventAdapter {
     private final EqualizerFactory factory = new EqualizerFactory();
 
     public TrackScheduler(GuildMusicManager guildMusicManager) {
-        factory.setGain(32, 12);
-        factory.setGain(64, 8);
-        factory.setGain(125, 4);
-        factory.setGain(250, 0);
-        factory.setGain(500, -2);
-        factory.setGain(1000, -4);
-        factory.setGain(2000, 0);
-        factory.setGain(4000, 2);
-        factory.setGain(8000, 4);
-        factory.setGain(16000, 6);
+        float[] bands = new float[]{12.0F, 8.0F, 4.0F, 2.0F, 1.0F,
+                0.0F, -1.0F, -2.0F, -1.0F, 0.0F,
+                1.0F, 2.0F, 4.0F, 5.0F, 6.0F};
+        float offset = 0.2F / bands[0];
+        for (int i = 0; i < bands.length; i++) {
+            bands[i] *= offset;
+            factory.setGain(i, bands[i++]);
+        }
         this.manager = guildMusicManager;
         manager.getPlayer().setFilterFactory(factory);
         queue = new LinkedBlockingDeque<>();
