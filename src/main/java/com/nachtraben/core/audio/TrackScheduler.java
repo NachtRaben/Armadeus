@@ -6,6 +6,7 @@ import com.nachtraben.core.util.ChannelTarget;
 import com.nachtraben.core.util.TimeUtil;
 import com.nachtraben.core.util.Utils;
 import com.nachtraben.tohsaka.Tohsaka;
+import com.sedmelluq.discord.lavaplayer.filter.equalizer.EqualizerFactory;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayer;
 import com.sedmelluq.discord.lavaplayer.player.event.AudioEventAdapter;
 import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
@@ -49,8 +50,21 @@ public class TrackScheduler extends AudioEventAdapter {
     private long leave = -1;
     private boolean persist = true;
 
+    private final EqualizerFactory factory = new EqualizerFactory();
+
     public TrackScheduler(GuildMusicManager guildMusicManager) {
+        factory.setGain(32, 12);
+        factory.setGain(64, 8);
+        factory.setGain(125, 4);
+        factory.setGain(250, 0);
+        factory.setGain(500, -2);
+        factory.setGain(1000, -4);
+        factory.setGain(2000, 0);
+        factory.setGain(4000, 2);
+        factory.setGain(8000, 4);
+        factory.setGain(16000, 8);
         this.manager = guildMusicManager;
+        manager.getPlayer().setFilterFactory(factory);
         queue = new LinkedBlockingDeque<>();
         afkCheck = Utils.getScheduler().scheduleWithFixedDelay(() -> {
             Guild g = manager.getGuild();
@@ -85,7 +99,6 @@ public class TrackScheduler extends AudioEventAdapter {
             if (!isPlaying()) skip();
         }
     }
-
     public void play(AudioTrack track) {
         currentTrack = track;
         manager.getPlayer().playTrack(track);
