@@ -62,7 +62,7 @@ public class TrackScheduler extends AudioEventAdapter {
         factory.setGain(2000, 0);
         factory.setGain(4000, 2);
         factory.setGain(8000, 4);
-        factory.setGain(16000, 8);
+        factory.setGain(16000, 6);
         this.manager = guildMusicManager;
         manager.getPlayer().setFilterFactory(factory);
         queue = new LinkedBlockingDeque<>();
