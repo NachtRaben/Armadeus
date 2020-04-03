@@ -121,7 +121,6 @@ public class GuildConfig implements CustomJsonIO {
     public GuildMusicManager getMusicManager(boolean instantiate) {
         if (musicManager == null && instantiate)
             return musicManager = new GuildMusicManager(getGuild());
-
         return musicManager;
     }
 
@@ -278,9 +277,10 @@ public class GuildConfig implements CustomJsonIO {
         if (metadata.containsKey("volume")) {
             try {
                 int volume = Integer.parseInt(metadata.get("volume"));
-                volume = Math.min(Math.max(volume, 0), 150);
+                volume = Math.min(Math.max(volume, 0), 50);
                 getMusicManager().getPlayer().setVolume(volume);
                 LOGGER.info("Setting resume volume of { " + getGuild().getName() + " } to " + volume + ".");
+
             } catch (NumberFormatException e) {
                 metadata.remove("volume");
                 save();

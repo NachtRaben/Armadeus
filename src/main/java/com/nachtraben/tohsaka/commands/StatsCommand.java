@@ -64,9 +64,9 @@ public class StatsCommand extends Command {
                 getMemoryString(rt.totalMemory() - rt.freeMemory()), getMemoryString(rt.totalMemory()),
                 shard, total,
                 Thread.getAllStackTraces().keySet().size(),
-                Tohsaka.getInstance().getShardManager().getTextChannels(),
-                Tohsaka.getInstance().getShardManager().getVoiceChannels(),
-                Tohsaka.getInstance().getShardManager().getPrivateChannels(),
+                Tohsaka.getInstance().getShardManager().getTextChannels().size(),
+                Tohsaka.getInstance().getShardManager().getVoiceChannels().size(),
+                Tohsaka.getInstance().getShardManager().getPrivateChannels().size(),
                 Tohsaka.getInstance().getLavalink().getLinks().stream().filter(link -> link.getChannel() != null).count(),
                 Tohsaka.getInstance().getShardManager().getGuilds().size(),
                 Tohsaka.getInstance().getShardManager().getUsers().size());

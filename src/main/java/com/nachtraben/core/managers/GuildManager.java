@@ -23,11 +23,7 @@ public class GuildManager {
     }
 
     public GuildConfig getConfigurationFor(Long guildID) {
-        GuildConfig config = configs.get(guildID);
-        if (config == null) {
-            configs.put(guildID, config = new GuildConfig(this, guildID).load());
-        }
-        return config;
+        return configs.computeIfAbsent(guildID, __ -> new GuildConfig(this, guildID).load());
     }
 
     public GuildConfig getConfigurationFor(Guild guild) {
