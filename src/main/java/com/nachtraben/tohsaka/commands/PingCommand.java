@@ -7,7 +7,6 @@ import com.nachtraben.orangeslice.CommandSender;
 import com.nachtraben.orangeslice.command.Command;
 import com.vdurmont.emoji.EmojiManager;
 import net.dv8tion.jda.api.EmbedBuilder;
-import net.dv8tion.jda.api.exceptions.RateLimitedException;
 
 import java.util.Map;
 
@@ -21,19 +20,13 @@ public class PingCommand extends Command {
     public void run(CommandSender sender, Map<String, String> args, Map<String, String> flags) {
         if(sender instanceof DiscordCommandSender) {
             DiscordCommandSender sendee = (DiscordCommandSender) sender;
-            Long start = System.currentTimeMillis();
-            try {
-                sendee.getMessageChannel().sendTyping().complete(false);
-                long duration = System.currentTimeMillis() - start;
-                EmbedBuilder eb = new EmbedBuilder();
-                eb.setTitle("Ping: ");
-                eb.setColor(Utils.randomColor());
-                eb.addField("API " + EmojiManager.getForAlias("ping_pong").getUnicode(), duration + " ms.", true);
-                eb.addField("WebSocket " + EmojiManager.getForAlias("musical_note").getUnicode(), sendee.getUser().getJDA().getGatewayPing() + " ms.", true);
-                sendee.sendMessage(ChannelTarget.GENERIC, eb.build());
-            } catch (RateLimitedException e) {
-                sendee.sendMessage("Sorry but I can't ping right now.");
-            }
+            long duration = sendee.getUser().getJDA().getRestPing().complete();
+            EmbedBuilder eb = new EmbedBuilder();
+            eb.setTitle("Ping: ");
+            eb.setColor(Utils.randomColor());
+            eb.addField("API " + EmojiManager.getForAlias("ping_pong").getUnicode(), duration + " ms.", true);
+            eb.addField("WebSocket " + EmojiManager.getForAlias("musical_note").getUnicode(), sendee.getUser().getJDA().getGatewayPing() + " ms.", true);
+            sendee.sendMessage(ChannelTarget.GENERIC, eb.build());
         }
     }
 
