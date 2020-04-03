@@ -23,7 +23,7 @@ import java.util.concurrent.TimeUnit;
 public class CleanCommands extends CommandTree {
 
     private static final Logger log = LoggerFactory.getLogger(CleanCommands.class);
-    private static Set<Long> purges = new HashSet<>();
+    private static final Set<Long> purges = new HashSet<>();
 
     // TODO: Clean [amount] --date=date --time=time --silent --message=
     // TODO: Clear/Purge [amount] --date=date --time=time --silent --message=
@@ -97,7 +97,7 @@ public class CleanCommands extends CommandTree {
                             return;
                     }
 
-                    purge(sendee, amount, date, messageId, Collections.singletonList(sendee.getJDA().getSelfUser().getIdLong()), Collections.emptyList(), isSilent, flags.containsKey("preserve") || flags.containsKey("p"));
+                    purge(sendee, amount, date, messageId, Collections.singletonList(sendee.getUser().getJDA().getSelfUser().getIdLong()), Collections.emptyList(), isSilent, flags.containsKey("preserve") || flags.containsKey("p"));
                 }
             }
         });
@@ -122,7 +122,7 @@ public class CleanCommands extends CommandTree {
                     long messageId = -1;
                     LocalDateTime date = null;
 
-                    if (!sendee.getGuild().getMember(sendee.getJDA().getSelfUser()).hasPermission(Permission.MESSAGE_MANAGE)) {
+                    if (!sendee.getGuild().getMember(sendee.getUser().getJDA().getSelfUser()).hasPermission(Permission.MESSAGE_MANAGE)) {
                         if (!isSilent)
                             sendee.sendMessage(ChannelTarget.GENERIC, "Sorry, but I don't have permission to delete messages here.");
                         return;
@@ -198,7 +198,7 @@ public class CleanCommands extends CommandTree {
                     long messageId = -1;
                     LocalDateTime date = null;
 
-                    if (!sendee.getGuild().getMember(sendee.getJDA().getSelfUser()).hasPermission(Permission.MESSAGE_MANAGE)) {
+                    if (!sendee.getGuild().getMember(sendee.getUser().getJDA().getSelfUser()).hasPermission(Permission.MESSAGE_MANAGE)) {
                         if (!isSilent)
                             sendee.sendMessage(ChannelTarget.GENERIC, "Sorry, but I don't have permission to delete messages here.");
                         return;
@@ -329,7 +329,7 @@ public class CleanCommands extends CommandTree {
 
     private boolean canRun(GuildCommandSender sender) {
         BotConfig config = sender.getDbot().getConfig();
-        return sender.getMember().hasPermission(Permission.MESSAGE_MANAGE) || config.getDeveloperIDs().contains(sender.getUserID()) || config.getOwnerIDs().contains(sender.getUserID());
+        return sender.getMember().hasPermission(Permission.MESSAGE_MANAGE) || config.getDeveloperIDs().contains(sender.getUserId()) || config.getOwnerIDs().contains(sender.getUserId());
     }
 
     private void purge(GuildCommandSender sender, int amount, LocalDateTime date, long messageID, List<Long> ids, List<String> filters, boolean silent, boolean preserve) {
@@ -367,7 +367,7 @@ public class CleanCommands extends CommandTree {
                             continue;
 
                         if (shouldDelete(m, ids, filters, preserve)) {
-                            log.debug("Deleting message: " + m.getIdLong() + " from " + m.getTimeCreated().toString());
+                            log.debug("Deleting message: " + m.getIdLong() + " from " + m.getTimeCreated());
                             processMessage(m, bulkDelete, singleDelete);
                         }
                     } else {

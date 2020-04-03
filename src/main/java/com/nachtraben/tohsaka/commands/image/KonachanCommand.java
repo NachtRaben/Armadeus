@@ -37,7 +37,7 @@ public class KonachanCommand extends AbstractImageCommand {
             boolean isSearch = args.containsKey("tag");
 
             BotConfig conf = sendee.getDbot().getConfig();
-            int amount = flags.containsKey("amount") && (conf.getOwnerIDs().contains(sendee.getUserID()) || conf.getDeveloperIDs().contains(sendee.getUserID())) ? Integer.parseInt(flags.get("amount")) : 1;
+            int amount = flags.containsKey("amount") && (conf.getOwnerIDs().contains(sendee.getUserId()) || conf.getDeveloperIDs().contains(sendee.getUserId())) ? Integer.parseInt(flags.get("amount")) : 1;
 
 
             Rating rating = gcs != null && gcs.getTextChannel().isNSFW() ? Rating.EXPLICIT : Rating.SAFE;
@@ -59,7 +59,7 @@ public class KonachanCommand extends AbstractImageCommand {
             for (int i = 0; i < amount; i++) {
                 List<KonachanImage> images = isSearch ? DefaultImageBoards.KONACHAN.search(100, args.get("tag").replace(" ", "_")).blocking() : DefaultImageBoards.KONACHAN.get(RAND.nextInt(1024)).blocking();
                 if (images != null) {
-                    Set<String> cache = gcs != null ? guildSearchCache.computeIfAbsent(gcs.getGuildId(), set -> new HashSet<>()) : userSearchCache.computeIfAbsent(sendee.getUserID(), set -> new HashSet<>());
+                    Set<String> cache = gcs != null ? guildSearchCache.computeIfAbsent(gcs.getGuildId(), set -> new HashSet<>()) : userSearchCache.computeIfAbsent(sendee.getUserId(), set -> new HashSet<>());
                     images = images.stream().filter(image -> finalRating.equals(image.getRating()) && image.getTags().stream().noneMatch(tag -> tag.equalsIgnoreCase("loli"))).filter(image -> !cache.contains(image.getURL())).collect(Collectors.toList());
                     if (images.isEmpty()) {
                         if (isSearch) {

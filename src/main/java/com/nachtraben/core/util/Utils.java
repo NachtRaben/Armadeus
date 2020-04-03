@@ -6,7 +6,6 @@ import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import net.dv8tion.jda.api.EmbedBuilder;
 
 import java.awt.*;
-import java.io.*;
 import java.util.Random;
 import java.util.concurrent.*;
 
@@ -48,26 +47,6 @@ public class Utils {
             SCHEDULER.awaitTermination(10, TimeUnit.SECONDS);
         } catch (InterruptedException e) {
             SCHEDULER.shutdownNow();
-        }
-    }
-
-    public static byte[] serialize(Object o) {
-        try(ByteArrayOutputStream baos = new ByteArrayOutputStream(); ObjectOutput out = new ObjectOutputStream(baos)) {
-            out.writeObject(o);
-            out.flush();
-            return baos.toByteArray();
-        } catch (IOException e) {
-            e.printStackTrace();
-            return new byte[]{};
-        }
-    }
-
-    public static <T> T deserialize(byte[] bytes, Class<T> clazz) {
-        try(ByteArrayInputStream bais = new ByteArrayInputStream(bytes); ObjectInput in = new ObjectInputStream(bais)) {
-            return (T) in.readObject();
-        } catch (IOException | ClassNotFoundException e) {
-            e.printStackTrace();
-            return null;
         }
     }
 

@@ -24,11 +24,11 @@ public class QueueTransfer extends Command {
         if(sender instanceof GuildCommandSender) {
             GuildCommandSender sendee = (GuildCommandSender) sender;
             BotConfig config = sendee.getDbot().getConfig();
-            if(!config.getDeveloperIDs().contains(sendee.getUserID()) && !config.getOwnerIDs().contains(sendee.getUserID())) {
+            if (!config.getDeveloperIDs().contains(sendee.getUserId()) && !config.getOwnerIDs().contains(sendee.getUserId())) {
                 sendee.sendMessage(ChannelTarget.MUSIC, "Sorry, but that feature isn't available to everyone.");
                 return;
             }
-            GuildMusicManager from = sendee.getDbot().getGuildManager().getConfigurationFor(sendee.getDbot().getShardManager().getGuildByID(Long.parseLong(args.get("guildid")))).getMusicManager(false);
+            GuildMusicManager from = sendee.getDbot().getGuildManager().getConfigurationFor(sendee.getDbot().getShardManager().getGuildById(Long.parseLong(args.get("guildid")))).getMusicManager(false);
             GuildMusicManager to = sendee.getGuildConfig().getMusicManager();
             if(from == null || !from.getScheduler().isPlaying()) {
                 sendee.sendMessage(ChannelTarget.MUSIC, "Can't transfer from a guild that isn't playing anything.");

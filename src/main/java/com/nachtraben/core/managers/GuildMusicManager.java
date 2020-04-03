@@ -1,76 +1,42 @@
 package com.nachtraben.core.managers;
 
-import com.nachtraben.core.audio.AudioPlayerSendHandler;
 import com.nachtraben.core.audio.TrackScheduler;
-import com.sedmelluq.discord.lavaplayer.player.AudioConfiguration;
-import com.sedmelluq.discord.lavaplayer.player.AudioPlayer;
-import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
-import com.sedmelluq.discord.lavaplayer.player.DefaultAudioPlayerManager;
-import com.sedmelluq.discord.lavaplayer.source.AudioSourceManagers;
-import net.dv8tion.jda.api.audio.AudioSendHandler;
+import com.nachtraben.tohsaka.Tohsaka;
+import lavalink.client.io.jda.JdaLink;
+import lavalink.client.player.IPlayer;
+import lombok.Getter;
 import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.internal.utils.cache.SnowflakeReference;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
+@Getter
 public class GuildMusicManager {
 
-    public static AudioPlayerManager DEFAULT_PLAYER_MANAGER;
+    private static final Logger logger = LoggerFactory.getLogger(GuildMusicManager.class);
 
-    static {
-        DEFAULT_PLAYER_MANAGER = new DefaultAudioPlayerManager();
-        DEFAULT_PLAYER_MANAGER.getConfiguration().setOpusEncodingQuality(AudioConfiguration.OPUS_QUALITY_MAX);
-        DEFAULT_PLAYER_MANAGER.getConfiguration().setResamplingQuality(AudioConfiguration.ResamplingQuality.HIGH);
-        AudioSourceManagers.registerLocalSource(DEFAULT_PLAYER_MANAGER);
-        AudioSourceManagers.registerRemoteSources(DEFAULT_PLAYER_MANAGER);
-        /*DEFAULT_PLAYER_MANAGER.registerSourceManager(new YoutubeAudioSourceManager(true));
-        DEFAULT_PLAYER_MANAGER.registerSourceManager(new SoundCloudAudioSourceManager());
-        DEFAULT_PLAYER_MANAGER.registerSourceManager(new VimeoAudioSourceManager());
-        DEFAULT_PLAYER_MANAGER.registerSourceManager(new TwitchStreamAudioSourceManager());
-        DEFAULT_PLAYER_MANAGER.registerSourceManager(new BeamAudioSourceManager());*/
-    }
+    private final SnowflakeReference<Guild> guild;
+    private final JdaLink link;
+    private final IPlayer player;
+    private final TrackScheduler scheduler;
 
-    private Guild guild;
-    private AudioPlayerManager playerManager;
-    private AudioPlayer player;
-    private TrackScheduler scheduler;
-    private AudioPlayerSendHandler sendHandler;
-
-    public GuildMusicManager(Guild guild, AudioPlayerManager playerManager) {
-        if(guild == null)
-            throw new IllegalArgumentException("Provided guild cannot be null.");
-        this.guild = guild;
-        this.playerManager = playerManager;
-        player = playerManager.createPlayer();
+    public GuildMusicManager(Guild guild) {
+        checkNotNull(guild);
+        this.guild = new SnowflakeReference<>(guild, id -> Tohsaka.getInstance().getShardManager().getGuildById(id));
+        this.link = Tohsaka.getInstance().getLavalink().getLink(guild);
+        this.player = link.getPlayer();
         this.scheduler = new TrackScheduler(this);
         player.addListener(scheduler);
-        guild.getAudioManager().setSendingHandler(getSendHandler());
     }
 
     public Guild getGuild() {
-        return guild;
-    }
-
-    public AudioPlayerManager getPlayerManager() {
-        return playerManager;
-    }
-
-    public AudioPlayer getPlayer() {
-        return player;
+        return guild.resolve();
     }
 
     public TrackScheduler getScheduler() {
         return scheduler;
-    }
-
-    public void setTrackScheduler(TrackScheduler scheduler) {
-        this.scheduler.destroy();
-        player.removeListener(this.scheduler);
-        this.scheduler = scheduler;
-        player.addListener(this.scheduler);
-    }
-
-    public AudioSendHandler getSendHandler() {
-        if(sendHandler == null)
-            sendHandler = new AudioPlayerSendHandler(player);
-        return sendHandler;
     }
 
 }

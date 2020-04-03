@@ -23,7 +23,7 @@ public class BotConfig implements CustomJsonIO {
     private static final Logger LOGGER = LoggerFactory.getLogger(BotConfig.class);
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
 
-    private transient DiscordBot bot;
+    private final transient DiscordBot bot;
 
     String botToken = "";
     int shardCount = -1;
@@ -160,28 +160,9 @@ public class BotConfig implements CustomJsonIO {
 
     public TextChannel getErrorLogChannel() {
         if(errorLogChannel == null)
-            errorLogChannel = bot.getShardManager().getTextChannelByID(errorLogChannelID);
+            errorLogChannel = bot.getShardManager().getTextChannelById(errorLogChannelID);
 
         return errorLogChannel;
     }
 
-    public boolean isUseRedis() {
-        return useRedis;
-    }
-
-    public String getRedisHost() {
-        return redisHost;
-    }
-
-    public int getRedisPort() {
-        return redisPort;
-    }
-
-    public String getRedisPassword() {
-        return redisPassword;
-    }
-
-    public int getRedisTimeout() {
-        return redisTimeout;
-    }
 }

@@ -29,7 +29,7 @@ public class PersistCommand extends CommandTree {
                 if(sender instanceof GuildCommandSender) {
                     GuildCommandSender sendee = (GuildCommandSender) sender;
                     BotConfig config = sendee.getDbot().getConfig();
-                    if(!config.getDeveloperIDs().contains(sendee.getUserID()) && !config.getOwnerIDs().contains(sendee.getUserID())) {
+                    if (!config.getDeveloperIDs().contains(sendee.getUserId()) && !config.getOwnerIDs().contains(sendee.getUserId())) {
                         sendee.sendMessage(ChannelTarget.MUSIC, "Sorry, but that feature isn't available to everyone.");
                         return;
                     }

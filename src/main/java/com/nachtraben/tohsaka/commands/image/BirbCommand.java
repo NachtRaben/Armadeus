@@ -24,8 +24,8 @@ public class BirbCommand extends Command {
     private static final String IMGURL = "https://random.birb.pw/img/";
     private static final String NAMEURL = "http://random.birb.pw/tweet/";
 
-    private TimedCache<Long, Set<String>> guildSearchCache = new TimedCache<>(TimeUnit.MINUTES.toMillis(30), TimedCache.TimeoutPolicy.ACCESS);
-    private TimedCache<Long, Set<String>> userSearchCache = new TimedCache<>(TimeUnit.MINUTES.toMillis(30), TimedCache.TimeoutPolicy.ACCESS);
+    private final TimedCache<Long, Set<String>> guildSearchCache = new TimedCache<>(TimeUnit.MINUTES.toMillis(30), TimedCache.TimeoutPolicy.ACCESS);
+    private final TimedCache<Long, Set<String>> userSearchCache = new TimedCache<>(TimeUnit.MINUTES.toMillis(30), TimedCache.TimeoutPolicy.ACCESS);
 
     public BirbCommand() {
         super("birb", "", "Sends a birb");
@@ -36,7 +36,7 @@ public class BirbCommand extends Command {
         if (sender instanceof DiscordCommandSender) {
             DiscordCommandSender sendee = (DiscordCommandSender) sender;
             GuildCommandSender gsendee = sendee instanceof GuildCommandSender ? (GuildCommandSender) sendee : null;
-            Set<String> cache = gsendee != null ? guildSearchCache.computeIfAbsent(gsendee.getGuildId(), set -> new HashSet<>()) : userSearchCache.computeIfAbsent(sendee.getUserID(), set -> new HashSet<>());
+            Set<String> cache = gsendee != null ? guildSearchCache.computeIfAbsent(gsendee.getGuildId(), set -> new HashSet<>()) : userSearchCache.computeIfAbsent(sendee.getUserId(), set -> new HashSet<>());
             String url = null;
             try {
                 int tries = 0;

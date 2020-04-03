@@ -1,58 +1,85 @@
 plugins {
     id 'idea'
-    id 'java'
+    id 'java-library'
     id 'application'
-    id "com.github.johnrengelman.shadow" version "5.1.0"
+    id "com.github.johnrengelman.shadow" version "5.2.0"
 }
 
-apply from: 'https://savage.games/commons.gradle'
+apply from: "https://nachtraben.com/files/commons.gradle"
 
 group = 'com.nachtraben'
-version = '3.5'
+version = ENV
+
+ext {
+    nexusUser = System.getenv("NEXUS_USR") ?: loadProperty("nexus.nachtraben.user")
+    nexusPass = System.getenv("NEXUS_PSW") ?: loadProperty("nexus.nachtraben.pass")
+}
 
 jar {
     baseName = rootProject.name
     mainClassName = 'com.nachtraben.tohsaka.Tohsaka'
 }
 
-sourceCompatibility = targetCompatibility = 1.8
-compileJava.options.encoding = javadoc.options.encoding = 'UTF-8'
+sourceCompatibility = targetCompatibility = JavaVersion.VERSION_11
+compileJava.options.encoding = javadoc.options.encoding = "UTF-8"
+
+task sourcesJar(type: Jar, dependsOn: classes) {
+    classifier = 'sources'
+    archiveName = project.name + '-sources.jar'
+    from project.sourceSets.main.allSource
+}
+
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    classifier = 'javadoc'
+    archiveName = rootProject.name + '-javadoc.jar'
+    from javadoc.destinationDir
+}
 
 repositories {
-    mavenLocal()
-    maven { url = 'https://jitpack.io' }
-    maven { url = "https://dl.bintray.com/kodehawa/maven" }
-    mavenCentral()
+    maven {
+        name = "NachtRaben-Nexus"
+        url = "https://nachtraben.com/nexus/repository/maven-public/"
+        credentials {
+            username = nexusUser
+            password = nexusPass
+
+        }
+    }
     jcenter()
+    maven {
+        url 'https://jitpack.io'
+    }
+    maven { url = 'https://jitpack.io' }
+    maven { name = "Kodehawa"; url  "https://dl.bintray.com/kodehawa/maven"}
 }
 
 dependencies {
-    compile 'net.dv8tion:JDA:4.0.0_45'
-    compile 'com.sedmelluq:lavaplayer:1.3.25'
-    compile 'com.sedmelluq:jda-nas:1.1.0'
-    compile 'club.minnced:discord-webhooks:0.1.8'
+    // Lombok
+    compileOnly(group: 'org.projectlombok', name: 'lombok', version: '1.18.10')
+    annotationProcessor(group: 'org.projectlombok', name: 'lombok', version: '1.18.10')
 
-    compile 'com.github.NachtRaben:OrangeSlice:760b4494a2'
-    compile 'com.github.NachtRaben:LemonSlice:5958b6e659'
-    compile 'com.github.NachtRaben:PineappleSlice:0825a28910'
+    // Logging
+    implementation group: 'ch.qos.logback', name: 'logback-classic', version: '1.2.3'
 
-    compile 'ch.qos.logback:logback-classic:1.2.3'
-    compile 'com.mashape.unirest:unirest-java:1.4.9'
-    compile 'com.vdurmont:emoji-java:5.1.1'
-    compile 'net.kodehawa:imageboard-api:2.1'
-    compile 'org.codehaus.groovy:groovy-all:2.4.4'
-    compile 'org.reflections:reflections:0.9.11'
+    // JDA
+    implementation group: 'net.dv8tion', name: 'JDA', version: '4.1.1_127'
+    implementation group: 'com.github.ByteAlex', name: 'Lavalink-Client', version: 'master-SNAPSHOT'
 
-    compile 'org.jline:jline:3.13.1'
-    compile 'net.java.dev.jna:jna:5.5.0'
-    compile 'org.fusesource.jansi:jansi:1.18'
-    compileOnly 'org.projectlombok:lombok:1.18.10'
-}
+    implementation 'com.github.NachtRaben:OrangeSlice:760b4494a2'
+    implementation 'com.github.NachtRaben:LemonSlice:5958b6e659'
+    implementation 'com.github.NachtRaben:PineappleSlice:0825a28910'
 
-configurations {
-    testCompile.extendsFrom shadow, compile
-}
+    // Utility
+    implementation group: 'com.mashape.unirest', name: 'unirest-java', version: '1.4.9'
+    implementation group: 'com.vdurmont', name: 'emoji-java', version: '5.1.1'
+    implementation group: 'net.kodehawa', name: 'imageboard-api', version: '2.1'
+    implementation group: 'org.codehaus.groovy', name: 'groovy-all', version: '3.0.2'
+    implementation group: 'org.reflections', name: 'reflections', version: '0.9.12'
+    implementation group: 'com.google.guava', name: 'guava', version: '28.1-jre'
+    implementation group: 'com.google.code.gson', name: 'gson', version: '2.8.6'
 
-shadowJar {
-    classifier = ""
+    // Console
+    implementation group: 'org.jline', name: 'jline', version: '3.14.0'
+    implementation group: 'net.java.dev.jna', name: 'jna', version: '5.5.0'
+    implementation group: 'org.fusesource.jansi', name: 'jansi', version: '1.18'
 }

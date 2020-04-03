@@ -5,7 +5,6 @@ import com.nachtraben.core.command.DiscordCommandSender;
 import com.nachtraben.core.command.GuildCommandSender;
 import com.nachtraben.core.command.PrivateCommandSender;
 import com.nachtraben.core.configuration.GuildConfig;
-import com.nachtraben.core.configuration.RedisBotConfig;
 import com.nachtraben.core.util.ChannelTarget;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.JDA;
@@ -24,7 +23,7 @@ import java.util.List;
 public class DiscordCommandListener extends ListenerAdapter {
     private static final Logger log = LoggerFactory.getLogger(DiscordCommandListener.class);
 
-    private DiscordBot dbot;
+    private final DiscordBot dbot;
 
     public DiscordCommandListener(DiscordBot dbot) {
         this.dbot = dbot;
@@ -54,11 +53,7 @@ public class DiscordCommandListener extends ListenerAdapter {
 //                    return;
 
                 if (!mentions.isEmpty() && mentions.get(0).equals(jda.getSelfUser()) && content.startsWith(mentions.get(0).getAsMention())) {
-                    if (dbot.getConfig() instanceof RedisBotConfig && !dbot.isDebugging() && ((RedisBotConfig) dbot.getConfig()).isDebugging()) {
-                        log.warn("Ignoring user mention prefix as a developer instance is running.");
-                    } else {
-                        prefix = mentions.get(0).getAsMention() + " ";
-                    }
+                    prefix = mentions.get(0).getAsMention() + " ";
                 }
 
                 if (message.isFromType(ChannelType.TEXT)) {
@@ -66,11 +61,7 @@ public class DiscordCommandListener extends ListenerAdapter {
                     if (prefix == null) {
                         Member botMember = message.getGuild().getMember(jda.getSelfUser());
                         if (!mentions.isEmpty() && mentions.get(0).equals(jda.getSelfUser()) && content.startsWith(botMember.getAsMention())) {
-                            if (dbot.getConfig() instanceof RedisBotConfig && !dbot.isDebugging() && ((RedisBotConfig) dbot.getConfig()).isDebugging()) {
-                                log.warn("Ignoring member mention prefix as a developer instance is running.");
-                            } else {
-                                prefix = botMember.getAsMention() + " ";
-                            }
+                            prefix = botMember.getAsMention() + " ";
                         }
                     }
                     GuildConfig config = ((GuildCommandSender) sender).getGuildConfig();
@@ -122,18 +113,18 @@ public class DiscordCommandListener extends ListenerAdapter {
 
     @Override
     public void onGuildJoin(GuildJoinEvent event) {
-        TextChannel channel = dbot.getShardManager().getTextChannelByID(357952462960721920L);
-        if(channel != null) {
+        TextChannel channel = dbot.getShardManager().getTextChannelById(357952462960721920L);
+        if (channel != null) {
             Guild g = event.getGuild();
             EmbedBuilder eb = new EmbedBuilder();
             eb.setTitle("Joined a new guild!");
             eb.setDescription("__**" + g.getName() + "#" + g.getIdLong() + "**__");
             eb.setThumbnail(event.getGuild().getIconUrl());
             eb.addField("Owner:", g.getOwner().getUser().getName() + "#" + g.getOwner().getUser().getDiscriminator(), true);
-            eb.addField("Members:", "+" + String.valueOf(g.getMembers().size()), true);
-            eb.addField("TextChannels:", "+" + String.valueOf(g.getTextChannels().size()), true);
-            eb.addField("VoiceChannels:", "+" + String.valueOf(g.getVoiceChannels().size()), true);
-            eb.addField("Emotes:", "+" + String.valueOf(g.getEmotes().size()), true);
+            eb.addField("Members:", "+" + g.getMembers().size(), true);
+            eb.addField("TextChannels:", "+" + g.getTextChannels().size(), true);
+            eb.addField("VoiceChannels:", "+" + g.getVoiceChannels().size(), true);
+            eb.addField("Emotes:", "+" + g.getEmotes().size(), true);
             eb.setColor(Color.GREEN);
             channel.sendMessage(eb.build()).queue();
         }
@@ -141,18 +132,18 @@ public class DiscordCommandListener extends ListenerAdapter {
 
     @Override
     public void onGuildLeave(GuildLeaveEvent event) {
-        TextChannel channel = dbot.getShardManager().getTextChannelByID(357952462960721920L);
-        if(channel != null) {
+        TextChannel channel = dbot.getShardManager().getTextChannelById(357952462960721920L);
+        if (channel != null) {
             Guild g = event.getGuild();
             EmbedBuilder eb = new EmbedBuilder();
             eb.setTitle("Left a guild!");
             eb.setDescription("__**" + g.getName() + "#" + g.getIdLong() + "**__");
             eb.setThumbnail(event.getGuild().getIconUrl());
             eb.addField("Owner:", g.getOwner().getUser().getName() + "#" + g.getOwner().getUser().getDiscriminator(), true);
-            eb.addField("Members:", "-" + String.valueOf(g.getMembers().size()), true);
-            eb.addField("TextChannels:", "-" + String.valueOf(g.getTextChannels().size()), true);
-            eb.addField("VoiceChannels:", "-" + String.valueOf(g.getVoiceChannels().size()), true);
-            eb.addField("Emotes:", "-" + String.valueOf(g.getEmotes().size()), true);
+            eb.addField("Members:", "-" + g.getMembers().size(), true);
+            eb.addField("TextChannels:", "-" + g.getTextChannels().size(), true);
+            eb.addField("VoiceChannels:", "-" + g.getVoiceChannels().size(), true);
+            eb.addField("Emotes:", "-" + g.getEmotes().size(), true);
             eb.setColor(Color.RED);
             channel.sendMessage(eb.build()).queue();
         }

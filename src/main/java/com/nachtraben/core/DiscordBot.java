@@ -3,53 +3,46 @@ package com.nachtraben.core;
 import com.nachtraben.core.audio.AudioPlayerSendHandler;
 import com.nachtraben.core.command.ConsoleCommandSender;
 import com.nachtraben.core.configuration.BotConfig;
-import com.nachtraben.core.configuration.GuildConfig;
-import com.nachtraben.core.configuration.RedisBotConfig;
 import com.nachtraben.core.listeners.DiscordCommandListener;
-import com.nachtraben.core.listeners.FileUploadListener;
-import com.nachtraben.core.listeners.LogbackListener;
 import com.nachtraben.core.listeners.WelcomeListener;
 import com.nachtraben.core.managers.GuildManager;
-import com.nachtraben.core.managers.ShardManager;
 import com.nachtraben.core.util.DiscordMetrics;
-import com.nachtraben.core.util.RedisUtil;
 import com.nachtraben.core.util.Utils;
-import com.nachtraben.core.util.WebhookLogger;
-import com.nachtraben.lemonslice.ConfigurationUtils;
 import com.nachtraben.orangeslice.CommandBase;
-import com.nachtraben.pineappleslice.redis.RedisModule;
-import com.nachtraben.pineappleslice.redis.RedisProperties;
-import net.dv8tion.jda.api.entities.Guild;
-import net.dv8tion.jda.api.entities.ISnowflake;
+import lavalink.client.io.jda.JdaLavalink;
+import lombok.SneakyThrows;
+import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.entities.Activity;
+import net.dv8tion.jda.api.requests.GatewayIntent;
+import net.dv8tion.jda.api.sharding.DefaultShardManagerBuilder;
+import net.dv8tion.jda.api.sharding.ShardManager;
+import net.dv8tion.jda.api.utils.ChunkingFilter;
+import net.dv8tion.jda.api.utils.MemberCachePolicy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Arrays;
-
-import static com.nachtraben.core.configuration.GuildConfig.GUILD_DIR;
+import java.net.URI;
 
 public abstract class DiscordBot {
 
     public static String[] PROGRAM_ARGS;
 
-    private Logger logger;
+    private final Logger logger;
 
-    private RedisModule redisModule;
     private ShardManager shardManager;
-    private GuildManager guildManager;
-    private CommandBase commandBase;
-    private BotConfig config;
+    private final GuildManager guildManager;
+    private final CommandBase commandBase;
+    private final BotConfig config;
     private DiscordCommandListener commandListener;
-    private Thread shutdownHandler;
+    private final Thread shutdownHandler;
     private DiscordMetrics dmetrics;
-
-    private WebhookLogger wlogger;
-
+    private final JdaLavalink lavalink;
 
     private boolean running = false;
     private boolean debugging = false;
     private boolean logMessages = false;
 
+    @SneakyThrows
     public DiscordBot(String[] args) {
         ConsoleCommandSender.start();
         PROGRAM_ARGS = args;
@@ -64,23 +57,36 @@ public abstract class DiscordBot {
         logger.info("Loading configuration from file.");
         config = new BotConfig(this).load();
 
-        if (config.isUseRedis()) {
-            logger.info("Using redis backend.");
-            redisModule = new RedisModule(new RedisProperties(config.getRedisHost(), config.getRedisPort(), config.getRedisPassword(), config.getRedisTimeout()));
-            RedisUtil.setModule(redisModule);
-            config = new RedisBotConfig(this).load();
-            guildManager = new GuildManager(this, redisModule.getProvider());
-        } else {
-            guildManager = new GuildManager(this);
-        }
+        guildManager = new GuildManager(this);
         logger.info("Configuration loaded.");
 
-        commandBase = new CommandBase();
-        commandListener = new DiscordCommandListener(this);
+        logger.info("Loading lavalink...");
+        lavalink = new JdaLavalink(isDebugging() ? "270410992536649738" : "270410992536649738", 1, shardId -> shardManager.getShardById(shardId));
+        lavalink.addNode("tohsaka", new URI("ws://127.0.0.1:2333"), "fluffy");
 
-        shardManager = new ShardManager(this);
-        shardManager.addDefaultListener(new DiscordCommandListener(this), new WelcomeListener(this));
-        LogbackListener.install(this);
+        commandBase = new CommandBase();
+        logger.info("Loading JDA...");
+        try {
+            shardManager = DefaultShardManagerBuilder.createDefault(config.getBotToken(), GatewayIntent.getIntents(GatewayIntent.ALL_INTENTS))
+                    .setActivity(Activity.playing("Tohsaka"))
+                    .setMemberCachePolicy(MemberCachePolicy.ALL) // Fetch ALL members
+                    .setChunkingFilter(ChunkingFilter.ALL) // Chunk member data
+                    .addEventListeners(lavalink) // Lavalink Listener
+                    .setVoiceDispatchInterceptor(lavalink.getVoiceInterceptor()) // Lavalink websocket listeners
+                    .setShardsTotal(1) // Defaults to 1 as we aren't serving a large number of guilds
+                    .addEventListeners(new DiscordCommandListener(this), new WelcomeListener(this))
+                    .build();
+        } catch (Exception e) {
+            logger.error("Failed to start Tohsaka", e);
+            System.exit(-1);
+        }
+        while (shardManager.getShards().stream().anyMatch(jda -> jda.getStatus() != JDA.Status.CONNECTED)) {
+            Thread.sleep(100);
+        }
+    }
+
+    public JdaLavalink getLavalink() {
+        return lavalink;
     }
 
     protected void postStart() {
@@ -90,32 +96,6 @@ public abstract class DiscordBot {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        wlogger = new WebhookLogger(this, 317784247949590528L, 369967452488073216L);
-        try {
-            wlogger.start();
-        } catch (Exception e) {
-            logger.error("Failed to initialize fine logger!", e);
-            wlogger = null;
-        }
-        if (Arrays.asList(PROGRAM_ARGS).contains("--dump") && config instanceof RedisBotConfig) {
-            dumpGuildData();
-        }
-        try {
-            Thread.sleep(5000);
-            guildManager.loadPersistInformation();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private void dumpGuildData() {
-        shardManager.getShards().forEach(shard -> {
-            for (Guild guild : shard.getGuilds()) {
-                logger.warn("Dumping guild configuration for " + guild);
-                GuildConfig config = getGuildManager().getConfigurationFor(guild);
-                ConfigurationUtils.saveData(guild.getId() + ".json", GUILD_DIR, config);
-            }
-        });
     }
 
     public ShardManager getShardManager() {
@@ -142,15 +122,9 @@ public abstract class DiscordBot {
         return debugging;
     }
 
-    public WebhookLogger getWlogger() {
-        return wlogger;
-    }
-
     public void setDebugging(boolean debugging) {
         logger.info("Debugging is now set to { " + debugging + " }.");
         this.debugging = debugging;
-        if (config instanceof RedisBotConfig)
-            ((RedisBotConfig) config).setDebugging(debugging);
     }
 
     public void logMessages(boolean log) {
@@ -170,10 +144,11 @@ public abstract class DiscordBot {
     }
 
     public void shutdown(int code) {
-        if(shutdownHandler != null) {
+        if (shutdownHandler != null) {
             try {
                 Runtime.getRuntime().removeShutdownHook(shutdownHandler);
-            } catch (Exception ignored) {}
+            } catch (Exception ignored) {
+            }
         }
 
         running = false;
@@ -182,44 +157,9 @@ public abstract class DiscordBot {
             Thread.sleep(4000);
         } catch (InterruptedException ignored) {
         }
-//        guildManager.savePersistInformation();
         DiscordMetrics.shutdown();
-        shardManager.shutdownAllShards();
-        wlogger.stop();
+        shardManager.shutdown();
         Utils.stopExecutors();
         Runtime.getRuntime().halt(code);
-    }
-
-
-    // Metrics
-    // TODO: Move these
-    public int getTotalChannels() {
-        return getShardManager().getShards().stream().mapToInt(shard -> shard.getTextChannels().size() + shard.getVoiceChannels().size() + shard.getPrivateChannels().size()).sum();
-    }
-
-    public int getTextChannels() {
-        return getShardManager().getShards().stream().mapToInt(shard -> shard.getTextChannels().size()).sum();
-    }
-
-    public int getVoiceChannels() {
-        return getShardManager().getShards().stream().mapToInt(shard -> shard.getVoiceChannels().size()).sum();
-
-    }
-
-    public int getPrivateChannels() {
-        return getShardManager().getShards().stream().mapToInt(shard -> shard.getPrivateChannels().size()).sum();
-
-    }
-
-    public int getGuildCount() {
-        return getShardManager().getShards().stream().mapToInt(shard -> shard.getGuilds().size()).sum();
-    }
-
-    public int getUserCount() {
-        return (int) getShardManager().getShards().stream().flatMap(jda -> jda.getUsers().stream().map(ISnowflake::getIdLong)).distinct().count();
-    }
-
-    public int getConnectedVoiceChannels() {
-        return (int) getShardManager().getShards().stream().flatMap(shard -> shard.getGuilds().stream().filter(guild -> guild.getAudioManager().isConnected())).count();
     }
 }

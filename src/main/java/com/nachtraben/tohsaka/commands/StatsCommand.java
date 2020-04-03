@@ -56,7 +56,7 @@ public class StatsCommand extends Command {
     @Override
     public void run(CommandSender sender, Map<String, String> args, Map<String, String> flags) {
         Runtime rt = Runtime.getRuntime();
-        JDA.ShardInfo info = sender instanceof DiscordCommandSender ? ((DiscordCommandSender) sender).getJDA().getShardInfo() : null;
+        JDA.ShardInfo info = sender instanceof DiscordCommandSender ? ((DiscordCommandSender) sender).getUser().getJDA().getShardInfo() : null;
         String shard = info != null ? String.valueOf(info.getShardId()) : "1";
         String total = info != null ? String.valueOf(info.getShardTotal()) : "1";
         String stats = String.format(StatsCommand.stats,
@@ -64,12 +64,12 @@ public class StatsCommand extends Command {
                 getMemoryString(rt.totalMemory() - rt.freeMemory()), getMemoryString(rt.totalMemory()),
                 shard, total,
                 Thread.getAllStackTraces().keySet().size(),
-                Tohsaka.getInstance().getTextChannels(),
-                Tohsaka.getInstance().getVoiceChannels(),
-                Tohsaka.getInstance().getPrivateChannels(),
-                Tohsaka.getInstance().getConnectedVoiceChannels(),
-                Tohsaka.getInstance().getGuildCount(),
-                Tohsaka.getInstance().getUserCount());
+                Tohsaka.getInstance().getShardManager().getTextChannels(),
+                Tohsaka.getInstance().getShardManager().getVoiceChannels(),
+                Tohsaka.getInstance().getShardManager().getPrivateChannels(),
+                Tohsaka.getInstance().getLavalink().getLinks().stream().filter(link -> link.getChannel() != null).count(),
+                Tohsaka.getInstance().getShardManager().getGuilds().size(),
+                Tohsaka.getInstance().getShardManager().getUsers().size());
         if (sender instanceof DiscordCommandSender) {
             DiscordCommandSender sendee = (DiscordCommandSender) sender;
             EmbedBuilder eb = new EmbedBuilder();

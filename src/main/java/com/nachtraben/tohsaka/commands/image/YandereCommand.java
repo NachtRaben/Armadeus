@@ -23,8 +23,8 @@ public class YandereCommand extends Command {
 
     private static final Random RAND = new Random();
     private static final Logger log = LoggerFactory.getLogger(YandereCommand.class);
-    private TimedCache<Long, Set<String>> guildSearchCache = new TimedCache<>(TimeUnit.MINUTES.toMillis(30), TimedCache.TimeoutPolicy.ACCESS);
-    private TimedCache<Long, Set<String>> userSearchCache = new TimedCache<>(TimeUnit.MINUTES.toMillis(30), TimedCache.TimeoutPolicy.ACCESS);
+    private final TimedCache<Long, Set<String>> guildSearchCache = new TimedCache<>(TimeUnit.MINUTES.toMillis(30), TimedCache.TimeoutPolicy.ACCESS);
+    private final TimedCache<Long, Set<String>> userSearchCache = new TimedCache<>(TimeUnit.MINUTES.toMillis(30), TimedCache.TimeoutPolicy.ACCESS);
 
 
     private final Random r = new Random();
@@ -62,7 +62,7 @@ public class YandereCommand extends Command {
             Rating finalRating = rating;
             List<YandereImage> images = isSearch ? DefaultImageBoards.YANDERE.search(100, args.get("tag").replace(" ", "_")).blocking() : DefaultImageBoards.YANDERE.get(RAND.nextInt(1024)).blocking();
             if (images != null) {
-                Set<String> cache = gcs != null ? guildSearchCache.computeIfAbsent(gcs.getGuildId(), set -> new HashSet<>()) : userSearchCache.computeIfAbsent(sendee.getUserID(), set -> new HashSet<>());
+                Set<String> cache = gcs != null ? guildSearchCache.computeIfAbsent(gcs.getGuildId(), set -> new HashSet<>()) : userSearchCache.computeIfAbsent(sendee.getUserId(), set -> new HashSet<>());
                 images = images.stream().filter(image -> finalRating.equals(image.getRating()) && (image.getTags().stream().noneMatch(tag ->
                         tag.equalsIgnoreCase("loli") ||
                                 tag.equalsIgnoreCase("shota") ||

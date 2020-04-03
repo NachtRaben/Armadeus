@@ -21,7 +21,7 @@ public class PolicyCommands extends CommandTree {
                     GuildCommandSender sendee = (GuildCommandSender) sender;
                     BotConfig botConfig = sendee.getDbot().getConfig();
                     GuildConfig guildConfig = sendee.getGuildConfig();
-                    if(!sendee.getMember().isOwner() && !sendee.getMember().hasPermission(Permission.ADMINISTRATOR) && !botConfig.getOwnerIDs().contains(sendee.getUserID()) && !botConfig.getDeveloperIDs().contains(sendee.getUserID())) {
+                    if (!sendee.getMember().isOwner() && !sendee.getMember().hasPermission(Permission.ADMINISTRATOR) && !botConfig.getOwnerIDs().contains(sendee.getUserId()) && !botConfig.getDeveloperIDs().contains(sendee.getUserId())) {
                         sendee.sendMessage(ChannelTarget.GENERIC, "Sorry but you don't have permission to use that command.");
                         return;
                     }
@@ -36,7 +36,7 @@ public class PolicyCommands extends CommandTree {
                     GuildCommandSender sendee = (GuildCommandSender) sender;
                     BotConfig botConfig = sendee.getDbot().getConfig();
                     GuildConfig guildConfig = sendee.getGuildConfig();
-                    if(!sendee.getMember().isOwner() && !sendee.getMember().hasPermission(Permission.ADMINISTRATOR) && !botConfig.getOwnerIDs().contains(sendee.getUserID()) && !botConfig.getDeveloperIDs().contains(sendee.getUserID())) {
+                    if (!sendee.getMember().isOwner() && !sendee.getMember().hasPermission(Permission.ADMINISTRATOR) && !botConfig.getOwnerIDs().contains(sendee.getUserId()) && !botConfig.getDeveloperIDs().contains(sendee.getUserId())) {
                         sendee.sendMessage(ChannelTarget.GENERIC, "Sorry but you don't have permission to use that command.");
                         return;
                     }

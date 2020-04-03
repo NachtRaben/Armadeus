@@ -23,8 +23,8 @@ public class NekoLifeCommands {
     private static final String BASEURL = "http://nekos.life/api/neko";
     private static final String NSFWURL = "http://nekos.life/api/lewd/neko";
 
-    private TimedCache<Long, Set<String>> guildSearchCache = new TimedCache<>(TimeUnit.MINUTES.toMillis(30), TimedCache.TimeoutPolicy.ACCESS);
-    private TimedCache<Long, Set<String>> userSearchCache = new TimedCache<>(TimeUnit.MINUTES.toMillis(30), TimedCache.TimeoutPolicy.ACCESS);
+    private final TimedCache<Long, Set<String>> guildSearchCache = new TimedCache<>(TimeUnit.MINUTES.toMillis(30), TimedCache.TimeoutPolicy.ACCESS);
+    private final TimedCache<Long, Set<String>> userSearchCache = new TimedCache<>(TimeUnit.MINUTES.toMillis(30), TimedCache.TimeoutPolicy.ACCESS);
 
 
     @Cmd(name = "neko", format = "", description = "Sends a cute cat for your viewing pleasure.")
@@ -53,7 +53,7 @@ public class NekoLifeCommands {
     private void sendNeko(DiscordCommandSender sender, boolean nsfw) {
         GuildCommandSender gsendee = sender instanceof GuildCommandSender ? (GuildCommandSender) sender : null;
         String url = null;
-        Set<String> cache = gsendee != null ? guildSearchCache.computeIfAbsent(gsendee.getGuildId(), set -> new HashSet<>()) : userSearchCache.computeIfAbsent(sender.getUserID(), set -> new HashSet<>());
+        Set<String> cache = gsendee != null ? guildSearchCache.computeIfAbsent(gsendee.getGuildId(), set -> new HashSet<>()) : userSearchCache.computeIfAbsent(sender.getUserId(), set -> new HashSet<>());
         try {
             int tries = 0;
             while (url == null) {

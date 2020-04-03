@@ -3,20 +3,18 @@ package com.nachtraben.core.audio;
 import com.nachtraben.core.command.GuildCommandSender;
 import com.nachtraben.core.managers.GuildMusicManager;
 import com.nachtraben.core.util.ChannelTarget;
-import com.nachtraben.core.util.TimeUtil;
 import com.nachtraben.core.util.Utils;
 import com.nachtraben.tohsaka.Tohsaka;
 import com.sedmelluq.discord.lavaplayer.filter.equalizer.EqualizerFactory;
-import com.sedmelluq.discord.lavaplayer.player.AudioPlayer;
 import com.sedmelluq.discord.lavaplayer.player.event.AudioEventAdapter;
-import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackEndReason;
+import lavalink.client.player.IPlayer;
+import lavalink.client.player.event.*;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.VoiceChannel;
 import net.dv8tion.jda.api.exceptions.InsufficientPermissionException;
-import net.dv8tion.jda.api.managers.AudioManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,16 +23,14 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.LinkedBlockingDeque;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
 
-public class TrackScheduler extends AudioEventAdapter {
+public class TrackScheduler extends AudioEventAdapter implements IPlayerEventListener {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(TrackScheduler.class);
 
     public static boolean debug = Tohsaka.getInstance().isDebugging();
 
-    private GuildMusicManager manager;
+    private final GuildMusicManager manager;
 
     private final BlockingDeque<AudioTrack> queue;
 
@@ -46,47 +42,13 @@ public class TrackScheduler extends AudioEventAdapter {
 
     private boolean channelLock;
 
-    private ScheduledFuture<?> afkCheck;
-    private long leave = -1;
     private boolean persist = true;
 
     private final EqualizerFactory factory = new EqualizerFactory();
 
     public TrackScheduler(GuildMusicManager guildMusicManager) {
-        float[] bands = new float[]{12.0F, 8.0F, 4.0F, 2.0F, 1.0F,
-                0.0F, -1.0F, -2.0F, -1.0F, 0.0F,
-                1.0F, 2.0F, 4.0F, 5.0F, 6.0F};
-        float offset = 0.2F / bands[0];
-        for (int i = 0; i < bands.length; i++) {
-            bands[i] *= offset;
-            factory.setGain(i, bands[i++]);
-        }
         this.manager = guildMusicManager;
-        manager.getPlayer().setFilterFactory(factory);
         queue = new LinkedBlockingDeque<>();
-        afkCheck = Utils.getScheduler().scheduleWithFixedDelay(() -> {
-            Guild g = manager.getGuild();
-            if (g != null && !persist) {
-                VoiceChannel v = g.getAudioManager().getConnectedChannel();
-                if (v != null) {
-                    if (leave != -1)
-                        if (debug)
-                            LOGGER.debug("Leaving { " + g.getName() + " } in: " + TimeUtil.fromLong(leave - System.currentTimeMillis(), TimeUtil.FormatType.STRING));
-                    if ((v.getMembers().size() < 2 || currentTrack == null) && leave == -1) {
-                        leave = TimeUnit.MINUTES.toMillis(2) + System.currentTimeMillis();
-                    } else if (v.getMembers().size() > 1 && currentTrack != null && leave != -1) {
-                        leave = -1;
-                    } else if ((v.getMembers().size() < 2 || currentTrack == null) && leave != -1 && System.currentTimeMillis() > leave) {
-                        stop();
-                        Utils.getExecutor().execute(() -> {
-                            g.getAudioManager().closeAudioConnection();
-                        });
-                    }
-                } else if (leave != -1) {
-                    leave = -1;
-                }
-            }
-        }, 0L, 5L, TimeUnit.SECONDS);
     }
 
     public void queue(AudioTrack track) {
@@ -99,6 +61,29 @@ public class TrackScheduler extends AudioEventAdapter {
     }
     public void play(AudioTrack track) {
         currentTrack = track;
+        if (debug)
+            LOGGER.debug("TrackStartEvent");
+        GuildCommandSender requestor = track.getUserData(GuildCommandSender.class);
+        if (requestor != null) {
+            Guild guild = requestor.getGuild();
+            if (guild == null) {
+                stop();
+                return;
+            }
+            if (requestor.getMember() == null) {
+                skip();
+                return;
+            }
+            if (!joinVoiceChannel(requestor)) {
+                requestor.sendMessage(ChannelTarget.MUSIC, "Sorry but I was unable to join `" + requestor.getVoiceChannel() + "`.");
+                stop();
+                return;
+            }
+            if (!repeatTrack)
+                sendEmbed(track, requestor);
+        } else {
+            skip();
+        }
         manager.getPlayer().playTrack(track);
     }
 
@@ -162,8 +147,7 @@ public class TrackScheduler extends AudioEventAdapter {
     // TODO: If requester channel is null but I'm in a channel.
     private boolean joinVoiceChannel(GuildCommandSender requestor) {
         if (manager.getGuild() != null) {
-            AudioManager audioManager = manager.getGuild().getAudioManager();
-            VoiceChannel connected = audioManager.getConnectedChannel();
+            String connected = manager.getLink().getChannel();
             VoiceChannel reqChannel = requestor.getVoiceChannel();
             if (channelLock && connected != null) {
                 return true;
@@ -174,8 +158,7 @@ public class TrackScheduler extends AudioEventAdapter {
                     try {
                         channelLock = true;
                         try {
-                            audioManager.setSelfDeafened(true);
-                            audioManager.openAudioConnection(reqChannel);
+                            manager.getLink().connect(reqChannel);
                         } catch (InsufficientPermissionException e) {
                             requestor.sendMessage(ChannelTarget.MUSIC, "Failed to join `" + reqChannel.getName() + "` because `" + e.getMessage() + "`.");
                             return false;
@@ -196,36 +179,13 @@ public class TrackScheduler extends AudioEventAdapter {
         return false;
     }
 
-    @Override
-    public void onTrackStart(AudioPlayer player, AudioTrack track) {
-        if (debug)
-            LOGGER.debug("TrackStartEvent");
-        GuildCommandSender requestor = track.getUserData(GuildCommandSender.class);
-        if (requestor != null) {
-            Guild guild = requestor.getGuild();
-            if (guild == null) {
-                stop();
-                player.destroy();
-                return;
-            }
-            if (requestor.getMember() == null) {
-                skip();
-                return;
-            }
-            if (!joinVoiceChannel(requestor)) {
-                requestor.sendMessage(ChannelTarget.MUSIC, "Sorry but I was unable to join `" + requestor.getVoiceChannel() + "`.");
-                stop();
-                return;
-            }
-            if (!repeatTrack)
-                sendEmbed(track, requestor);
-        } else {
-            skip();
-        }
+    public void onTrackStart(TrackStartEvent event) {
+
     }
 
-    @Override
-    public void onTrackEnd(AudioPlayer player, AudioTrack track, AudioTrackEndReason endReason) {
+    public void onTrackEnd(TrackEndEvent event) {
+        IPlayer player = event.getPlayer();
+        AudioTrackEndReason endReason = event.getReason();
         if (debug)
             LOGGER.debug("TrackStopEvent");
         if (endReason.mayStartNext && repeatTrack) {
@@ -238,23 +198,23 @@ public class TrackScheduler extends AudioEventAdapter {
         }
     }
 
-    @Override
-    public void onTrackException(AudioPlayer player, AudioTrack track, FriendlyException exception) {
-        // TODO: Prevent requeue if error is unrecoverable.
-        if (repeatTrack)
+    public void onTrackException(TrackExceptionEvent event) {
+        AudioTrack track = event.getTrack();
+        Exception exception = event.getException();
+        if (repeatTrack) {
             repeatTrack = false;
-        LOGGER.warn(String.valueOf(exception.severity));
+        }
         if (exception.getCause().getMessage().toLowerCase().contains("read timed out")) {
-            queue.addFirst(track.makeClone());
+            queue.addFirst(event.getTrack().makeClone());
             return;
         }
-        GuildCommandSender requestor = track.getUserData(GuildCommandSender.class);
+        GuildCommandSender requestor = event.getTrack().getUserData(GuildCommandSender.class);
         requestor.sendMessage(ChannelTarget.MUSIC, String.format("Failed to play `%s` because, `%s`.", track.getInfo().title, exception.getMessage()));
         LOGGER.warn("Something went wrong with lavaplayer.", exception);
     }
 
-    @Override
-    public void onTrackStuck(AudioPlayer player, AudioTrack track, long thresholdMs) {
+    public void onTrackStuck(TrackStuckEvent event) {
+        AudioTrack track = event.getTrack();
         GuildCommandSender requestor = track.getUserData(GuildCommandSender.class);
         requestor.sendMessage(ChannelTarget.MUSIC, "Got stuck while playing `" + track.getInfo().title + "`. It will be skipped.");
         Radio rad = Radio.getByAddress(track.getInfo().uri);
@@ -332,9 +292,16 @@ public class TrackScheduler extends AudioEventAdapter {
         this.persist = b;
     }
 
-    public void destroy() {
-        if (afkCheck != null && !afkCheck.isCancelled())
-            afkCheck.cancel(true);
+    @Override
+    public void onEvent(PlayerEvent event) {
+        if (event instanceof TrackStartEvent) {
+            onTrackStart((TrackStartEvent) event);
+        } else if (event instanceof TrackEndEvent) {
+            onTrackEnd((TrackEndEvent) event);
+        } else if (event instanceof TrackExceptionEvent) {
+            onTrackException((TrackExceptionEvent) event);
+        } else if (event instanceof TrackStuckEvent) {
+            onTrackStuck((TrackStuckEvent) event);
+        }
     }
-
 }

@@ -4,11 +4,11 @@ import com.nachtraben.core.DiscordBot;
 import com.nachtraben.core.util.ChannelTarget;
 import com.nachtraben.orangeslice.CommandResult;
 import com.nachtraben.orangeslice.CommandSender;
-import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageChannel;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.internal.utils.cache.SnowflakeReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,58 +19,53 @@ public class DiscordCommandSender implements CommandSender, Serializable {
 
     private transient static final Logger LOGGER = LoggerFactory.getLogger(DiscordCommandSender.class);
 
-    private transient DiscordBot dbot;
+    private final transient DiscordBot dbot;
 
-    private transient JDA jda;
-
-    private long userID;
-    private long messageID;
-    private long messageChannelID;
+    private final SnowflakeReference<User> user;
+    private final SnowflakeReference<Message> message;
+    private SnowflakeReference<MessageChannel> channel;
 
     public DiscordCommandSender(DiscordBot dbot, Message message) {
         this.dbot = dbot;
-        this.jda = message.getJDA();
-        this.userID = message.getAuthor().getIdLong();
-        this.messageID = message.getIdLong();
-        this.messageChannelID = message.getChannel().getIdLong();
+        this.user = new SnowflakeReference<>(message.getAuthor(), id -> dbot.getShardManager().getUserById(id));
+        this.message = new SnowflakeReference<>(message, id -> channel.resolve().getHistory().getMessageById(id));
+        this.channel = new SnowflakeReference<>(message.getChannel(), id -> {
+            switch (message.getChannelType()) {
+                case TEXT:
+                    return dbot.getShardManager().getTextChannelById(id);
+                case PRIVATE:
+                    return user.resolve().openPrivateChannel().complete();
+            }
+            return null;
+        });
     }
 
     public DiscordBot getDbot() {
         return dbot;
     }
 
-    public JDA getJDA() {
-        return jda;
-    }
-
-    public long getUserID() {
-        return userID;
+    public long getUserId() {
+        return user.getIdLong();
     }
 
     public User getUser() {
-        return jda.getUserById(userID);
+        return user.resolve();
     }
 
-    public long getMessageID() {
-        return messageID;
+    public long getMessageId() {
+        return message.getIdLong();
     }
 
     public Message getMessage() {
-        MessageChannel channel = getMessageChannel();
-        if (channel != null) {
-            return channel.retrieveMessageById(messageID).complete();
-        }
-        return null;
+        return message.resolve();
     }
 
-    public long getMessageChannelID() {
-        return messageChannelID;
+    public long getMessageChannelId() {
+        return channel.getIdLong();
     }
 
     public MessageChannel getMessageChannel() {
-        MessageChannel channel = dbot.getShardManager().getTextChannelByID(messageChannelID);
-        if (channel == null) channel = dbot.getShardManager().getPrivateChannelByID(messageChannelID);
-        return channel;
+        return channel.resolve();
     }
 
     public void sendPrivateMessage(String message) {
@@ -133,11 +128,6 @@ public class DiscordCommandSender implements CommandSender, Serializable {
 
     public void sendMessage(ChannelTarget target, MessageEmbed embed) {
         sendMessage(embed);
-    }
-
-    public void build(DiscordBot bot) {
-        dbot = bot;
-        jda = dbot.getShardManager().getUserByID(userID).getJDA();
     }
 
 }

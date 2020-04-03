@@ -12,6 +12,7 @@ import com.nachtraben.orangeslice.event.CommandEventListener;
 import com.nachtraben.orangeslice.event.CommandExceptionEvent;
 import com.nachtraben.orangeslice.event.CommandPostProcessEvent;
 import com.nachtraben.orangeslice.event.CommandPreProcessEvent;
+import lombok.Getter;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Member;
 import org.reflections.Reflections;
@@ -31,13 +32,14 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+@Getter
 public class Tohsaka extends DiscordBot implements CommandEventListener {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Tohsaka.class);
 
     private static Tohsaka instance;
 
-    private ConcurrentHashMap<Long, Map<Long, Long>> cooldowns = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<Long, Map<Long, Long>> cooldowns = new ConcurrentHashMap<>();
 
     public Tohsaka(String[] args, boolean debugging) {
         super(args);
@@ -48,7 +50,6 @@ public class Tohsaka extends DiscordBot implements CommandEventListener {
         LOGGER.debug("Took " + (System.currentTimeMillis() - start) + "ms to load all shards.");
         registerCommands();
         getCommandBase().registerEventListener(this);
-        getShardManager().connectAllShards();
         postStart();
     }
 
@@ -103,7 +104,7 @@ public class Tohsaka extends DiscordBot implements CommandEventListener {
             GuildCommandSender sendee = (GuildCommandSender) e.getSender();
             GuildConfig config = sendee.getGuildConfig();
             LOGGER.debug(String.format("CommandPreProcess >> Sender: %s#{%s}, Args: %s, Flags: %s, Command: %s", sendee.getMember().getEffectiveName(), sendee.getGuild().getName(), e.getArgs(), e.getFlags(), e.getCommand().getName()));
-            if (sendee.getMember().isOwner() || sendee.getMember().hasPermission(Permission.ADMINISTRATOR) || getConfig().getOwnerIDs().contains(sendee.getUserID()) || getConfig().getDeveloperIDs().contains(sendee.getUserID()))
+            if (sendee.getMember().isOwner() || sendee.getMember().hasPermission(Permission.ADMINISTRATOR) || getConfig().getOwnerIDs().contains(sendee.getUserId()) || getConfig().getDeveloperIDs().contains(sendee.getUserId()))
                 return;
 
             Map<String, Set<Long>> blacklistedCommands = config.getDisabledCommands();
@@ -123,12 +124,12 @@ public class Tohsaka extends DiscordBot implements CommandEventListener {
 
             if (config.hasCooldown()) {
                 Map<Long, Long> times = cooldowns.computeIfAbsent(sendee.getGuildId(), map -> new HashMap<>());
-                if (!times.containsKey(sendee.getUserID())) {
-                    times.put(sendee.getUserID(), System.currentTimeMillis() + config.getCooldown());
+                if (!times.containsKey(sendee.getUserId())) {
+                    times.put(sendee.getUserId(), System.currentTimeMillis() + config.getCooldown());
                 } else {
-                    long reset = times.get(sendee.getUserID());
+                    long reset = times.get(sendee.getUserId());
                     if (System.currentTimeMillis() > reset) {
-                        times.replace(sendee.getUserID(), System.currentTimeMillis() + config.getCooldown());
+                        times.replace(sendee.getUserId(), System.currentTimeMillis() + config.getCooldown());
                     } else {
                         LOGGER.info(sendee.getName() + " was denied the ability to run command cause he was on cooldown for " + TimeUtil.fromLong(reset - System.currentTimeMillis(), TimeUtil.FormatType.STRING));
                         sendee.sendPrivateMessage("Sorry, but you are currently under cooldown in `" + sendee.getGuild().getName() + "` for `" + TimeUtil.fromLong(reset - System.currentTimeMillis(), TimeUtil.FormatType.STRING) + "`.");

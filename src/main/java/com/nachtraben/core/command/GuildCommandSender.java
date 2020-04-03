@@ -5,6 +5,7 @@ import com.nachtraben.core.configuration.GuildConfig;
 import com.nachtraben.core.util.ChannelTarget;
 import net.dv8tion.jda.api.MessageBuilder;
 import net.dv8tion.jda.api.entities.*;
+import net.dv8tion.jda.internal.utils.cache.SnowflakeReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -14,31 +15,31 @@ public class GuildCommandSender extends DiscordCommandSender implements Serializ
 
     private transient static final Logger LOGGER = LoggerFactory.getLogger(GuildCommandSender.class);
 
-    private long guildId;
-    private long textChannelId;
+    private final SnowflakeReference<Guild> guild;
+    private final SnowflakeReference<TextChannel> textChannel;
 
     public GuildCommandSender(DiscordBot dbot, Message message) {
         super(dbot, message);
-        if(!message.isFromType(ChannelType.TEXT))
+        if (!message.isFromType(ChannelType.TEXT))
             throw new IllegalArgumentException("Message must be from type " + ChannelType.TEXT + ".");
 
-        this.guildId = message.getGuild().getIdLong();
-        this.textChannelId = message.getChannel().getIdLong();
+        guild = new SnowflakeReference<>(message.getGuild(), id -> dbot.getShardManager().getGuildById(id));
+        textChannel = new SnowflakeReference<>(message.getTextChannel(), id -> dbot.getShardManager().getTextChannelById(id));
     }
 
     public Guild getGuild() {
-        return getJDA().getGuildById(guildId);
+        return guild.resolve();
     }
 
     public Member getMember() {
         Guild guild = getGuild();
         if(guild != null)
-            return guild.getMemberById(getUserID());
+            return guild.getMemberById(getUserId());
         return null;
     }
 
     public TextChannel getTextChannel() {
-        return getJDA().getTextChannelById(textChannelId);
+        return textChannel.resolve();
     }
 
     public VoiceChannel getVoiceChannel() {
@@ -49,7 +50,7 @@ public class GuildCommandSender extends DiscordCommandSender implements Serializ
     }
 
     public GuildConfig getGuildConfig() {
-        return getDbot().getGuildManager().getConfigurationFor(guildId);
+        return getDbot().getGuildManager().getConfigurationFor(guild.resolve());
     }
 
     @Override
@@ -83,11 +84,11 @@ public class GuildCommandSender extends DiscordCommandSender implements Serializ
     }
 
     public long getGuildId() {
-        return guildId;
+        return guild.getIdLong();
     }
 
     public long getTextChannelId() {
-        return textChannelId;
+        return textChannel.getIdLong();
     }
 
     private TextChannel getTargetChannel(ChannelTarget target) {

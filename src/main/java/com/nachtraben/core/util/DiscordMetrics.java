@@ -1,6 +1,7 @@
 package com.nachtraben.core.util;
 
 import com.nachtraben.core.DiscordBot;
+import net.dv8tion.jda.api.sharding.ShardManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,8 +17,8 @@ public class DiscordMetrics implements Runnable {
     private static final Logger LOGGER = LoggerFactory.getLogger(DiscordMetrics.class);
     private static final ScheduledExecutorService EXEC = Executors.newSingleThreadScheduledExecutor();
 
-    private DiscordBot dbot;
-    private File output;
+    private final DiscordBot dbot;
+    private final File output;
 
     public DiscordMetrics(DiscordBot dbot) {
         this.dbot = dbot;
@@ -47,10 +48,11 @@ public class DiscordMetrics implements Runnable {
              BufferedWriter bw = new BufferedWriter(fw);
              PrintWriter out = new PrintWriter(bw)) {
             ZonedDateTime zdt = ZonedDateTime.now();
+            ShardManager manager = dbot.getShardManager();
             String toWrite = String.format("date:%s\tguilds:%s\tusers:%s\ttchannels:%s\tvchannels:%s\n",
                     zdt.format(DateTimeFormatter.ofPattern("MM-dd-yyyy_HH:mm:ss")),
-                    dbot.getGuildCount(), dbot.getUserCount(), dbot.getTextChannels(), dbot.getVoiceChannels());
-            if(!dbot.isDebugging())
+                    manager.getGuilds().size(), manager.getUsers().size(), manager.getTextChannels().size(), manager.getVoiceChannels().size());
+            if (!dbot.isDebugging())
                 out.write(toWrite);
             else
                 LOGGER.debug("[Metrics] >> " + toWrite);
