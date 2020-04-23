@@ -37,8 +37,8 @@ public class GuildMusicManager {
         this.scheduler = new TrackScheduler(this);
         player.addListener(scheduler);
         JSONObject payload = new JSONObject();
-        payload.put("op", "equalizer");
-        payload.put("guildId", link.getGuildId());
+        //payload.put("op", "equalizer");
+        //payload.put("guildId", link.getGuildId());
         //JSONArray bands = new JSONArray();
         //for (int i = 0; i < this.bands.length; i++) {
         //    JSONObject band = new JSONObject();
@@ -47,7 +47,7 @@ public class GuildMusicManager {
         //    bands.put(i, band);
         //}
         //payload.put("bands", bands);
-        Objects.requireNonNull(link.getNode(true)).send(payload.toString());
+        //Objects.requireNonNull(link.getNode(true)).send(payload.toString());
     }
 
     public Guild getGuild() {
