@@ -19,7 +19,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 @Getter
 public class GuildMusicManager {
 
-    float[] bands = new float[]{0.1f, 0.05f, 0.04f, 0.03f, 0f, -0.02f, -0.03f, -0.05f, -0.03f, -0.02f, 0f, 0.03f, 0.04f, 0.05f, 0.1f};
+    //float[] bands = new float[]{0.1f, 0.05f, 0.04f, 0.03f, 0f, -0.02f, -0.03f, -0.05f, -0.03f, -0.02f, 0f, 0.03f, 0.04f, 0.05f, 0.1f};
 
     private static final Logger logger = LoggerFactory.getLogger(GuildMusicManager.class);
 
@@ -39,14 +39,14 @@ public class GuildMusicManager {
         JSONObject payload = new JSONObject();
         payload.put("op", "equalizer");
         payload.put("guildId", link.getGuildId());
-        JSONArray bands = new JSONArray();
-        for (int i = 0; i < this.bands.length; i++) {
-            JSONObject band = new JSONObject();
-            band.put("band", i);
-            band.put("gain", this.bands[i]);
-            bands.put(i, band);
-        }
-        payload.put("bands", bands);
+        //JSONArray bands = new JSONArray();
+        //for (int i = 0; i < this.bands.length; i++) {
+        //    JSONObject band = new JSONObject();
+        //    band.put("band", i);
+        //    band.put("gain", this.bands[i]);
+        //    bands.put(i, band);
+        //}
+        //payload.put("bands", bands);
         Objects.requireNonNull(link.getNode(true)).send(payload.toString());
     }
 
