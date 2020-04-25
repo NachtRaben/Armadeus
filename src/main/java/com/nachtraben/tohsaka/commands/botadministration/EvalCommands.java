@@ -15,7 +15,7 @@ public class EvalCommands {
 
     @Cmd(name = "eval", format = "{script}", description = "Runs an evaluation.")
     public void eval(CommandSender sender, Map<String, String> args, Map<String, String> flags) {
-        if(sender instanceof DiscordCommandSender) {
+        if (sender instanceof DiscordCommandSender) {
             DiscordCommandSender sendee = (DiscordCommandSender) sender;
             BotConfig botConfig = sendee.getDbot().getConfig();
             if (!botConfig.getOwnerIDs().contains(sendee.getUser().getIdLong())) {
@@ -23,11 +23,9 @@ public class EvalCommands {
                 return;
             }
 
-//for(g in sender.getJDA().getGuilds() { List<Role> roles = g.getMember(sender.getUser());  g.getController().removeRolesFromMember(g.getMember(sender.getUser()), roles)}
             Map<String, Object> vars = new HashMap<>();
-            if(sendee instanceof GuildCommandSender) {
+            if (sendee instanceof GuildCommandSender) {
                 GuildCommandSender gs = (GuildCommandSender) sendee;
-//                gs.getGuild().getController().removeRolesFromMember()
                 vars.put("sender", gs);
                 vars.put("guild", gs.getGuild());
                 vars.put("channel", gs.getTextChannel());
@@ -42,7 +40,7 @@ public class EvalCommands {
             Eval eval = new Eval(args.get("script"), vars);
 
             String response = eval.run();
-            if(response != null && !response.isEmpty()) {
+            if (response != null && !response.isEmpty()) {
                 sendee.sendMessage(ChannelTarget.GENERIC, response);
             }
         }

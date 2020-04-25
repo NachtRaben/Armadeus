@@ -43,7 +43,7 @@ public class GuildMusicManager {
         for (int i = 0; i < this.bands.length; i++) {
             JSONObject band = new JSONObject();
             band.put("band", i);
-            band.put("gain", this.bands[i]);
+            band.put("gain", this.bands[i] * 0.75f);
             bands.put(i, band);
         }
         payload.put("bands", bands);

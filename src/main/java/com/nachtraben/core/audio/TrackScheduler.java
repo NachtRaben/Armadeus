@@ -5,7 +5,6 @@ import com.nachtraben.core.managers.GuildMusicManager;
 import com.nachtraben.core.util.ChannelTarget;
 import com.nachtraben.core.util.Utils;
 import com.nachtraben.tohsaka.Tohsaka;
-import com.sedmelluq.discord.lavaplayer.filter.equalizer.EqualizerFactory;
 import com.sedmelluq.discord.lavaplayer.player.event.AudioEventAdapter;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackEndReason;
@@ -43,8 +42,6 @@ public class TrackScheduler extends AudioEventAdapter implements IPlayerEventLis
     private boolean channelLock;
 
     private boolean persist = true;
-
-    private final EqualizerFactory factory = new EqualizerFactory();
 
     public TrackScheduler(GuildMusicManager guildMusicManager) {
         this.manager = guildMusicManager;

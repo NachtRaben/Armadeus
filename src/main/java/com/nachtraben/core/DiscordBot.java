@@ -76,6 +76,7 @@ public abstract class DiscordBot {
                     .setShardsTotal(1) // Defaults to 1 as we aren't serving a large number of guilds
                     .addEventListeners(new DiscordCommandListener(this), new WelcomeListener(this))
                     .build();
+
         } catch (Exception e) {
             logger.error("Failed to start Tohsaka", e);
             System.exit(-1);

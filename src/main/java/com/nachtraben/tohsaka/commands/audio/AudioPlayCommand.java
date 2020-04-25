@@ -1,6 +1,7 @@
 package com.nachtraben.tohsaka.commands.audio;
 
 import com.nachtraben.core.command.GuildCommandSender;
+import com.nachtraben.core.managers.GuildMusicManager;
 import com.nachtraben.core.util.ChannelTarget;
 import com.nachtraben.orangeslice.CommandSender;
 import com.nachtraben.orangeslice.command.Command;
@@ -29,7 +30,8 @@ public class AudioPlayCommand extends Command {
     public void run(CommandSender sender, Map<String, String> args, Map<String, String> flags) {
         if (sender instanceof GuildCommandSender) {
             GuildCommandSender sendee = (GuildCommandSender) sender;
-            if (!sendee.getGuild().getAudioManager().isConnected() && sendee.getVoiceChannel() == null) {
+            GuildMusicManager manager = sendee.getGuildConfig().getMusicManager();
+            if (manager.getLink().getChannel() == null && sendee.getVoiceChannel() == null) {
                 sendee.sendMessage(ChannelTarget.MUSIC, "Sorry but you have to be in a voice channel to play music.");
                 return;
             }
