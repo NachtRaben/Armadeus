@@ -145,6 +145,10 @@ public class TrackScheduler extends AudioEventAdapter implements IPlayerEventLis
     private boolean joinVoiceChannel(GuildCommandSender requestor) {
         if (manager.getGuild() != null) {
             String connected = manager.getLink().getChannel();
+            if (requestor.getGuild().getAudioManager().isConnected() && connected == null) {
+                LOGGER.error("Found a stray voice connection, attempting to close!");
+                requestor.getGuild().getAudioManager().closeAudioConnection();
+            }
             VoiceChannel reqChannel = requestor.getVoiceChannel();
             if (channelLock && connected != null) {
                 return true;
