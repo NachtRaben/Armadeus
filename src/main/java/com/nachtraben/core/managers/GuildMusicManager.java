@@ -7,8 +7,12 @@ import lavalink.client.player.IPlayer;
 import lombok.Getter;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.internal.utils.cache.SnowflakeReference;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.Objects;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -32,18 +36,18 @@ public class GuildMusicManager {
         this.player.setVolume(50);
         this.scheduler = new TrackScheduler(this);
         player.addListener(scheduler);
-//        JSONObject payload = new JSONObject();
-//        payload.put("op", "equalizer");
-//        payload.put("guildId", link.getGuildId());
-//        JSONArray bands = new JSONArray();
-//        for (int i = 0; i < this.bands.length; i++) {
-//            JSONObject band = new JSONObject();
-//            band.put("band", i);
-//            band.put("gain", this.bands[i] * 0.75f);
-//            bands.put(i, band);
-//        }
-//        payload.put("bands", bands);
-//        Objects.requireNonNull(link.getNode(true)).send(payload.toString());
+        JSONObject payload = new JSONObject();
+        payload.put("op", "equalizer");
+        payload.put("guildId", link.getGuildId());
+        JSONArray bands = new JSONArray();
+        for (int i = 0; i < this.bands.length; i++) {
+            JSONObject band = new JSONObject();
+            band.put("band", i);
+            band.put("gain", this.bands[i] * 0.75f);
+            bands.put(i, band);
+        }
+        payload.put("bands", bands);
+        Objects.requireNonNull(link.getNode(true)).send(payload.toString());
     }
 
     public Guild getGuild() {
