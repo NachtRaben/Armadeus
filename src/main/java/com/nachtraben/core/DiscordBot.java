@@ -9,6 +9,7 @@ import com.nachtraben.core.managers.GuildManager;
 import com.nachtraben.core.util.DiscordMetrics;
 import com.nachtraben.core.util.Utils;
 import com.nachtraben.orangeslice.CommandBase;
+import lavalink.client.io.LavalinkLoadBalancer;
 import lavalink.client.io.jda.JdaLavalink;
 import lombok.SneakyThrows;
 import net.dv8tion.jda.api.JDA;
@@ -62,7 +63,9 @@ public abstract class DiscordBot {
 
         logger.info("Loading lavalink...");
         lavalink = new JdaLavalink(isDebugging() ? "270410992536649738" : "270410992536649738", 1, shardId -> shardManager.getShardById(shardId));
+        lavalink.getLoadBalancer().addPenalty(LavalinkLoadBalancer.Penalties::getPlayerPenalty);
         lavalink.addNode("tohsaka", new URI("ws://127.0.0.1:2333"), "fluffy");
+        lavalink.addNode("tohsaka2", new URI("ws://127.0.0.1:2334"), "fluffy");
 
         commandBase = new CommandBase();
         logger.info("Loading JDA...");
