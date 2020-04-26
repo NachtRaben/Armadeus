@@ -54,8 +54,4 @@ public class GuildMusicManager {
         return guild.resolve();
     }
 
-    public TrackScheduler getScheduler() {
-        return scheduler;
-    }
-
 }

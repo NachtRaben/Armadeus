@@ -50,7 +50,8 @@ public class AudioPlayCommand extends Command {
     }
 
     private void playlistLoaded(AudioPlaylist playlist, GuildCommandSender sender, boolean shuffle, boolean preservePlaylist) {
-        if (playlist.isSearchResult() && !preservePlaylist) {
+        log.info(String.valueOf(playlist.isSearchResult()));
+        if (!preservePlaylist) {
             trackLoaded(playlist.getSelectedTrack() != null ? playlist.getSelectedTrack() : playlist.getTracks().get(0), sender);
         } else {
             if (shuffle)
