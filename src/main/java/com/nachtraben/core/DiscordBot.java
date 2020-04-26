@@ -64,8 +64,8 @@ public abstract class DiscordBot {
         logger.info("Loading lavalink...");
         lavalink = new JdaLavalink(isDebugging() ? "270410992536649738" : "270410992536649738", 1, shardId -> shardManager.getShardById(shardId));
         lavalink.getLoadBalancer().addPenalty(LavalinkLoadBalancer.Penalties::getPlayerPenalty);
-        lavalink.addNode("tohsaka", new URI("ws://127.0.0.1:2333"), "fluffy");
-        lavalink.addNode("tohsaka2", new URI("ws://127.0.0.1:2334"), "fluffy");
+        lavalink.addNode("tohsaka", new URI("ws://dev.nachtraben.com:2333"), "fluffy");
+        lavalink.addNode("tohsaka2", new URI("ws://dev.nachtraben.com:2334"), "fluffy");
 
         commandBase = new CommandBase();
         logger.info("Loading JDA...");

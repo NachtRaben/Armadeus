@@ -37,6 +37,8 @@ public class AudioPlayCommand extends Command {
             }
             boolean shuffle = flags.containsKey("r") || flags.containsKey("random") || flags.containsKey("randomize") || flags.containsKey("shuffle");
             boolean playlist = flags.containsKey("p") || flags.containsKey("playlist");
+            log.warn("Preserve Playlist? {}", playlist);
+            log.warn("Shuffle? {}", shuffle);
             loadAndPlay(sendee, args.get("track"), shuffle, playlist);
         } else {
             sender.sendMessage("Sorry but that command is only available in guilds I'm a part of.");
@@ -50,7 +52,6 @@ public class AudioPlayCommand extends Command {
     }
 
     private void playlistLoaded(AudioPlaylist playlist, GuildCommandSender sender, boolean shuffle, boolean preservePlaylist) {
-        log.info(String.valueOf(playlist.isSearchResult()));
         if (!preservePlaylist) {
             trackLoaded(playlist.getSelectedTrack() != null ? playlist.getSelectedTrack() : playlist.getTracks().get(0), sender);
         } else {
@@ -84,11 +85,12 @@ public class AudioPlayCommand extends Command {
 
                 @Override
                 public void playlistLoaded(AudioPlaylist playlist) {
-                    AudioPlayCommand.this.playlistLoaded(playlist, sender, shuffle, isSearch);
+                    AudioPlayCommand.this.playlistLoaded(playlist, sender, shuffle, preservePlaylist);
                 }
 
                 @Override
                 public void noMatches() {
+                    log.warn("No matches");
                     loadAndPlay(sender, "ytsearch:" + search, shuffle, preservePlaylist);
                 }
 

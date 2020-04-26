@@ -12,12 +12,6 @@
 
     <conversionRule conversionWord="hl" converterClass="com.nachtraben.logback.LogbackHighlightConverter"/>
 
-    <!--<appender name="Console" class="ch.qos.logback.core.ConsoleAppender">
-        <encoder>
-            <pattern>[%d{HH:mm:ss}][%highlight(%-1level)][%green(%logger{0})]: %msg%n</pattern>
-        </encoder>
-    </appender>-->
-
     <appender name="Console" class="com.nachtraben.logback.TerminalConsoleAdaptor">
         <encoder>
             <pattern>[%d{HH:mm:ss}][%hl(%-1level)][%green(%logger{0})]%X{jda.shard}: %msg%n</pattern>
