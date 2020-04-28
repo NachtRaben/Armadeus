@@ -23,7 +23,7 @@ public class AudioPlayCommand extends Command {
 
     public AudioPlayCommand() {
         super("play", "{track}", "Plays the desired track, searching youtube if necessary.");
-        super.setFlags(Arrays.asList("-pr", "--random", "--randomize", "--shuffle", "--playlist"));
+        super.setFlags(Arrays.asList("-r", "--random", "--randomize", "--shuffle", "--limit=", "--all"));
     }
 
     @Override
@@ -36,10 +36,8 @@ public class AudioPlayCommand extends Command {
                 return;
             }
             boolean shuffle = flags.containsKey("r") || flags.containsKey("random") || flags.containsKey("randomize") || flags.containsKey("shuffle");
-            boolean playlist = flags.containsKey("p") || flags.containsKey("playlist");
-            log.warn("Preserve Playlist? {}", playlist);
-            log.warn("Shuffle? {}", shuffle);
-            loadAndPlay(sendee, args.get("track"), shuffle, playlist);
+            int playlistLimit = flags.containsKey("all") ? -1 : Integer.parseInt(flags.getOrDefault("limit", "10"));
+            loadAndPlay(sendee, args.get("track"), shuffle, playlistLimit);
         } else {
             sender.sendMessage("Sorry but that command is only available in guilds I'm a part of.");
         }
@@ -51,21 +49,23 @@ public class AudioPlayCommand extends Command {
         sender.getGuildConfig().getMusicManager().getScheduler().queue(track);
     }
 
-    private void playlistLoaded(AudioPlaylist playlist, GuildCommandSender sender, boolean shuffle, boolean preservePlaylist) {
-        if (!preservePlaylist) {
-            trackLoaded(playlist.getSelectedTrack() != null ? playlist.getSelectedTrack() : playlist.getTracks().get(0), sender);
-        } else {
-            if (shuffle)
-                Collections.shuffle(playlist.getTracks());
-            playlist.getTracks().forEach(track -> {
-                track.setUserData(sender);
-                sender.getGuildConfig().getMusicManager().getScheduler().queue(track);
-            });
-            sender.sendMessage(ChannelTarget.MUSIC, String.format("Adding `%s` tracks to the queue from `%s`. :3%s.", playlist.getTracks().size(), playlist.getName(), shuffle ? " shuffled!" : ""));
+    private void playlistLoaded(AudioPlaylist playlist, GuildCommandSender sender, boolean shuffle, int playlistLimit) {
+        if (shuffle)
+            Collections.shuffle(playlist.getTracks());
+        int start = playlist.getTracks().indexOf(playlist.getSelectedTrack());
+        int loaded = 0;
+        for (int i = 0; i < playlistLimit; i++) {
+            AudioTrack track = playlist.getTracks().get(start + i);
+            if (track == null) {
+                break;
+            }
+            track.setUserData(sender);
+            sender.getGuildConfig().getMusicManager().getScheduler().queue(track);
         }
+        sender.sendMessage(ChannelTarget.MUSIC, String.format("Adding `%s` tracks to the queue from `%s`. :3%s.", loaded, playlist.getName(), shuffle ? " shuffled!" : ""));
     }
 
-    private void loadAndPlay(GuildCommandSender sender, String search, boolean shuffle, boolean preservePlaylist) {
+    private void loadAndPlay(GuildCommandSender sender, String search, boolean shuffle, int playlistLimit) {
         boolean isSearch = search.startsWith("ytsearch:");
         if (isSearch) {
             sender.getGuildConfig().getMusicManager().getLink().getRestClient().getYoutubeSearchResult(search).thenAccept(tracks -> {
@@ -74,7 +74,7 @@ public class AudioPlayCommand extends Command {
                     return;
                 }
                 AudioPlaylist playlist = new BasicAudioPlaylist("Search Results", tracks, tracks.get(0), true);
-                playlistLoaded(playlist, sender, shuffle, preservePlaylist);
+                playlistLoaded(playlist, sender, shuffle, playlistLimit);
             });
         } else {
             sender.getGuildConfig().getMusicManager().getLink().getRestClient().loadItem(search, new AudioLoadResultHandler() {
@@ -85,13 +85,13 @@ public class AudioPlayCommand extends Command {
 
                 @Override
                 public void playlistLoaded(AudioPlaylist playlist) {
-                    AudioPlayCommand.this.playlistLoaded(playlist, sender, shuffle, preservePlaylist);
+                    AudioPlayCommand.this.playlistLoaded(playlist, sender, shuffle, playlistLimit);
                 }
 
                 @Override
                 public void noMatches() {
                     log.warn("No matches");
-                    loadAndPlay(sender, "ytsearch:" + search, shuffle, preservePlaylist);
+                    loadAndPlay(sender, "ytsearch:" + search, shuffle, 1);
                 }
 
                 @Override

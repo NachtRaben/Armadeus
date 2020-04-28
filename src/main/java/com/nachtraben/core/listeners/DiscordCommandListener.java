@@ -8,7 +8,10 @@ import com.nachtraben.core.configuration.GuildConfig;
 import com.nachtraben.core.util.ChannelTarget;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.JDA;
-import net.dv8tion.jda.api.entities.*;
+import net.dv8tion.jda.api.entities.ChannelType;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.events.guild.GuildJoinEvent;
 import net.dv8tion.jda.api.events.guild.GuildLeaveEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
@@ -18,7 +21,6 @@ import org.slf4j.LoggerFactory;
 
 import java.awt.*;
 import java.util.Arrays;
-import java.util.List;
 
 public class DiscordCommandListener extends ListenerAdapter {
     private static final Logger log = LoggerFactory.getLogger(DiscordCommandListener.class);
@@ -33,7 +35,6 @@ public class DiscordCommandListener extends ListenerAdapter {
     public void onMessageReceived(MessageReceivedEvent event) {
         Message message = event.getMessage();
         String content = message.getContentRaw();
-        List<User> mentions = message.getMentionedUsers();
         JDA jda = message.getJDA();
 
         if (!message.getAuthor().isBot() && !message.getAuthor().isFake() && content.length() > 0) {
@@ -47,31 +48,32 @@ public class DiscordCommandListener extends ListenerAdapter {
             DiscordCommandSender sender = null;
             String prefix = null;
             try {
-//                if (dbot.isDebugging() &&
-//                        !dbot.getConfig().getOwnerIDs().contains(message.getAuthor().getIdLong()) &&
-//                        !dbot.getConfig().getDeveloperIDs().contains(message.getAuthor().getIdLong()))
-//                    return;
-
-                if (!mentions.isEmpty() && mentions.get(0).equals(jda.getSelfUser()) && content.startsWith(mentions.get(0).getAsMention())) {
-                    prefix = mentions.get(0).getAsMention() + " ";
+                // TODO: Re-implement debugging prefixes
+                // Check bot mention
+                String botMention = event.getJDA().getSelfUser().getAsMention();
+                if (content.startsWith(botMention)) {
+                    prefix = botMention + " ";
                 }
 
                 if (message.isFromType(ChannelType.TEXT)) {
-                    sender = new GuildCommandSender(dbot, message);
+                    // Check prefix again
                     if (prefix == null) {
-                        Member botMember = message.getGuild().getMember(jda.getSelfUser());
-                        if (!mentions.isEmpty() && mentions.get(0).equals(jda.getSelfUser()) && content.startsWith(botMember.getAsMention())) {
-                            prefix = botMember.getAsMention() + " ";
-                        }
-                    }
-                    GuildConfig config = ((GuildCommandSender) sender).getGuildConfig();
-                    if (!dbot.isDebugging() && prefix == null && !config.getPrefixes().isEmpty()) {
-                        for (String pref : config.getPrefixes()) {
-                            if (content.startsWith(pref)) {
-                                prefix = pref;
-                                break;
+                        String memberMention = event.getGuild().getSelfMember().getAsMention();
+                        if (content.startsWith(memberMention)) {
+                            // Check member mention
+                            prefix = memberMention + " ";
+                        } else {
+                            GuildConfig config = ((GuildCommandSender) sender).getGuildConfig();
+                            // Check guild prefixes
+                            for (String pref : config.getPrefixes()) {
+                                if (content.startsWith(pref)) {
+                                    prefix = pref;
+                                    break;
+                                }
                             }
                         }
+                        // Initialize sender instance
+                        sender = new GuildCommandSender(dbot, message);
                     }
                 } else if (message.isFromType(ChannelType.PRIVATE)) {
                     sender = new PrivateCommandSender(dbot, message);
@@ -79,7 +81,9 @@ public class DiscordCommandListener extends ListenerAdapter {
                     log.warn("Received message from unsupported currentChannel type { " + message.getChannelType() + " }.");
                 }
 
-                if (!dbot.isDebugging() && prefix == null) {
+                // Check global prefixes
+                if (prefix == null) {
+                    // Don't check global prefixes if we checked all the guild prefixes
                     if (sender instanceof GuildCommandSender && !((GuildCommandSender) sender).getGuildConfig().getPrefixes().isEmpty())
                         return;
 
