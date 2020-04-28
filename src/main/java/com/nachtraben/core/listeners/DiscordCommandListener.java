@@ -58,6 +58,8 @@ public class DiscordCommandListener extends ListenerAdapter {
                 if (message.isFromType(ChannelType.TEXT)) {
                     // Check prefix again
                     if (prefix == null) {
+                        // Initialize sender instance
+                        sender = new GuildCommandSender(dbot, message);
                         String memberMention = event.getGuild().getSelfMember().getAsMention();
                         if (content.startsWith(memberMention)) {
                             // Check member mention
@@ -72,8 +74,6 @@ public class DiscordCommandListener extends ListenerAdapter {
                                 }
                             }
                         }
-                        // Initialize sender instance
-                        sender = new GuildCommandSender(dbot, message);
                     }
                 } else if (message.isFromType(ChannelType.PRIVATE)) {
                     sender = new PrivateCommandSender(dbot, message);
