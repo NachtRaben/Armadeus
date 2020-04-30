@@ -12,9 +12,7 @@ version = ENV
 
 ext {
     nexusUser = System.getenv("NEXUS_USR") ?: loadProperty("nexus.nachtraben.user")
-    println("Nexus user? " + nexusUser)
     nexusPass = System.getenv("NEXUS_PSW") ?: loadProperty("nexus.nachtraben.pass")
-    println("Nexus pass? " + nexusPass)
 }
 
 configurations.all {
