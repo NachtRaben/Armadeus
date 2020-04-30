@@ -15,6 +15,13 @@ ext {
     nexusPass = System.getenv("NEXUS_PSW") ?: loadProperty("nexus.nachtraben.pass")
 }
 
+configurations.all {
+    resolutionStrategy {
+        cacheDynamicVersionsFor 0, 'seconds'
+        cacheChangingModulesFor 0, 'seconds'
+    }
+}
+
 jar {
     baseName = rootProject.name
     mainClassName = 'com.nachtraben.tohsaka.Tohsaka'
@@ -63,7 +70,7 @@ dependencies {
 
     // JDA
     implementation group: 'net.dv8tion', name: 'JDA', version: '4.1.1_127'
-    implementation group: 'com.github.ByteAlex', name: 'Lavalink-Client', version: 'master-SNAPSHOT'
+    implementation group: 'com.nachtraben.lavalink.client', name: 'Lavalink-Client', version: 'latest.integration', changing: true
 
     implementation 'com.github.NachtRaben:OrangeSlice:760b4494a2'
     implementation 'com.github.NachtRaben:LemonSlice:5958b6e659'
