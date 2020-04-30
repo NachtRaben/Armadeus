@@ -61,6 +61,7 @@ public class AudioPlayCommand extends Command {
             }
             track.setUserData(sender);
             sender.getGuildConfig().getMusicManager().getScheduler().queue(track);
+            loaded++;
         }
         if (playlistLimit > 1) {
             sender.sendMessage(ChannelTarget.MUSIC, String.format("Adding `%s` tracks to the queue from `%s`. :3%s.", loaded, playlist.getName(), shuffle ? " shuffled!" : ""));
