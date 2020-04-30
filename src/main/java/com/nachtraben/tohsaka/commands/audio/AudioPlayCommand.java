@@ -62,7 +62,9 @@ public class AudioPlayCommand extends Command {
             track.setUserData(sender);
             sender.getGuildConfig().getMusicManager().getScheduler().queue(track);
         }
-        sender.sendMessage(ChannelTarget.MUSIC, String.format("Adding `%s` tracks to the queue from `%s`. :3%s.", loaded, playlist.getName(), shuffle ? " shuffled!" : ""));
+        if (playlistLimit > 1) {
+            sender.sendMessage(ChannelTarget.MUSIC, String.format("Adding `%s` tracks to the queue from `%s`. :3%s.", loaded, playlist.getName(), shuffle ? " shuffled!" : ""));
+        }
     }
 
     private void loadAndPlay(GuildCommandSender sender, String search, boolean shuffle, int playlistLimit) {
@@ -90,7 +92,6 @@ public class AudioPlayCommand extends Command {
 
                 @Override
                 public void noMatches() {
-                    log.warn("No matches");
                     loadAndPlay(sender, "ytsearch:" + search, shuffle, 1);
                 }
 
