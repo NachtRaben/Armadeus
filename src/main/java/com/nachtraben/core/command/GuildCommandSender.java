@@ -69,18 +69,23 @@ public class GuildCommandSender extends DiscordCommandSender implements Serializ
         if(channel == null)
             channel = getTextChannel();
 
-        if(channel != null && channel.canTalk())
+        if (channel != null && channel.canTalk()) {
             channel.sendMessage(message).queue();
+        }
     }
 
     @Override
     public void sendMessage(ChannelTarget target, MessageEmbed embed) {
         TextChannel channel = getTargetChannel(target);
-        if(channel == null)
+        if (channel == null)
             channel = getTextChannel();
 
-        if(channel != null && channel.canTalk())
-            channel.sendMessage(embed).queue();
+        if (channel != null && channel.canTalk()) {
+            TextChannel finalChannel = channel;
+            channel.sendMessage(embed).queue(null, failure -> {
+                finalChannel.sendMessageFormat("{} {}", embed.getTitle(), embed.getDescription()).queue();
+            });
+        }
     }
 
     public long getGuildId() {
