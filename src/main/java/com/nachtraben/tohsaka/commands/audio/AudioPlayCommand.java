@@ -52,9 +52,12 @@ public class AudioPlayCommand extends Command {
     private void playlistLoaded(AudioPlaylist playlist, GuildCommandSender sender, boolean shuffle, int playlistLimit) {
         if (shuffle)
             Collections.shuffle(playlist.getTracks());
-        int start = playlist.getTracks().indexOf(playlist.getSelectedTrack());
+
+        int start = playlist.getTracks().indexOf(playlist.getSelectedTrack()); // Index of the starting track
+        int available = playlist.getTracks().size() - start; // Songs available after the starting track
+        int end = playlistLimit > 0 ? Math.min(playlistLimit, available) : available;
         int loaded = 0;
-        for (int i = 0; i < playlistLimit; i++) {
+        for (int i = 0; i < end; i++) {
             AudioTrack track = playlist.getTracks().get(start + i);
             if (track == null) {
                 break;
