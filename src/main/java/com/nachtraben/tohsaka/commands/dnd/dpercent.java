@@ -23,7 +23,7 @@ public class dpercent extends Command {
             builder.setColor(Utils.randomColor());
             builder.setThumbnail("https://rolladie.net/images/dice/d10.png");
             int roll = ThreadLocalRandom.current().nextInt(1, 11);
-            builder.setDescription("You rolled a " + roll * 100 + "%");
+            builder.setDescription("You rolled a " + roll * 10 + "%");
             sendee.getMessageChannel().sendMessage(builder.build()).queue();
         }
     }
