@@ -35,7 +35,7 @@ public class RollCommand extends Command {
             sb.append("Rolls:\n");
             for (int i = 0; i < attempts; i++) {
                 int roll = ThreadLocalRandom.current().nextInt(1, die + 1);
-                sb.append(i).append(") ").append(percentage ? roll * 10 + "%" : roll).append("\n");
+                sb.append(i + 1).append(") ").append(percentage ? roll * 10 + "%" : roll).append("\n");
             }
             builder.setDescription(sb.toString());
             sendee.getMessageChannel().sendMessage(builder.build()).queue();
