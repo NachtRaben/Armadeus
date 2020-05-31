@@ -45,10 +45,10 @@ public class RollCommand extends Command {
             for (int i = 0; i < attempts; i++) {
                 int roll = ThreadLocalRandom.current().nextInt(1, die + 1);
                 total += roll;
-                sb.append(i + 1).append(" ) ").append(percentage ? roll * 10 + "%" : roll).append("\n");
+                sb.append("`").append(percentage ? roll * 10 + "%" : roll).append("` ");
             }
             if (attempts > 1) {
-                sb.append("Total )").append(percentage ? total * 10 + "%" : total);
+                sb.append("\nTotal ) `").append(percentage ? total * 10 + "%" : total).append("`");
             }
             builder.setDescription(sb.toString());
             sendee.getMessageChannel().sendMessage(builder.build()).queue();
