@@ -33,7 +33,7 @@ public class RollCommand extends Command {
             if (special) {
                 image = "https://rolladie.net/images/dice/d" + die + ".png";
             } else if (regular) {
-                image = "https://rolladie.net/images/dice/dice" + die + ".png";
+                image = "https://rolladie.net/images/dice/dice" + die + ".jpg";
             }
 
             EmbedBuilder builder = new EmbedBuilder();
