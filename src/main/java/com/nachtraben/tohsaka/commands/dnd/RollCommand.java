@@ -51,6 +51,7 @@ public class RollCommand extends Command {
                 sb.append("\nTotal: \n`").append(percentage ? total * 10 + "%" : total).append("`");
             }
             builder.setDescription(sb.toString());
+            builder.setFooter("Rolled by " + sendee.getName(), sendee.getUser().getAvatarUrl());
             sendee.getMessageChannel().sendMessage(builder.build()).queue();
         }
     }
