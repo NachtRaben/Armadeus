@@ -28,7 +28,7 @@ public class RollCommand extends Command {
             int die = tokens.length == 2 ? Integer.parseInt(tokens[1]) : Integer.parseInt(tokens[0]);
             boolean percentage = flags.containsKey("p") || flags.containsKey("percentage");
             boolean special = die == 4 || die == 8 || die == 10 || die == 12 || die == 20 || die == 100;
-            boolean regular = die < 6 && !special;
+            boolean regular = die < 7 && !special;
             String image = null;
             if (special) {
                 image = "https://rolladie.net/images/dice/d" + die + ".png";
