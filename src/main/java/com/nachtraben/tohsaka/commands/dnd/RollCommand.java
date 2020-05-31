@@ -48,7 +48,7 @@ public class RollCommand extends Command {
                 sb.append("`").append(percentage ? roll * 10 + "%" : roll).append("` ");
             }
             if (attempts > 1) {
-                sb.append("\nTotal: `\n").append(percentage ? total * 10 + "%" : total).append("`");
+                sb.append("\nTotal: \n`").append(percentage ? total * 10 + "%" : total).append("`");
             }
             builder.setDescription(sb.toString());
             sendee.getMessageChannel().sendMessage(builder.build()).queue();
