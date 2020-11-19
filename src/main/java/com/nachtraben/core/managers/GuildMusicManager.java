@@ -1,14 +1,13 @@
 package com.nachtraben.core.managers;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.nachtraben.armadeus.Armadeus;
 import com.nachtraben.core.audio.TrackScheduler;
-import com.nachtraben.tohsaka.Tohsaka;
 import lavalink.client.io.jda.JdaLink;
 import lavalink.client.player.IPlayer;
 import lombok.Getter;
 import net.dv8tion.jda.api.entities.Guild;
-import net.dv8tion.jda.internal.utils.cache.SnowflakeReference;
-import org.json.JSONArray;
-import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,35 +22,31 @@ public class GuildMusicManager {
 
     private static final Logger logger = LoggerFactory.getLogger(GuildMusicManager.class);
 
-    private final SnowflakeReference<Guild> guild;
+    private final Guild guild;
     private final JdaLink link;
     private final IPlayer player;
     private final TrackScheduler scheduler;
 
     public GuildMusicManager(Guild guild) {
         checkNotNull(guild);
-        this.guild = new SnowflakeReference<>(guild, id -> Tohsaka.getInstance().getShardManager().getGuildById(id));
-        this.link = Tohsaka.getInstance().getLavalink().getLink(guild);
+        this.guild = guild;
+        this.link = Armadeus.getInstance().getLavalink().getLink(guild);
         this.player = link.getPlayer();
         this.player.setVolume(50);
         this.scheduler = new TrackScheduler(this);
         player.addListener(scheduler);
-        JSONObject payload = new JSONObject();
-        payload.put("op", "equalizer");
-        payload.put("guildId", link.getGuildId());
-        JSONArray bands = new JSONArray();
+        JsonObject payload = new JsonObject();
+        payload.addProperty("op", "equalizer");
+        payload.addProperty("guildId", link.getGuildId());
+        JsonArray bands = new JsonArray();
         for (int i = 0; i < this.bands.length; i++) {
-            JSONObject band = new JSONObject();
-            band.put("band", i);
-            band.put("gain", this.bands[i] * 0.75f);
-            bands.put(i, band);
+            JsonObject band = new JsonObject();
+            band.addProperty("band", i);
+            band.addProperty("gain", this.bands[i] * 0.75f);
+            bands.add(band);
         }
-        payload.put("bands", bands);
+        payload.add("bands", bands);
         Objects.requireNonNull(link.getNode(true)).send(payload.toString());
-    }
-
-    public Guild getGuild() {
-        return guild.resolve();
     }
 
 }

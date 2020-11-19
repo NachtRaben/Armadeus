@@ -1,1 +1,1 @@
-The Tohsaka Discord Bot.
+The Armadeus Discord Bot.

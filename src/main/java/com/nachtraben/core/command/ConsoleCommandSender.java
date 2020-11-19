@@ -1,10 +1,10 @@
 package com.nachtraben.core.command;
 
+import com.nachtraben.armadeus.Armadeus;
 import com.nachtraben.core.util.Utils;
 import com.nachtraben.logback.TerminalConsoleAdaptor;
 import com.nachtraben.orangeslice.CommandResult;
 import com.nachtraben.orangeslice.CommandSender;
-import com.nachtraben.tohsaka.Tohsaka;
 import org.apache.http.util.Asserts;
 import org.jline.reader.EndOfFileException;
 import org.jline.reader.LineReader;
@@ -72,7 +72,7 @@ public class ConsoleCommandSender implements CommandSender, Runnable {
 
     @Override
     public Future<CommandResult> runCommand(String command, String[] args) {
-        return Tohsaka.getInstance().getCommandBase().execute(this, command, args);
+        return Armadeus.getInstance().getCommandBase().execute(this, command, args);
 
     }
 

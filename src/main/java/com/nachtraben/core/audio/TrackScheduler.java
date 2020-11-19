@@ -1,10 +1,10 @@
 package com.nachtraben.core.audio;
 
+import com.nachtraben.armadeus.Armadeus;
 import com.nachtraben.core.command.GuildCommandSender;
 import com.nachtraben.core.managers.GuildMusicManager;
 import com.nachtraben.core.util.ChannelTarget;
 import com.nachtraben.core.util.Utils;
-import com.nachtraben.tohsaka.Tohsaka;
 import com.sedmelluq.discord.lavaplayer.player.event.AudioEventAdapter;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackEndReason;
@@ -27,7 +27,7 @@ public class TrackScheduler extends AudioEventAdapter implements IPlayerEventLis
 
     private static final Logger LOGGER = LoggerFactory.getLogger(TrackScheduler.class);
 
-    public static boolean debug = Tohsaka.getInstance().isDebugging();
+    public static boolean debug = Armadeus.getInstance().isDebugging();
 
     private final GuildMusicManager manager;
 

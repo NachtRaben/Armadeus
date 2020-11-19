@@ -60,7 +60,7 @@ public class Utils {
                 .setDescription(String.format("Title: %s\nAuthor: %s\nLength: %s",
                         track.getInfo().title,
                         track.getInfo().author,
-                        track.getInfo().isStream ? "Stream" : TimeUtil.fromLong(track.getInfo().length, TimeUtil.FormatType.STRING)));
+                        track.getInfo().isStream ? "Stream" : TimeUtil.format(track.getInfo().length)));
         if (track instanceof YoutubeAudioTrack)
             builder.setThumbnail(String.format("https://img.youtube.com/vi/%s/default.jpg", track.getIdentifier()));
         return builder;

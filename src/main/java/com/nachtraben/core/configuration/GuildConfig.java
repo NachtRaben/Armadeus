@@ -5,12 +5,12 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
+import com.nachtraben.armadeus.Armadeus;
 import com.nachtraben.core.managers.GuildManager;
 import com.nachtraben.core.managers.GuildMusicManager;
 import com.nachtraben.core.util.ChannelTarget;
 import com.nachtraben.lemonslice.ConfigurationUtils;
 import com.nachtraben.lemonslice.CustomJsonIO;
-import com.nachtraben.tohsaka.Tohsaka;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.TextChannel;
 import org.slf4j.Logger;
@@ -129,7 +129,7 @@ public class GuildConfig implements CustomJsonIO {
     }
 
     public Guild getGuild() {
-        return Tohsaka.getInstance().getShardManager().getGuildById(guildID);
+        return Armadeus.getInstance().getShardManager().getGuildById(guildID);
     }
 
     public Map<ChannelTarget, TextChannel> getChannelCache() {

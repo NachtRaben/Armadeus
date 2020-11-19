@@ -64,14 +64,14 @@ public abstract class DiscordBot {
         logger.info("Loading lavalink...");
         lavalink = new JdaLavalink(isDebugging() ? "270410992536649738" : "270410992536649738", 1, shardId -> shardManager.getShardById(shardId));
         lavalink.getLoadBalancer().addPenalty(LavalinkLoadBalancer.Penalties::getPlayerPenalty);
-        lavalink.addNode("tohsaka", new URI("ws://dev.nachtraben.com:2333"), "fluffy");
-        lavalink.addNode("tohsaka2", new URI("ws://dev.nachtraben.com:2334"), "fluffy");
+        lavalink.addNode("Armadeus", new URI("ws://ns534168.ip-149-56-240.net:2333"), "fluffy");
+        lavalink.addNode("Armadeus2", new URI("ws://ns534168.ip-149-56-240.net:2334"), "fluffy");
 
         commandBase = new CommandBase();
         logger.info("Loading JDA...");
         try {
             shardManager = DefaultShardManagerBuilder.createDefault(config.getBotToken(), GatewayIntent.getIntents(GatewayIntent.ALL_INTENTS))
-                    .setActivity(Activity.playing("Tohsaka"))
+                    .setActivity(Activity.playing("Armadeus"))
                     .setMemberCachePolicy(MemberCachePolicy.ALL) // Fetch ALL members
                     .setChunkingFilter(ChunkingFilter.ALL) // Chunk member data
                     .addEventListeners(lavalink) // Lavalink Listener
@@ -81,7 +81,7 @@ public abstract class DiscordBot {
                     .build();
 
         } catch (Exception e) {
-            logger.error("Failed to start Tohsaka", e);
+            logger.error("Failed to start Armadeus", e);
             System.exit(-1);
         }
         while (shardManager.getShards().stream().anyMatch(jda -> jda.getStatus() != JDA.Status.CONNECTED)) {
