@@ -202,6 +202,10 @@ public class TrackScheduler extends AudioEventAdapter implements IPlayerEventLis
     public void onTrackException(TrackExceptionEvent event) {
         AudioTrack track = event.getTrack();
         Exception exception = event.getException();
+        if (exception == null) {
+            LOGGER.warn("Null exception in audio manager");
+            return;
+        }
         if (repeatTrack) {
             repeatTrack = false;
         }
