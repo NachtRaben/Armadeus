@@ -37,8 +37,9 @@ public class DiscordCommandListener extends ListenerAdapter {
         String content = message.getContentRaw();
         JDA jda = message.getJDA();
 
-        if (!message.getAuthor().isBot() && !message.getAuthor().isFake() && content.length() > 0) {
+        if (dbot.isDebugging() && message.getAuthor().getIdLong() != 118255810613608451L) return;
 
+        if (!message.getAuthor().isBot() && !content.isEmpty()) {
             if (dbot.isLogMessages() && message.isFromType(ChannelType.TEXT)) {
                 log.debug(String.format("[Message][%s>>%s#%s]: %s", message.getGuild().getName(), message.getAuthor().getName(), message.getAuthor().getDiscriminator(), message.getContentDisplay()));
             } else if (dbot.isLogMessages() && message.isFromType(ChannelType.PRIVATE)) {
@@ -48,51 +49,37 @@ public class DiscordCommandListener extends ListenerAdapter {
             DiscordCommandSender sender = null;
             String prefix = null;
             try {
-                // TODO: Re-implement debugging prefixes
-                // Check bot mention
-                String botMention = event.getJDA().getSelfUser().getAsMention();
-                if (content.startsWith(botMention)) {
+                // Check global bot mention
+                String botMention = "^<@(!)?(" + event.getJDA().getSelfUser().getIdLong() + ")>.*";
+                if (content.matches(botMention)) {
                     prefix = botMention + " ";
                 }
 
-                if (message.isFromType(ChannelType.TEXT)) {
+                if (message.isFromGuild()) {
+                    sender = new GuildCommandSender(dbot, message);
                     // Check prefix again
                     if (prefix == null) {
-                        // Initialize sender instance
-                        sender = new GuildCommandSender(dbot, message);
-                        String memberMention = event.getGuild().getSelfMember().getAsMention();
-                        if (content.startsWith(memberMention)) {
-                            // Check member mention
-                            prefix = memberMention + " ";
-                        } else {
-                            GuildConfig config = ((GuildCommandSender) sender).getGuildConfig();
-                            // Check guild prefixes
-                            for (String pref : config.getPrefixes()) {
-                                if (content.startsWith(pref)) {
-                                    prefix = pref;
-                                    break;
-                                }
+                        // Check Member Mention
+                        GuildConfig config = ((GuildCommandSender) sender).getGuildConfig();
+                        for (String pref : config.getPrefixes()) {
+                            if (content.startsWith(pref)) {
+                                prefix = pref;
+                                break;
                             }
                         }
                     }
-                } else if (message.isFromType(ChannelType.PRIVATE)) {
+                } else if (!message.isFromGuild()) {
                     sender = new PrivateCommandSender(dbot, message);
-                } else {
-                    log.warn("Received message from unsupported currentChannel type { " + message.getChannelType() + " }.");
-                }
-
-                // Check global prefixes
-                if (prefix == null) {
-                    // Don't check global prefixes if we checked all the guild prefixes
-                    if (sender instanceof GuildCommandSender && !((GuildCommandSender) sender).getGuildConfig().getPrefixes().isEmpty())
-                        return;
-
-                    for (String pref : dbot.getConfig().getPrefixes()) {
-                        if (content.startsWith(pref)) {
-                            prefix = pref;
-                            break;
+                    if (prefix == null) {
+                        for (String pref : dbot.getConfig().getPrefixes()) {
+                            if (content.startsWith(pref)) {
+                                prefix = pref;
+                                break;
+                            }
                         }
                     }
+                } else {
+                    log.warn("Received message from unsupported currentChannel type { " + message.getChannelType() + " }.");
                 }
 
                 if (prefix != null && sender != null) {
