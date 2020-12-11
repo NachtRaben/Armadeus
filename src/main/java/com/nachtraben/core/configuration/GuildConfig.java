@@ -277,7 +277,7 @@ public class GuildConfig implements CustomJsonIO {
         if (metadata.containsKey("volume")) {
             try {
                 int volume = Integer.parseInt(metadata.get("volume"));
-                volume = Math.min(Math.max(volume, 0), 50);
+                volume = Math.min(Math.max(1, volume), 100);
                 getMusicManager().getPlayer().setVolume(volume);
                 LOGGER.info("Setting resume volume of { " + getGuild().getName() + " } to " + volume + ".");
 

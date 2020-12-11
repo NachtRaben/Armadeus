@@ -32,7 +32,7 @@ public class GuildMusicManager {
         this.guild = guild;
         this.link = Armadeus.getInstance().getLavalink().getLink(guild);
         this.player = link.getPlayer();
-        this.player.setVolume(50);
+        this.player.setVolume(100);
         this.scheduler = new TrackScheduler(this);
         player.addListener(scheduler);
         JsonObject payload = new JsonObject();

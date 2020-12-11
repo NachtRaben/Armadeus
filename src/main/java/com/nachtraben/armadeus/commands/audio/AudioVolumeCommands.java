@@ -37,10 +37,11 @@ public class AudioVolumeCommands {
                 return;
             }
             if (vol != -1) {
-                manager.getPlayer().setVolume(vol);
+                vol = Math.min(Math.max(1, vol), 100);
+                manager.getLink().getPlayer().setVolume(vol);
                 config.getMetadata().put("volume", String.valueOf(vol));
                 config.save();
-                sendee.sendMessage(ChannelTarget.MUSIC, "Volume set to `" + manager.getPlayer().getVolume() + "/150`.");
+                sendee.sendMessage(ChannelTarget.MUSIC, "Volume set to `" + manager.getPlayer().getVolume() + "/100`.");
             }
         } else {
             sender.sendMessage("Sorry but that command is only available in guilds I'm a part of.");
