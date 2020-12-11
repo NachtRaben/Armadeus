@@ -278,7 +278,7 @@ public class GuildConfig implements CustomJsonIO {
             try {
                 int volume = Integer.parseInt(metadata.get("volume"));
                 volume = Math.min(Math.max(1, volume), 100);
-                getMusicManager().getLink().getPlayer().getFilters().setVolume(100.0f / volume).commit();
+                getMusicManager().getLink().getPlayer().getFilters().setVolume(volume / 100.0f).commit();
                 LOGGER.info("Setting resume volume of { " + getGuild().getName() + " } to " + volume + ".");
 
             } catch (NumberFormatException e) {

@@ -38,7 +38,7 @@ public class AudioVolumeCommands {
             }
             if (vol != -1) {
                 vol = Math.min(Math.max(1, vol), 100);
-                manager.getLink().getPlayer().setVolume(vol);
+                manager.getLink().getPlayer().getFilters().setVolume(vol / 100.0f).commit();
                 config.getMetadata().put("volume", String.valueOf(vol));
                 config.save();
                 sendee.sendMessage(ChannelTarget.MUSIC, "Volume set to `" + manager.getPlayer().getVolume() + "/100`.");
