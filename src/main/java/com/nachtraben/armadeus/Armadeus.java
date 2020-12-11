@@ -42,10 +42,9 @@ public class Armadeus extends DiscordBot implements CommandEventListener {
     private final ConcurrentHashMap<Long, Map<Long, Long>> cooldowns = new ConcurrentHashMap<>();
 
     public Armadeus(String[] args, boolean debugging) {
-        super(args);
+        super(args, debugging);
         instance = this;
 
-        setDebugging(debugging);
         long start = System.currentTimeMillis();
         LOGGER.debug("Took " + (System.currentTimeMillis() - start) + "ms to load all shards.");
         registerCommands();

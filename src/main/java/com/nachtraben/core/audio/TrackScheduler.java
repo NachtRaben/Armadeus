@@ -213,6 +213,8 @@ public class TrackScheduler extends AudioEventAdapter implements IPlayerEventLis
             queue.addFirst(event.getTrack().makeClone());
             return;
         }
+        LOGGER.warn(event.getTrack().toString());
+        LOGGER.warn(event.getException().toString());
         GuildCommandSender requestor = event.getTrack().getUserData(GuildCommandSender.class);
         requestor.sendMessage(ChannelTarget.MUSIC, String.format("Failed to play `%s` because, `%s`.", track.getInfo().title, exception.getMessage()));
         LOGGER.warn("Something went wrong with lavaplayer.", exception);

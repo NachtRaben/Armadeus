@@ -44,7 +44,8 @@ public abstract class DiscordBot {
     private boolean logMessages = false;
 
     @SneakyThrows
-    public DiscordBot(String[] args) {
+    public DiscordBot(String[] args, boolean debugging) {
+        this.debugging = debugging;
         ConsoleCommandSender.start();
         PROGRAM_ARGS = args;
         shutdownHandler = new Thread(this::shutdown);
@@ -62,7 +63,7 @@ public abstract class DiscordBot {
         logger.info("Configuration loaded.");
 
         logger.info("Loading lavalink...");
-        lavalink = new JdaLavalink(isDebugging() ? "270410992536649738" : "270410992536649738", 1, shardId -> shardManager.getShardById(shardId));
+        lavalink = new JdaLavalink(isDebugging() ? "465650004900446208" : "270410992536649738", 1, shardId -> shardManager.getShardById(shardId));
         lavalink.getLoadBalancer().addPenalty(LavalinkLoadBalancer.Penalties::getPlayerPenalty);
         lavalink.addNode("Armadeus", new URI("ws://ns534168.ip-149-56-240.net:2333"), "fluffy");
         lavalink.addNode("Armadeus2", new URI("ws://ns534168.ip-149-56-240.net:2334"), "fluffy");
