@@ -68,6 +68,9 @@ public class AudioPlayCommand extends Command {
         }
         if (playlistLimit > 1) {
             sender.sendMessage(ChannelTarget.MUSIC, String.format("Adding `%s` tracks to the queue from `%s`. :3%s.", loaded, playlist.getName(), shuffle ? " shuffled!" : ""));
+        } else {
+            AudioTrack track = playlist.getTracks().get(0);
+            sender.sendMessage(ChannelTarget.MUSIC, String.format("Adding to queue, `%s` by `%s`.", track.getInfo().title, track.getInfo().author));
         }
     }
 
