@@ -9,4 +9,5 @@ def importModule(name) {
 }
 
 importModule("armadeus-bot")
+importModule("armadeus-core")
 
