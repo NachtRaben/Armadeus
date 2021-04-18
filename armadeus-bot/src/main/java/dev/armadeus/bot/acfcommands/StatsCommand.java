@@ -61,7 +61,7 @@ public class StatsCommand extends DiscordCommand {
                 Armadeus.getInstance().getShardManager().getTextChannels().size(),
                 Armadeus.getInstance().getShardManager().getVoiceChannels().size(),
                 Armadeus.getInstance().getShardManager().getPrivateChannels().size(),
-                Armadeus.getInstance().getLavalink().getLinks().stream().filter(link -> link.getChannelId() != -1).count(),
+                Armadeus.getInstance().getLavalink().getLinks().stream().filter(link -> link.getChannel() != null).count(),
                 Armadeus.getInstance().getShardManager().getGuilds().size(),
                 Armadeus.getInstance().getShardManager().getUsers().size());
         EmbedBuilder eb = EmbedUtil.newBuilder(user);
