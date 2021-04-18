@@ -1,1 +1,12 @@
 rootProject.name = 'Armadeus'
+
+def importModule(name) {
+    def tokens = name.split("/")
+    def projectName = tokens.length > 1 ? Arrays.copyOfRange(tokens, 1, tokens.length).join("-") : tokens[0]
+    include(projectName)
+    def project = project(":$projectName")
+    project.setProjectDir(new File("$name"))
+}
+
+importModule("armadeus-bot")
+
