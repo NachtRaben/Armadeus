@@ -17,6 +17,7 @@ Short Term: Armadeus 1.0
 
 - Re-Implement Command Cooldowns
 - ~~Re-implement Command Blacklist~~
+- Fix volume and equalizer settings
 - Re-Implement Radios
 - Re-write audio subsystem
 - Finish converting commands

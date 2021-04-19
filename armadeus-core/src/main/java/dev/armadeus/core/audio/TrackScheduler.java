@@ -150,7 +150,7 @@ public class TrackScheduler extends AudioEventAdapter implements IPlayerEventLis
     // TODO: Rewrite voice channel logic.
     // TODO: If requester channel is null but I'm in a channel.
     private boolean joinVoiceChannel(DiscordUser requester) {
-        if (manager.getGuild() != null) {
+        if (manager.getConfig().getGuild() != null) {
             String connected = manager.getLink().getChannel();
             if (requester.getGuild().getAudioManager().isConnected() && connected != null) {
                 logger.error("Found a stray voice connection, attempting to close!");

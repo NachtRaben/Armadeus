@@ -6,7 +6,6 @@ import dev.armadeus.core.managers.GuildManager;
 import dev.armadeus.core.managers.GuildMusicManager;
 import dev.armadeus.core.util.ConfigUtil;
 import dev.armadeus.core.util.DiscordReference;
-import io.leangen.geantyref.TypeFactory;
 import io.leangen.geantyref.TypeToken;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -137,7 +136,7 @@ public class GuildConfig {
 
     public GuildMusicManager getMusicManager() {
         if (musicManager == null)
-            return musicManager = new GuildMusicManager(getGuild());
+            return musicManager = new GuildMusicManager(this);
         return musicManager;
     }
 
@@ -208,7 +207,7 @@ public class GuildConfig {
     }
 
     public void setMetadata(Map<String, String> metadata) {
-        setMap(root.node("metadata"), TypeToken.get(TypeFactory.parameterizedClass(Map.class, String.class, String.class)), metadata);
+        setMap(root.node("metadata"), TypeToken.get(String.class), metadata);
     }
 
     public long getCommandCooldown() {
@@ -234,6 +233,7 @@ public class GuildConfig {
     public void setVolume(float volume) {
         Map<String, String> metadata = getMetadata();
         metadata.put("volume", String.valueOf(volume));
+        setMetadata(metadata);
         save();
     }
 

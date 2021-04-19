@@ -9,7 +9,7 @@ import dev.armadeus.core.managers.GuildMusicManager;
 public class VolumeCommand extends AudioCommand {
 
     @Conditions("guildonly")
-    @CommandAlias("volume")
+    @CommandAlias("volume|vol")
     public void volume(DiscordUser user, @Optional Integer volume) {
         if (cannotQueueMusic(user))
             return;

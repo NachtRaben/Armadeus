@@ -12,7 +12,6 @@ import dev.armadeus.core.configuration.GuildConfig;
 import lavalink.client.io.jda.JdaLink;
 import lavalink.client.player.LavalinkPlayer;
 import lombok.Getter;
-import net.dv8tion.jda.api.entities.Guild;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -22,28 +21,38 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 @Getter
 public class GuildMusicManager {
 
     private static final Logger logger = LogManager.getLogger();
-    private final Guild guild;
-    private final JdaLink link;
-    private final LavalinkPlayer player;
-    private final TrackScheduler scheduler;
+
+    private final GuildConfig config;
+    private TrackScheduler scheduler;
     public Map<Long, Future<?>> listeners = new HashMap<>();
     float[] bands = new float[]{ 0.075f, 0.0375f, 0.03f, 0.022499999f, 0.0f, -0.015f, -0.022499999f, -0.0375f, -0.022499999f, -0.015f, 0.0f, 0.022499999f, 0.03f, 0.0375f, 0.075f };
 
-    public GuildMusicManager(Guild guild) {
-        checkNotNull(guild);
-        this.guild = guild;
-        this.link = DiscordBot.get().getLavalink().getLink(guild);
-        this.player = link.getPlayer();
-        GuildConfig config = DiscordBot.get().getGuildManager().getConfigurationFor(guild);
-        this.player.getFilters().setVolume(config.getVolume()).commit();
+    public GuildMusicManager(GuildConfig config) {
+        this.config = config;
+    }
+
+    public JdaLink getLink() {
+        JdaLink link = DiscordBot.get().getLavalink().getExistingLink(config.getGuild());
+        if (link == null) {
+            link = DiscordBot.get().getLavalink().getLink(config.getGuild());
+            initializePlayer(link.getPlayer());
+        }
+        return link;
+    }
+
+    public LavalinkPlayer getPlayer() {
+        return getLink().getPlayer();
+    }
+
+    private void initializePlayer(LavalinkPlayer player) {
+        logger.info("Setting resume volume of {} to {}", config.getGuild().getName(), config.getVolume());
+        player.getFilters().setVolume(config.getVolume()).commit();
         for (int i = 0; i < this.bands.length; i++) {
-            this.player.getFilters().setBand(i, this.bands[i]).commit();
+            player.getFilters().setBand(i, this.bands[i]).commit();
         }
         this.scheduler = new TrackScheduler(this);
         player.addListener(scheduler);
