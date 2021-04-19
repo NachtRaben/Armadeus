@@ -12,10 +12,10 @@ public class SeekCommand extends AudioCommand {
     @Conditions("guildonly")
     @CommandAlias("seek|buffer")
     public void seek(DiscordUser user, String time) {
-        if (!canInteractMusic(user))
+        if (cannotQueueMusic(user))
             return;
 
-        if (!verifyPlayingTrack(user))
+        if (isNotPlaying(user))
             return;
 
         GuildMusicManager manager = user.getGuildMusicManager();

@@ -13,10 +13,10 @@ public class RepeatCommand extends AudioCommand {
     @Conditions("guildonly")
     @Subcommand("track")
     public void repeatTrack(DiscordUser user, @Default(value = "true") boolean repeat) {
-        if (!canInteractMusic(user))
+        if (cannotQueueMusic(user))
             return;
 
-        if (!verifyPlayingTrack(user))
+        if (isNotPlaying(user))
             return;
 
         GuildMusicManager manager = user.getGuildMusicManager();
@@ -32,7 +32,7 @@ public class RepeatCommand extends AudioCommand {
     @Conditions("guildonly")
     @Subcommand("queue")
     public void repeatQueue(DiscordUser user, @Default(value = "true") boolean repeat) {
-        if (!canInteractMusic(user))
+        if (cannotQueueMusic(user))
             return;
 
         GuildMusicManager manager = user.getGuildMusicManager();

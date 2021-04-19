@@ -130,7 +130,7 @@ public class DiscordUser {
     public void sendMessage(String message, long purgeAfter) {
         checkArgument(message != null && !message.isBlank(), "Empty Message");
         MessageBuilder builder = new MessageBuilder(message);
-        sendAndPurge(builder.build(), channel.resolve(), purgeAfter);
+        sendMessage(builder.build(), purgeAfter);
     }
 
     public void sendMessage(MessageEmbed embed) {
@@ -140,7 +140,15 @@ public class DiscordUser {
     public void sendMessage(MessageEmbed embed, long purgeAfter) {
         checkArgument(message != null && embed.isSendable(), "Empty Message");
         MessageBuilder builder = new MessageBuilder(embed);
-        sendAndPurge(builder.build(), channel.resolve(), purgeAfter);
+        sendMessage(builder.build(), purgeAfter);
+    }
+
+    public void sendMessage(Message message) {
+        sendMessage(message, 0);
+    }
+
+    public void sendMessage(Message message, long purgeAfter) {
+        sendAndPurge(message, channel.resolve(), purgeAfter);
     }
 
     // Private Messages
@@ -174,6 +182,8 @@ public class DiscordUser {
         if (channel.getType() == ChannelType.TEXT && purgeAfter == 0) {
             long guildMessageTimeout = getGuildConfig().getMessageTimeout();
             purgeAfter = guildMessageTimeout == 0 ? defaultMessageTimeout : guildMessageTimeout;
+        } else if (channel.getType() == ChannelType.PRIVATE && purgeAfter == 0) {
+            purgeAfter = -1;
         }
         if (channel.getType() == ChannelType.TEXT && !((TextChannel) channel).canTalk()) {
             sendPrivateMessage(message, purgeAfter);

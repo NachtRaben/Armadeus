@@ -1,4 +1,4 @@
-package dev.armadeus.bot.commands;
+package dev.armadeus.bot.commands.general;
 
 import co.aikar.commands.annotation.CommandAlias;
 import co.aikar.commands.annotation.Default;

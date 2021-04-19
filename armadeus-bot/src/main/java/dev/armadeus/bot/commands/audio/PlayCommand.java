@@ -16,14 +16,15 @@ public class PlayCommand extends AudioCommand {
     @CommandAlias("play")
     @Description("Request the specified track")
     public void play(DiscordUser user, String identifier) {
+        if (cannotQueueMusic(user))
+            return;
+
         int limit = 1;
         Matcher matcher = LIMIT_MATCH.matcher(identifier);
         if (matcher.find()) {
             limit = Integer.parseInt(matcher.group(1));
             identifier = identifier.replaceAll(LIMIT_MATCH.pattern(), "").trim();
         }
-        if (canInteractMusic(user)) {
-            user.getGuildMusicManager().loadAndPlay(user, identifier, limit);
-        }
+        user.getGuildMusicManager().loadAndPlay(user, identifier, limit);
     }
 }

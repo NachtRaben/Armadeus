@@ -16,7 +16,7 @@ public class NowPlayingCommand extends AudioCommand {
     @Conditions("guildonly")
     @CommandAlias("np|playing")
     public void nowPlaying(DiscordUser user, @Default(value = "false") boolean extended) {
-        if (!verifyPlayingTrack(user))
+        if (isNotPlaying(user))
             return;
 
         GuildMusicManager manager = user.getGuildMusicManager();

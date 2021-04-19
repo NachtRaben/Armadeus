@@ -13,13 +13,11 @@ import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.entities.RichPresence;
 
 import java.time.temporal.ChronoUnit;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.stream.Collectors;
 
+import static dev.armadeus.bot.util.StringUtils.tokenCompare;
 import static dev.armadeus.core.util.Utils.EXEC;
 
 public class ListenCommand extends AudioCommand {
@@ -27,6 +25,9 @@ public class ListenCommand extends AudioCommand {
     @Conditions("developeronly|guildonly")
     @CommandAlias("listen")
     public void listen(DiscordUser user, @Default(value = "true") boolean listen) {
+        if (cannotQueueMusic(user))
+            return;
+
         GuildMusicManager manager = user.getGuildMusicManager();
 
         Future<?> future = manager.getListeners().get(user.getUser().getIdLong());
@@ -42,10 +43,8 @@ public class ListenCommand extends AudioCommand {
             return;
         }
 
-        if (canInteractMusic(user)) {
-            manager.listeners.put(user.getUser().getIdLong(), EXEC.submit(new ListenRunnable(user)));
-            user.sendMessage("Now listening to you Senpai~ c:");
-        }
+        manager.listeners.put(user.getUser().getIdLong(), EXEC.submit(new ListenRunnable(user)));
+        user.sendMessage("Now listening to you Senpai~ c:");
     }
 
     private static class SpotifyPresence {
@@ -106,7 +105,7 @@ public class ListenCommand extends AudioCommand {
 
                 AudioTrack track = manager.getPlayer().getPlayingTrack();
                 long position = track != null ? manager.getPlayer().getTrackPosition() : 0;
-                if (track == null || !isCorrectTrack(presence.getTitle(), presence.getAuthor(), track.getInfo().title)) {
+                if (track == null || !tokenCompare(track.getInfo().title, presence.getTitle(), presence.getAuthor())) {
                     ListenCommand.this.logger.info("Changing track expected {} but got {}", presence.getTitle(), track == null ? "NULL" : track.getInfo().title);
                     manager.getLink().getRestClient().getYoutubeSearchResult(presence.getTitle() + " - " + presence.getAuthor()).thenAccept(tracks -> {
                         if (tracks.isEmpty()) {
@@ -115,7 +114,7 @@ public class ListenCommand extends AudioCommand {
                         }
                         boolean found = false;
                         for (AudioTrack t : tracks) {
-                            if (isCorrectTrack(presence.getTitle(), presence.getAuthor(), t.getInfo().title)) {
+                            if (tokenCompare(t.getInfo().title, presence.getTitle(), presence.getAuthor())) {
                                 found = true;
                                 AudioPlaylist playlist = new BasicAudioPlaylist("Search Results", tracks, tracks.get(0), true);
                                 GuildMusicManager.playlistLoaded(user, playlist, 1);
@@ -140,19 +139,6 @@ public class ListenCommand extends AudioCommand {
                 user.sendMessage("Sorry Senpai~, I lost you :c");
                 manager.listeners.remove(user.getUser().getIdLong());
             }
-        }
-
-        private boolean isCorrectTrack(String title, String author, String trackTitle) {
-            List<String> expected = Arrays.stream((title + " " + author).toLowerCase().split(" ")).map(s -> s.replaceAll("[^a-zA-Z\\d\\s]", "")).collect(Collectors.toList());
-            List<String> tokens = Arrays.stream(trackTitle.toLowerCase().split(" ")).map(s -> s.replaceAll("[^a-zA-Z\\d\\s]", "")).collect(Collectors.toList());
-            int matches = 0;
-            for (String token : tokens) {
-                for (String exp : expected) {
-                    if (token.equals(exp))
-                        matches++;
-                }
-            }
-            return (float) matches >= (0.4f * expected.size());
         }
     }
 }

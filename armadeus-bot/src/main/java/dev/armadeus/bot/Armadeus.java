@@ -59,10 +59,6 @@ public class Armadeus extends DiscordBot {
 
     }
 
-    public static Armadeus getInstance() {
-        return (Armadeus) DiscordBot.get();
-    }
-
 //    @Override
 //    public void onCommandPreProcess(CommandPreProcessEvent e) {
 //        if (e.getSender() instanceof GuildCommandSender) {

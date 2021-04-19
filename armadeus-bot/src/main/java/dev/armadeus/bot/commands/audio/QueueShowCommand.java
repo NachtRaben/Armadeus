@@ -20,7 +20,7 @@ public class QueueShowCommand extends AudioCommand {
     @CommandAlias("queue")
     public void queue(DiscordUser user) {
         GuildMusicManager manager = user.getGuildMusicManager();
-        if (!verifyPlayingTrack(user))
+        if (isNotPlaying(user))
             return;
 
         AudioTrack current = manager.getPlayer().getPlayingTrack();

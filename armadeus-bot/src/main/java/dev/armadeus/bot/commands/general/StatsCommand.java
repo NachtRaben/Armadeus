@@ -1,4 +1,4 @@
-package dev.armadeus.bot.commands;
+package dev.armadeus.bot.commands.general;
 
 import co.aikar.commands.annotation.CommandAlias;
 import co.aikar.commands.annotation.Default;
@@ -58,12 +58,12 @@ public class StatsCommand extends DiscordCommand {
                 getMemoryString(rt.totalMemory() - rt.freeMemory()), getMemoryString(rt.totalMemory()),
                 shard, total,
                 Thread.getAllStackTraces().keySet().size(),
-                Armadeus.getInstance().getShardManager().getTextChannels().size(),
-                Armadeus.getInstance().getShardManager().getVoiceChannels().size(),
-                Armadeus.getInstance().getShardManager().getPrivateChannels().size(),
-                Armadeus.getInstance().getLavalink().getLinks().stream().filter(link -> link.getChannel() != null).count(),
-                Armadeus.getInstance().getShardManager().getGuilds().size(),
-                Armadeus.getInstance().getShardManager().getUsers().size());
+                Armadeus.get().getShardManager().getTextChannels().size(),
+                Armadeus.get().getShardManager().getVoiceChannels().size(),
+                Armadeus.get().getShardManager().getPrivateChannels().size(),
+                Armadeus.get().getLavalink().getLinks().stream().filter(link -> link.getChannel() != null).count(),
+                Armadeus.get().getShardManager().getGuilds().size(),
+                Armadeus.get().getShardManager().getUsers().size());
         EmbedBuilder eb = EmbedUtils.newBuilder(user);
         eb.setDescription(stats);
         user.sendMessage(eb.build());

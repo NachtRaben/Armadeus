@@ -21,6 +21,7 @@ import org.spongepowered.configurate.gson.GsonConfigurationLoader;
 import org.spongepowered.configurate.hocon.HoconConfigurationLoader;
 import org.spongepowered.configurate.serialize.SerializationException;
 
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashSet;
@@ -114,10 +115,12 @@ public class GuildConfig {
         try {
             root = loader.load();
             if (legacyNode != null) {
+                Files.delete(legacy);
                 root.mergeFrom(legacyNode);
+                root.mergeFrom(defaults);
                 save();
             }
-        } catch (ConfigurateException e) {
+        } catch (IOException e) {
             e.printStackTrace();
         }
         return this;
