@@ -1,226 +1,246 @@
 package dev.armadeus.core.configuration;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.reflect.TypeToken;
-import com.nachtraben.lemonslice.ConfigurationUtils;
-import com.nachtraben.lemonslice.CustomJsonIO;
 import dev.armadeus.core.DiscordBot;
+import dev.armadeus.core.command.DiscordUser;
 import dev.armadeus.core.managers.GuildManager;
 import dev.armadeus.core.managers.GuildMusicManager;
+import dev.armadeus.core.util.ConfigUtil;
+import dev.armadeus.core.util.DiscordReference;
+import io.leangen.geantyref.TypeFactory;
+import io.leangen.geantyref.TypeToken;
+import lombok.AccessLevel;
 import lombok.Getter;
 import net.dv8tion.jda.api.entities.Guild;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.spongepowered.configurate.CommentedConfigurationNode;
+import org.spongepowered.configurate.ConfigurateException;
+import org.spongepowered.configurate.ConfigurationNode;
+import org.spongepowered.configurate.ConfigurationOptions;
+import org.spongepowered.configurate.gson.GsonConfigurationLoader;
+import org.spongepowered.configurate.hocon.HoconConfigurationLoader;
+import org.spongepowered.configurate.serialize.SerializationException;
 
-import java.io.File;
-import java.util.HashMap;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static dev.armadeus.core.util.ConfigUtil.*;
+import static io.leangen.geantyref.TypeFactory.parameterizedClass;
+
 @Getter
-public class GuildConfig implements CustomJsonIO {
+public class GuildConfig {
 
     private final transient static Logger logger = LogManager.getLogger();
-    public transient static final File GUILD_DIR = new File("guilds");
-    public transient static final File PERSIST_DIR = new File("persists");
-    protected transient static final Gson GSON = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
+    public transient static final Path GUILD_DIR = Path.of("guilds");
+    private static final CommentedConfigurationNode defaults = CommentedConfigurationNode.root(ConfigurationOptions.defaults().shouldCopyDefaults(true));
 
     static {
-        if (!GUILD_DIR.exists())
-            GUILD_DIR.mkdirs();
-        if (!PERSIST_DIR.exists())
-            PERSIST_DIR.mkdirs();
-    }
-
-    private final transient GuildManager guildManager;
-    private transient GuildMusicManager musicManager;
-    private final transient File configFile;
-    private final transient Long guildID;
-    private transient int messageTimeout;
-
-    boolean deleteCommands = false;
-
-    Set<String> prefixes;
-    Map<String, Set<Long>> disabledCommands;
-    boolean isBlacklist = true;
-    Set<Long> blacklistedIDs;
-    Map<String, String> metadata;
-    long cooldown;
-
-    public GuildConfig(GuildManager manager, Long guild) {
-        this.guildManager = manager;
-        this.guildID = guild;
-        this.prefixes = new HashSet<>();
-        this.disabledCommands = new HashMap<>();
-        this.isBlacklist = true;
-        this.blacklistedIDs = new HashSet<>();
-        this.configFile = new File(GUILD_DIR, guild + ".json");
-        this.cooldown = -1;
-    }
-
-    @Override
-    public JsonElement write() {
-        return GSON.toJsonTree(this);
-    }
-
-    @Override
-    public void read(JsonElement jsonElement) {
-        if (jsonElement instanceof JsonObject) {
-            preInit();
-            JsonObject jo = jsonElement.getAsJsonObject();
-            if (jo.has("deleteCommands"))
-                deleteCommands = jo.get("deleteCommands").getAsBoolean();
-            if (jo.has("prefixes"))
-                prefixes = GSON.fromJson(jo.get("prefixes"), TypeToken.getParameterized(HashSet.class, String.class).getType());
-            if (jo.has("disabledCommands"))
-                disabledCommands = GSON.fromJson(jo.get("disabledCommands"), new TypeToken<HashMap<String, Set<Long>>>() {
-                }.getType());
-            if (jo.has("isBlacklist"))
-                isBlacklist = jo.get("isBlacklist").getAsBoolean();
-            if (jo.has("blacklistedIDs"))
-                blacklistedIDs = GSON.fromJson(jo.get("blacklistedIDS"), TypeToken.getParameterized(HashSet.class, String.class).getType());
-            if (jo.has("metadata"))
-                metadata = GSON.fromJson(jo.get("metadata"), TypeToken.getParameterized(HashMap.class, String.class, String.class).getType());
-            if (jo.has("cooldown"))
-                cooldown = jo.get("cooldown").getAsLong();
-            postInit();
+        try {
+            defaults.node("deleteCommands").act(act -> {
+                act.commentIfAbsent("Should we delete command messages");
+                act.getBoolean(true);
+            });
+            defaults.node("prefixes").act(act -> {
+                act.commentIfAbsent("Guild specific command prefixes. These will override the global ones.");
+                act.getList(String.class, BotConfig.get().getGlobalPrefixes());
+            });
+            defaults.node("disabledCommands").act(act -> {
+                act.commentIfAbsent("List of disabled commands");
+                CommentedConfigurationNode value = act.node("unknown");
+                value.getList(Long.class, List.of(-1L, -1L));
+            });
+            defaults.node("isBlacklist").act(act -> {
+                act.commentIfAbsent("Should disabled commands act as a blackist");
+                act.getBoolean(true);
+            });
+            defaults.node("metadata").act(act -> {
+                act.commentIfAbsent("Various guild metadata");
+                CommentedConfigurationNode volume = act.node("volume");
+                volume.getInt(100);
+            });
+            defaults.node("cooldown").act(act -> {
+                act.commentIfAbsent("Guild command cooldown");
+                act.getInt(-1);
+            });
+            defaults.node("messageTimeout").act(act -> {
+                act.commentIfAbsent("Bot message timeout");
+                act.getLong(DiscordUser.getDefaultMessageTimeout());
+            });
+        } catch (SerializationException e) {
+            e.printStackTrace();
         }
     }
 
+    @Getter(value = AccessLevel.NONE)
+    private final HoconConfigurationLoader loader;
+    @Getter(value = AccessLevel.NONE)
+    private CommentedConfigurationNode root;
+
+    private final GuildManager manager;
+    private transient GuildMusicManager musicManager;
+    private final long guildId;
+    private final DiscordReference<Guild> guild;
+
+    public GuildConfig(GuildManager manager, Long guildId) {
+        this.guildId = guildId;
+        this.manager = manager;
+        this.guild = new DiscordReference<>(DiscordBot.get().getShardManager().getGuildById(this.guildId), id -> DiscordBot.get().getShardManager().getGuildById(id));
+        this.root = defaults;
+        Path newPath = GUILD_DIR.resolve(guildId + ".conf");
+        this.loader = HoconConfigurationLoader.builder()
+                .defaultOptions(opts -> opts.shouldCopyDefaults(true))
+                .path(newPath)
+                .build();
+    }
+
     public GuildConfig load() {
-        preInit();
-        ConfigurationUtils.load(guildID + ".json", GUILD_DIR, this);
-        postInit();
+        Path legacy = GUILD_DIR.resolve(guildId + ".json");
+        ConfigurationNode legacyNode = null;
+        if (Files.exists(legacy)) {
+            GsonConfigurationLoader loader = GsonConfigurationLoader.builder().defaultOptions(ConfigurationOptions.defaults().shouldCopyDefaults(true))
+                    .path(legacy)
+                    .build();
+            try {
+                legacyNode = loader.load();
+            } catch (ConfigurateException e) {
+                e.printStackTrace();
+            }
+        }
+
+        try {
+            root = loader.load();
+            if (legacyNode != null) {
+                root.mergeFrom(legacyNode);
+                save();
+            }
+        } catch (ConfigurateException e) {
+            e.printStackTrace();
+        }
         return this;
     }
 
     public GuildConfig save() {
-        ConfigurationUtils.saveData(guildID + ".json", GUILD_DIR, this);
+        try {
+            loader.save(root);
+        } catch (ConfigurateException e) {
+            e.printStackTrace();
+        }
         return this;
     }
 
-    public GuildManager getGuildManager() {
-        return guildManager;
-    }
-
     public GuildMusicManager getMusicManager() {
-        return getMusicManager(true);
-    }
-
-    public GuildMusicManager getMusicManager(boolean instantiate) {
-        if (musicManager == null && instantiate)
+        if (musicManager == null)
             return musicManager = new GuildMusicManager(getGuild());
         return musicManager;
     }
 
     public Long getGuildId() {
-        return guildID;
+        return guildId;
     }
 
     public Guild getGuild() {
-        return DiscordBot.get().getShardManager().getGuildById(guildID);
+        return guild.resolve();
     }
 
     public boolean shouldDeleteCommands() {
-        return deleteCommands;
+        return root.node("deleteCommands").getBoolean();
     }
 
     public void setDeleteCommands(boolean delete) {
-        deleteCommands = delete;
+        setNode(root.node("deleteCommands"), Boolean.class, delete);
     }
 
-    public Set<String> getPrefixes() {
-        return new HashSet<>(prefixes);
+    public List<String> getPrefixes() {
+        return getList(root.node("prefixes"), String.class);
     }
 
-    public void setPrefixes(Set<String> prefixes) {
-        this.prefixes = prefixes;
+    public void setPrefixes(List<String> prefixes) {
+        setList(root.node("prefixes"), String.class, prefixes.toArray(new String[0]));
     }
 
     public void addPrefix(String prefix) {
+        List<String> prefixes = getPrefixes();
         prefixes.add(prefix);
+        setPrefixes(prefixes);
     }
 
-    public HashMap<String, Set<Long>> getDisabledCommands() {
-        return new HashMap<>(disabledCommands);
-    }
-
-    public boolean isBlacklist() {
-        return isBlacklist;
-    }
-
-    public void setBlacklist(boolean blacklist) {
-        isBlacklist = blacklist;
+    public Map<String, Set<Long>> getDisabledCommands() {
+        return getMap(root, TypeToken.get(parameterizedClass(Set.class, Long.class)));
     }
 
     public void setDisabledCommands(Map<String, Set<Long>> commands) {
-        this.disabledCommands = commands;
+        ConfigUtil.setMap(root.node("disabledCommands"), TypeToken.get(parameterizedClass(Set.class, Long.class)), commands);
+    }
+
+    public boolean isBlacklist() {
+        return root.node("isBlacklist").getBoolean();
+    }
+
+    public void setBlacklist(boolean blacklist) {
+        setNode(root.node("isBlacklist"), Boolean.class, blacklist);
     }
 
     public void addDisabledCommand(String command, long groupId) {
-        disabledCommands.computeIfAbsent(command, set -> new HashSet<>()).add(groupId);
+        Map<String, Set<Long>> disabled = getDisabledCommands();
+        Set<Long> disabledRoles = disabled.computeIfAbsent(command, l -> new HashSet<>());
+        disabledRoles.add(groupId);
+        setDisabledCommands(disabled);
     }
 
     public void removeDisabledCommand(String command, long groupId) {
-        if (disabledCommands.containsKey(command)) {
-            Set<Long> ids = disabledCommands.get(command);
-            ids.remove(groupId);
-            if (ids.isEmpty())
-                disabledCommands.remove(command);
-        }
-    }
-
-    public Set<Long> getBlacklistedIDs() {
-        return new HashSet<>(blacklistedIDs);
-    }
-
-    public void setBlacklistedIDs(Set<Long> ids) {
-        this.blacklistedIDs = ids;
-    }
-
-    public void addBlacklistedID(Long id) {
-        blacklistedIDs.add(id);
+        Map<String, Set<Long>> disabled = getDisabledCommands();
+        Set<Long> disabledRoles = disabled.get(command);
+        if (disabledRoles == null)
+            return;
+        disabledRoles.remove(groupId);
+        setDisabledCommands(disabled);
     }
 
     public Map<String, String> getMetadata() {
-        return metadata;
+        return getMap(root.node("metadata"), TypeToken.get(String.class));
     }
 
-    public long getCooldown() {
-        return cooldown;
+    public void setMetadata(Map<String, String> metadata) {
+        setMap(root.node("metadata"), TypeToken.get(TypeFactory.parameterizedClass(Map.class, String.class, String.class)), metadata);
+    }
+
+    public long getCommandCooldown() {
+        return root.node("cooldown").getLong();
     }
 
     public void setCooldown(long cooldown) {
-        this.cooldown = cooldown;
+        setNode(root.node("cooldown"), Long.class, cooldown);
     }
 
-    public boolean hasCooldown() {
-        return cooldown > 0;
+    public boolean hasCommandCooldown() {
+        return getCommandCooldown() > 0;
     }
 
-    public File getConfigFile() {
-        return configFile;
+    public long getMessageTimeout() {
+        return root.node("messageTimeout").getLong();
     }
 
-    protected void preInit() {
+    public void setMessageTimeout(long timeout) {
+        setNode(root.node("messageTimeout"), Long.class, timeout);
     }
 
-    protected void postInit() {
-        if (metadata.containsKey("volume")) {
-            try {
-                int volume = Integer.parseInt(metadata.get("volume"));
-                volume = Math.min(Math.max(1, volume), 100);
-                getMusicManager().getLink().getPlayer().getFilters().setVolume(volume / 100.0f).commit();
-                logger.info("Setting resume volume of { " + getGuild().getName() + " } to " + volume + ".");
+    public void setVolume(float volume) {
+        Map<String, String> metadata = getMetadata();
+        metadata.put("volume", String.valueOf(volume));
+        save();
+    }
 
-            } catch (NumberFormatException e) {
-                metadata.remove("volume");
-                save();
-            }
+    public float getVolume() {
+        Map<String, String> metadata = getMetadata();
+        metadata.computeIfAbsent("volume", k -> "1.0");
+        float metaVolume = Float.parseFloat(metadata.get("volume"));
+        if (metaVolume > 1.0f) {
+            setVolume(metaVolume /= 100.0f);
         }
+        return metaVolume;
     }
 }

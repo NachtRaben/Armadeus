@@ -24,6 +24,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import static dev.armadeus.core.util.ConfigUtil.getList;
+import static dev.armadeus.core.util.ConfigUtil.setNode;
+
 public class BotConfig {
 
     private static final Logger logger = LogManager.getLogger();
@@ -109,7 +112,7 @@ public class BotConfig {
         if (shards < 1) {
             try {
                 shards = getRecommendedShardCount();
-                root.node("shards").set(Integer.class, shards);
+                setNode(root.node("shards"), Integer.class, shards);
                 save();
             } catch (IOException e) {
                 logger.warn("Failed to get recommended shard count", e);
@@ -136,15 +139,11 @@ public class BotConfig {
     }
 
     public List<String> getGlobalPrefixes() {
-        try {
-            return root.node("defaultPrefixes").getList(String.class, Collections.singletonList("./"));
-        } catch (SerializationException e) {
-            logger.error(e);
-            return Collections.singletonList("!!!");
-        }
+        return getList(root.node("defaultPrefixes"), String.class);
     }
 
     public List<Long> getOwnerIds() {
+
         try {
             return root.node("ownerIds").getList(Long.class, Collections.singletonList(118255810613608451L));
         } catch (SerializationException e) {
@@ -155,7 +154,10 @@ public class BotConfig {
 
     public List<Long> getDeveloperIds() {
         try {
-            return root.node("developerIds").getList(Long.class, Collections.singletonList(118255810613608451L));
+            List<Long> developers = new ArrayList<>();
+            developers.addAll(root.node("developerIds").getList(Long.class, Collections.singletonList(118255810613608451L)));
+            developers.addAll(getOwnerIds());
+            return developers;
         } catch (SerializationException e) {
             logger.error(e);
             return Collections.singletonList(118255810613608451L);

@@ -1,4 +1,4 @@
-package dev.armadeus.core.listeners;
+package dev.armadeus.bot.listeners;
 
 import dev.armadeus.core.DiscordBot;
 import dev.armadeus.core.configuration.GuildConfig;
@@ -35,10 +35,8 @@ public class WelcomeListener extends ListenerAdapter {
         // TODO: Implement setting this metadata
         if (action.equalsIgnoreCase("dm")) {
             e.getMember().getUser().openPrivateChannel().queue(pc -> pc.sendMessage(msg).queue());
-        } else if (action.equalsIgnoreCase("message")) {
-            if (msg != null) {
-                e.getGuild().getDefaultChannel().sendMessage(msg).queue();
-            }
+        } else if (action.equalsIgnoreCase("message") && e.getGuild().getDefaultChannel() != null) {
+            e.getGuild().getDefaultChannel().sendMessage(msg).queue();
         }
     }
 

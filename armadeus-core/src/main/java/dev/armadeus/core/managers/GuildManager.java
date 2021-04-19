@@ -22,7 +22,7 @@ public class GuildManager {
         configs = new HashMap<>();
     }
 
-    public GuildConfig getConfigurationFor(Long guildID) {
+    public GuildConfig getConfigurationFor(long guildID) {
         return configs.computeIfAbsent(guildID, __ -> new GuildConfig(this, guildID).load());
     }
 

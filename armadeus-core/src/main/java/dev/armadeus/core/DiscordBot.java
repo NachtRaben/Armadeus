@@ -1,11 +1,13 @@
 package dev.armadeus.core;
 
+import co.aikar.commands.ConditionFailedException;
 import co.aikar.commands.JDACommandExecutionContext;
 import co.aikar.commands.JDACommandManager;
 import co.aikar.commands.JDAOptions;
 import dev.armadeus.core.command.DiscordUser;
 import dev.armadeus.core.configuration.BotConfig;
 import dev.armadeus.core.configuration.GuildConfig;
+import dev.armadeus.core.managers.ExecutorServiceEventManager;
 import dev.armadeus.core.managers.GuildManager;
 import dev.armadeus.core.util.DiscordMetrics;
 import dev.armadeus.core.util.DiscordReference;
@@ -29,7 +31,13 @@ import org.apache.logging.log4j.Logger;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.EnumSet;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
 import static com.google.common.base.Preconditions.checkState;
@@ -38,26 +46,26 @@ import static com.google.common.base.Preconditions.checkState;
 public abstract class DiscordBot {
 
     private static DiscordBot instance;
-
-    private final Logger logger = LogManager.getLogger();
-
     @Getter
     private static OptionSet options;
-
+    private final Logger logger = LogManager.getLogger();
+    private final boolean logMessages = false;
     private ShardManager shardManager;
     private GuildManager guildManager;
     private Thread shutdownHandler;
     private DiscordMetrics dmetrics;
     private JdaLavalink lavalink;
     private JDACommandManager commandManager;
-
     private boolean running = false;
-    private final boolean logMessages = false;
 
     public DiscordBot(OptionSet options) {
         checkState(instance == null, "The DiscordBot has already been initialized!");
         instance = this;
         DiscordBot.options = options;
+    }
+
+    public static DiscordBot get() {
+        return instance;
     }
 
     public void start() {
@@ -85,14 +93,15 @@ public abstract class DiscordBot {
         try {
             shardManager = DefaultShardManagerBuilder.createDefault(BotConfig.get().getToken(), GatewayIntent.getIntents(GatewayIntent.ALL_INTENTS))
                     .enableCache(EnumSet.allOf(CacheFlag.class))
+                    .setEventManagerProvider(ExecutorServiceEventManager::get)
                     .setActivity(Activity.playing("Armadeus"))
                     .setMemberCachePolicy(MemberCachePolicy.ALL) // Fetch ALL members
                     .setChunkingFilter(ChunkingFilter.ALL) // Chunk member data
                     .addEventListeners(lavalink) // Lavalink Listener
+                    .setEnableShutdownHook(false)
                     .setVoiceDispatchInterceptor(lavalink.getVoiceInterceptor()) // Lavalink websocket listeners
                     .setShardsTotal(BotConfig.get().getShardCount())
                     .build();
-
         } catch (Exception e) {
             logger.error("Failed to start Armadeus", e);
             System.exit(-1);
@@ -100,12 +109,13 @@ public abstract class DiscordBot {
         while (shardManager.getShards().stream().anyMatch(jda -> jda.getStatus() != JDA.Status.CONNECTED)) {
             try {
                 Thread.sleep(100);
-            } catch (InterruptedException ignored) {}
+            } catch (InterruptedException ignored) {
+            }
         }
 
         // Lavalink initialization
         lavalink.setUserId(shardManager.getShards().get(0).getSelfUser().getId());
-        for(Tuple3<String, String, String> node : BotConfig.get().getLavalinkNodes()) {
+        for (Tuple3<String, String, String> node : BotConfig.get().getLavalinkNodes()) {
             try {
                 lavalink.addNode(node.getV1(), new URI(node.getV2()), node.getV3());
             } catch (URISyntaxException e) {
@@ -116,38 +126,36 @@ public abstract class DiscordBot {
         // Aikar Transition
         JDAOptions options = new JDAOptions();
         options.configProvider(event -> () -> {
+            if (isDevMode() && !BotConfig.get().getDeveloperIds().contains(event.getAuthor().getIdLong())) {
+                return List.of("\u0000");
+            }
             long id = shardManager.getShards().get(0).getSelfUser().getIdLong();
             Set<String> prefixes = new HashSet<>(List.of("<@" + id + "> ", "<@!" + id + "> "));
-            if(event.isFromGuild()) {
+            if (event.isFromGuild()) {
                 GuildConfig config = getGuildManager().getConfigurationFor(event.getGuild());
                 prefixes.addAll(config.getPrefixes());
             }
-            if(prefixes.size() < 3) {
+            if (prefixes.size() < 3) {
                 prefixes.addAll(BotConfig.get().getGlobalPrefixes());
             }
             return new ArrayList<>(prefixes);
         });
 
         commandManager = new JDACommandManager(shardManager, options);
-        commandManager.getCommandContexts().registerIssuerOnlyContext(DiscordUser.class, context -> new DiscordUser(((JDACommandExecutionContext) context).getIssuer().getEvent()));
-    }
-
-    protected void postStart() {
-        dmetrics = new DiscordMetrics(this);
-        try {
-            Thread.sleep(2000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-    }
-
-
-    public boolean isDevMode() {
-        return options.has("dev-mode");
+        commandManager.getCommandContexts().registerIssuerOnlyContext(DiscordUser.class, c -> new DiscordUser(((JDACommandExecutionContext) c).getIssuer().getEvent()));
+        commandManager.getCommandConditions().addCondition("developeronly", context -> {
+            if (!BotConfig.get().getDeveloperIds().contains(context.getIssuer().getEvent().getAuthor().getIdLong())) {
+                throw new ConditionFailedException("Only the bot developers can use this command");
+            }
+        });
     }
 
     public void shutdown() {
         shutdown(0);
+    }
+
+    public boolean isDevMode() {
+        return options.has("dev-mode");
     }
 
     public void shutdown(int code) {
@@ -161,7 +169,7 @@ public abstract class DiscordBot {
         DiscordMetrics.shutdown();
         Utils.stopExecutors();
         Iterator<Map.Entry<DiscordReference<Message>, CompletableFuture<?>>> it = DiscordUser.getPendingDeletions().entrySet().iterator();
-        while(it.hasNext()) {
+        while (it.hasNext()) {
             Map.Entry<DiscordReference<Message>, CompletableFuture<?>> entry = it.next();
             Message message = entry.getKey().resolve();
             if (message != null) {
@@ -169,12 +177,17 @@ public abstract class DiscordBot {
             }
             it.remove();
         }
+        lavalink.shutdown();
         shardManager.shutdown();
         Runtime.getRuntime().halt(code);
     }
 
-    public static DiscordBot get() {
-        return instance;
+    protected void postStart() {
+        dmetrics = new DiscordMetrics(this);
+        try {
+            Thread.sleep(2000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
-
 }

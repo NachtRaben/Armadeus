@@ -6,9 +6,14 @@ import com.sedmelluq.discord.lavaplayer.track.AudioTrackEndReason;
 import dev.armadeus.core.DiscordBot;
 import dev.armadeus.core.command.DiscordUser;
 import dev.armadeus.core.managers.GuildMusicManager;
-import dev.armadeus.core.util.Utils;
+import dev.armadeus.core.util.EmbedUtils;
 import lavalink.client.player.IPlayer;
-import lavalink.client.player.event.*;
+import lavalink.client.player.event.IPlayerEventListener;
+import lavalink.client.player.event.PlayerEvent;
+import lavalink.client.player.event.TrackEndEvent;
+import lavalink.client.player.event.TrackExceptionEvent;
+import lavalink.client.player.event.TrackStartEvent;
+import lavalink.client.player.event.TrackStuckEvent;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.VoiceChannel;
@@ -237,7 +242,7 @@ public class TrackScheduler extends AudioEventAdapter implements IPlayerEventLis
     }
 
     private void sendEmbed(AudioTrack track, DiscordUser sender) {
-        EmbedBuilder builder = Utils.getAudioTrackEmbed(track, sender);
+        EmbedBuilder builder = EmbedUtils.getNowPlayingEmbed(sender, track);
         sender.sendMessage(builder.build());
     }
 

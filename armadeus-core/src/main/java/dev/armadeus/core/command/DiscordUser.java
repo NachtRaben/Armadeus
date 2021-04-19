@@ -2,12 +2,21 @@ package dev.armadeus.core.command;
 
 import dev.armadeus.core.DiscordBot;
 import dev.armadeus.core.configuration.GuildConfig;
+import dev.armadeus.core.managers.GuildMusicManager;
 import dev.armadeus.core.util.DiscordReference;
 import lombok.Getter;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.MessageBuilder;
 import net.dv8tion.jda.api.Permission;
-import net.dv8tion.jda.api.entities.*;
+import net.dv8tion.jda.api.entities.ChannelType;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.MessageChannel;
+import net.dv8tion.jda.api.entities.MessageEmbed;
+import net.dv8tion.jda.api.entities.TextChannel;
+import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.entities.VoiceChannel;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.sharding.ShardManager;
 import org.apache.logging.log4j.LogManager;
@@ -24,6 +33,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 public class DiscordUser {
 
     private static final Logger logger = LogManager.getLogger();
+    @Getter
     private static final int defaultMessageTimeout = 30;
     @Getter
     private static final Map<DiscordReference<Message>, CompletableFuture<?>> pendingDeletions = new ConcurrentHashMap<>();
@@ -40,7 +50,7 @@ public class DiscordUser {
 
     public DiscordUser(MessageReceivedEvent event) {
         this.message = new DiscordReference<>(event.getMessage(), id -> channel.resolve().getHistory().getMessageById(id));
-        this.user = new DiscordReference<>(event.getAuthor(), id -> shardManager.getUserById(id));
+        this.user = new DiscordReference<>(event.getAuthor(), shardManager::getUserById);
         this.channel = new DiscordReference<>(event.getChannel(), id -> {
             switch (event.getChannelType()) {
                 case TEXT:
@@ -52,7 +62,7 @@ public class DiscordUser {
             }
         });
         if (event.isFromGuild()) {
-            this.guild = new DiscordReference<>(event.getGuild(), id -> shardManager.getGuildById(id));
+            this.guild = new DiscordReference<>(event.getGuild(), shardManager::getGuildById);
             this.member = new DiscordReference<>(event.getMember(), id -> guild.resolve().getMemberById(id));
             if(getGuildConfig().shouldDeleteCommands()) {
                 purge(message.resolve(), 0);
@@ -71,6 +81,10 @@ public class DiscordUser {
 
     public GuildConfig getGuildConfig() {
         return guild != null ? DiscordBot.get().getGuildManager().getConfigurationFor(guild.resolve()) : null;
+    }
+
+    public GuildMusicManager getGuildMusicManager() {
+        return guild != null ? getGuildConfig().getMusicManager() : null;
     }
 
     public Member getMember() {
@@ -113,7 +127,7 @@ public class DiscordUser {
         sendMessage(message, 0);
     }
 
-    public void sendMessage(String message, int purgeAfter) {
+    public void sendMessage(String message, long purgeAfter) {
         checkArgument(message != null && !message.isBlank(), "Empty Message");
         MessageBuilder builder = new MessageBuilder(message);
         sendAndPurge(builder.build(), channel.resolve(), purgeAfter);
@@ -123,7 +137,7 @@ public class DiscordUser {
         sendMessage(embed, 0);
     }
 
-    public void sendMessage(MessageEmbed embed, int purgeAfter) {
+    public void sendMessage(MessageEmbed embed, long purgeAfter) {
         checkArgument(message != null && embed.isSendable(), "Empty Message");
         MessageBuilder builder = new MessageBuilder(embed);
         sendAndPurge(builder.build(), channel.resolve(), purgeAfter);
@@ -134,7 +148,7 @@ public class DiscordUser {
         sendPrivateMessage(message, -1);
     }
 
-    public void sendPrivateMessage(String message, int purgeAfter) {
+    public void sendPrivateMessage(String message, long purgeAfter) {
         checkArgument(message != null && !message.isBlank(), "Empty Message");
         MessageBuilder builder = new MessageBuilder(message);
         sendAndPurge(builder.build(), channel.resolve(), purgeAfter);
@@ -144,27 +158,27 @@ public class DiscordUser {
         sendPrivateMessage(embed, -1);
     }
 
-    public void sendPrivateMessage(MessageEmbed embed, int purgeAfter) {
+    public void sendPrivateMessage(MessageEmbed embed, long purgeAfter) {
         checkArgument(message != null && embed.isSendable(), "Empty Message");
         MessageBuilder builder = new MessageBuilder(embed);
         sendAndPurge(builder.build(), channel.resolve(), purgeAfter);
     }
 
-    public void sendPrivateMessage(Message message, int purgeAfter) {
+    public void sendPrivateMessage(Message message, long purgeAfter) {
         getUser().openPrivateChannel().queue(channel -> {
             sendAndPurge(message, channel, purgeAfter);
         });
     }
 
-    private void sendAndPurge(Message message, MessageChannel channel, int purgeAfter) {
+    private void sendAndPurge(Message message, MessageChannel channel, long purgeAfter) {
         if (channel.getType() == ChannelType.TEXT && purgeAfter == 0) {
-            int guildMessageTimeout = getGuildConfig().getMessageTimeout();
+            long guildMessageTimeout = getGuildConfig().getMessageTimeout();
             purgeAfter = guildMessageTimeout == 0 ? defaultMessageTimeout : guildMessageTimeout;
         }
         if (channel.getType() == ChannelType.TEXT && !((TextChannel) channel).canTalk()) {
             sendPrivateMessage(message, purgeAfter);
         }
-        int finalPurgeAfter = purgeAfter;
+        long finalPurgeAfter = purgeAfter;
         channel.sendMessage(message).submit()
                 .thenAccept(m -> {
                     purge(m, finalPurgeAfter);
@@ -179,7 +193,7 @@ public class DiscordUser {
                 });
     }
 
-    private void purge(Message message, int purgeAfter) {
+    private void purge(Message message, long purgeAfter) {
         if (purgeAfter == -1)
             return;
 

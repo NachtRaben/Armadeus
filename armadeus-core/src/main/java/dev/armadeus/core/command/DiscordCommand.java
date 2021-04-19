@@ -6,6 +6,6 @@ import org.apache.logging.log4j.Logger;
 
 public abstract class DiscordCommand extends BaseCommand {
 
-    protected Logger logger = LogManager.getLogger();
+    protected Logger logger = LogManager.getLogger(getClass());
 
 }

@@ -42,8 +42,8 @@ allprojects {
     }
 
     configurations.all {
-        resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
-        resolutionStrategy.cacheDynamicVersionsFor 0, 'seconds'
+        resolutionStrategy.cacheChangingModulesFor 15, 'seconds'
+        resolutionStrategy.cacheDynamicVersionsFor 15, 'seconds'
     }
 
     compileJava.options.encoding = javadoc.options.encoding = "UTF-8"

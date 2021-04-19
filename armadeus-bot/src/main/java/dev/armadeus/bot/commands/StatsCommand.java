@@ -6,7 +6,7 @@ import com.sedmelluq.discord.lavaplayer.tools.PlayerLibrary;
 import dev.armadeus.bot.Armadeus;
 import dev.armadeus.core.command.DiscordCommand;
 import dev.armadeus.core.command.DiscordUser;
-import dev.armadeus.core.util.EmbedUtil;
+import dev.armadeus.core.util.EmbedUtils;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDAInfo;
@@ -64,7 +64,7 @@ public class StatsCommand extends DiscordCommand {
                 Armadeus.getInstance().getLavalink().getLinks().stream().filter(link -> link.getChannel() != null).count(),
                 Armadeus.getInstance().getShardManager().getGuilds().size(),
                 Armadeus.getInstance().getShardManager().getUsers().size());
-        EmbedBuilder eb = EmbedUtil.newBuilder(user);
+        EmbedBuilder eb = EmbedUtils.newBuilder(user);
         eb.setDescription(stats);
         user.sendMessage(eb.build());
     }

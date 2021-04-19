@@ -1,0 +1,29 @@
+package dev.armadeus.bot.commands.audio;
+
+import co.aikar.commands.annotation.CommandAlias;
+import co.aikar.commands.annotation.Conditions;
+import co.aikar.commands.annotation.Description;
+import dev.armadeus.core.command.DiscordUser;
+
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+public class PlayCommand extends AudioCommand {
+
+    private static final Pattern LIMIT_MATCH = Pattern.compile("-{1,2}limit[\\s=](\\d+)");
+
+    @Conditions("guildonly")
+    @CommandAlias("play")
+    @Description("Request the specified track")
+    public void play(DiscordUser user, String identifier) {
+        int limit = 1;
+        Matcher matcher = LIMIT_MATCH.matcher(identifier);
+        if (matcher.find()) {
+            limit = Integer.parseInt(matcher.group(1));
+            identifier = identifier.replaceAll(LIMIT_MATCH.pattern(), "").trim();
+        }
+        if (canInteractMusic(user)) {
+            user.getGuildMusicManager().loadAndPlay(user, identifier, limit);
+        }
+    }
+}

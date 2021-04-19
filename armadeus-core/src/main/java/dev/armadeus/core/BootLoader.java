@@ -18,12 +18,13 @@ import static java.util.Arrays.asList;
 
 public class BootLoader {
 
-    private static final Logger logger = LogManager.getLogger();
-
     private static DiscordBot source;
 
     public static void main(String... args) {
+        System.setProperty("java.util.logging.manager", "org.apache.logging.log4j.jul.LogManager");
+        Logger logger = LogManager.getLogger();
         OptionParser parser = new OptionParser() {
+
             {
                 acceptsAll(asList("?", "help"), "Show the help");
                 acceptsAll(asList("t", "token"), "Override bot token from CLI")

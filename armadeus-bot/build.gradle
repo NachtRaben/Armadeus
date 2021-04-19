@@ -4,10 +4,6 @@ plugins {
     id 'java-library'
 }
 
-jar {
-    mainClassName = 'com.nachtraben.armadeus.Armadeus'
-}
-
 repositories {
     // JDA and utilities
     maven { name 'm2-dv8tion'; url 'https://m2.dv8tion.net/releases' }

@@ -1,5 +1,6 @@
 package dev.armadeus.bot;
 
+import dev.armadeus.bot.listeners.WelcomeListener;
 import dev.armadeus.core.DiscordBot;
 import dev.armadeus.core.command.DiscordCommand;
 import joptsimple.OptionSet;
@@ -12,6 +13,7 @@ import org.reflections.util.ClasspathHelper;
 import org.reflections.util.ConfigurationBuilder;
 
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Modifier;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -20,38 +22,36 @@ public class Armadeus extends DiscordBot {
 
     private static final Logger logger = LogManager.getLogger();
 
-    private static Armadeus instance;
-
     private final ConcurrentHashMap<Long, Map<Long, Long>> cooldowns = new ConcurrentHashMap<>();
     @Getter
     private final ConcurrentHashMap<Long, Long> pings = new ConcurrentHashMap<>();
 
     public Armadeus(OptionSet options) {
         super(options);
-        instance = this;
     }
 
     @Override
     public void start() {
         super.start();
+        getShardManager().addEventListener(new WelcomeListener(get()));
         long start = System.currentTimeMillis();
         logger.debug("Took " + (System.currentTimeMillis() - start) + "ms to load all shards.");
-//        registerCommands();
-//        getCommandBase().registerEventListener(this);
         registerACFCommands();
         postStart();
     }
 
     private void registerACFCommands() {
         Reflections reflections = new Reflections(new ConfigurationBuilder()
-                .setUrls(ClasspathHelper.forPackage("dev.armadeus.bot.acfcommands"))
+                .setUrls(ClasspathHelper.forPackage("dev.armadeus.bot.commands"))
                 .setScanners(new SubTypesScanner())
         );
 
         reflections.getSubTypesOf(DiscordCommand.class).forEach(clazz -> {
             try {
-                logger.info("Registering command class {}", clazz.getSimpleName());
-                getCommandManager().registerCommand(clazz.getConstructor().newInstance());
+                if (!clazz.isSynthetic() && !clazz.isAnonymousClass() && !Modifier.isAbstract(clazz.getModifiers())) {
+                    logger.info("Registering command class {}", clazz.getSimpleName());
+                    getCommandManager().registerCommand(clazz.getConstructor().newInstance());
+                }
             } catch (InvocationTargetException | InstantiationException | IllegalAccessException | NoSuchMethodException e) {
                 logger.error("Failed to register command class", e);
             }
@@ -59,49 +59,8 @@ public class Armadeus extends DiscordBot {
 
     }
 
-//    private void registerCommands() {
-//        Reflections reflections = new Reflections(
-//                new ConfigurationBuilder()
-//                        .setUrls(ClasspathHelper.forPackage("dev.armadeus.bot.commands"))
-//                        .setScanners(
-//                                new SubTypesScanner(),
-//                                new MethodAnnotationsScanner()
-//                        ).filterInputsBy(new FilterBuilder().includePackage("dev.armadeus.bot.commands"))
-//        );
-//        Set<Class<?>> classes = new HashSet<>();
-//        for (Method m : reflections.getMethodsAnnotatedWith(Cmd.class)) {
-//            if (!classes.contains(m.getDeclaringClass())) {
-//                classes.add(m.getDeclaringClass());
-//                try {
-//                    logger.warn("Registering command class " + m.getDeclaringClass());
-//                    getCommandBase().registerCommands(m.getDeclaringClass().getConstructor().newInstance());
-//                } catch (Exception e) {
-//                    logger.error("Failed to register command class, " + m.getDeclaringClass() + ".", e);
-//                }
-//            }
-//        }
-//        for (Class<?> s : reflections.getSubTypesOf(Command.class)) {
-//            try {
-//                if (!s.isSynthetic() && !s.isAnonymousClass() && !Modifier.isAbstract(s.getModifiers())) {
-//                    logger.warn("Registering command class " + s);
-//                    getCommandBase().registerCommands(s.getConstructor().newInstance());
-//                }
-//            } catch (Exception e) {
-//                logger.error("Failed to instantiate command class, " + s.getSimpleName() + ".", e);
-//            }
-//        }
-//        for (Class<?> s : reflections.getSubTypesOf(CommandTree.class)) {
-//            try {
-//                logger.warn("Registering command class " + s);
-//                getCommandBase().registerCommands(s.getConstructor().newInstance());
-//            } catch (Exception e) {
-//                logger.error("Failed to instantiate command class, " + s.getSimpleName() + ".", e);
-//            }
-//        }
-//    }
-
     public static Armadeus getInstance() {
-        return instance;
+        return (Armadeus) DiscordBot.get();
     }
 
 //    @Override
