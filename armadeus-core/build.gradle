@@ -35,18 +35,13 @@ dependencies {
     // Discord
 //    implementation group: 'net.dv8tion', name: 'JDA', version: jdaVersion, changing: true // JDA-Prod
     api group: 'com.github.DV8FromTheWorld', name: 'JDA', version: jdaDevVersion, changing: true // JDA-Dev
-    api group: 'com.github.freyacodes', name: 'Lavalink-Client', version: 'f05605ea64' // Lavalink
+    api("com.github.KittyBot-Org:Lavalink-Client:master-SNAPSHOT") { // Lavalink
+        exclude module: 'JDA'
+    }
     api group: 'com.sedmelluq', name: 'lavaplayer', version: lavaplayerVersion, changing: true // Lavaplayer-Classes
 
-    // Commands
-    api group: 'co.aikar', name: 'acf-jda-sharded', version: '0.5.0-SNAPSHOT', changing: true
-
     // In-House
-//    implementation group: rootProject.group, name: 'commands', version: rootProject.version, changing: true // Commands
-//    implementation 'com.github.NachtRaben:OrangeSlice:760b4494a2'
-    api 'com.github.NachtRaben:LemonSlice:5958b6e659'
-    api 'com.github.NachtRaben:PineappleSlice:0825a28910'
-
+    api group: 'co.aikar', name: 'acf-jda-sharded', version: '0.5.0-SNAPSHOT', changing: true
 
     // Utility
     api group: 'net.sf.jopt-simple', name: 'jopt-simple', version: '5.0.4' // Command Line Args

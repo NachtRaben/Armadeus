@@ -17,8 +17,7 @@ public class VolumeCommand extends AudioCommand {
         GuildMusicManager manager = user.getGuildMusicManager();
         if (volume != null) {
             float vol = Math.max(0.0f, Math.min(1.0f, volume.floatValue() / 100.0f));
-            manager.getPlayer().getFilters().setVolume(vol).commit();
-            user.getGuildConfig().setVolume(vol);
+            manager.setVolume(vol);
         }
         user.sendMessage("The volume is currently `" + manager.getPlayer().getFilters().getVolume() * 100.0f + "`%");
     }

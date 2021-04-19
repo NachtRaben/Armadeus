@@ -11,7 +11,7 @@ public class StopCommand extends AudioCommand {
     @CommandAlias("stop")
     public void stop(DiscordUser user) {
         GuildMusicManager manager = user.getGuildMusicManager();
-        if (manager.getLink().getChannel() != null) {
+        if (manager.getLink().getChannelId() != -1) {
             manager.getScheduler().stop();
             manager.getLink().destroy();
         }

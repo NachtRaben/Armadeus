@@ -15,6 +15,7 @@ import dev.armadeus.core.util.Utils;
 import groovy.lang.Tuple3;
 import joptsimple.OptionSet;
 import lavalink.client.io.LavalinkLoadBalancer;
+import lavalink.client.io.Link;
 import lavalink.client.io.jda.JdaLavalink;
 import lombok.Getter;
 import net.dv8tion.jda.api.JDA;
@@ -177,6 +178,7 @@ public abstract class DiscordBot {
             }
             it.remove();
         }
+        lavalink.getLinks().forEach(Link::destroy);
         lavalink.shutdown();
         shardManager.shutdown();
         Runtime.getRuntime().halt(code);

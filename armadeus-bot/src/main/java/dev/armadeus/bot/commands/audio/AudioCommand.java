@@ -8,14 +8,14 @@ public abstract class AudioCommand extends DiscordCommand {
 
     protected boolean cannotQueueMusic(DiscordUser user) {
         if (!user.isFromGuild()) return true;
-        String userChannel = user.getVoiceChannel() != null ? user.getVoiceChannel().getId() : null;
-        String botChannel = user.getGuildMusicManager().getLink().getChannel();
+        long userChannel = user.getVoiceChannel() != null ? user.getVoiceChannel().getIdLong() : -1;
+        long botChannel = user.getGuildMusicManager().getLink().getChannelId();
 
-        if (userChannel == null) {
+        if (userChannel == -1) {
             user.sendMessage("You are not in a voice channel, you cannot execute this command.");
             return true;
         }
-        if (botChannel != null && !userChannel.equals(botChannel)) {
+        if (botChannel != -1 && userChannel != botChannel) {
             user.sendMessage("You are not in the same channel as the bot. The queue must be stopped or the bot must be moved.");
             return true;
         }

@@ -93,8 +93,8 @@ public class ListenCommand extends AudioCommand {
         public void run() {
             GuildMusicManager manager = user.getGuildMusicManager();
             while (!Thread.interrupted() && !error.get()) {
-                String botChannel = manager.getLink().getChannel();
-                if (user.getVoiceChannel() == null || (botChannel != null && !user.getVoiceChannel().getId().equals(botChannel))) {
+                long botChannel = manager.getLink().getChannelId();
+                if (user.getVoiceChannel() == null || (botChannel != -1 && user.getVoiceChannel().getIdLong() != botChannel)) {
                     break;
                 }
 

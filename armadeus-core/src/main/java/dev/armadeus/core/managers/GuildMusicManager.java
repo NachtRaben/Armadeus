@@ -9,6 +9,7 @@ import dev.armadeus.core.DiscordBot;
 import dev.armadeus.core.audio.TrackScheduler;
 import dev.armadeus.core.command.DiscordUser;
 import dev.armadeus.core.configuration.GuildConfig;
+import lavalink.client.io.filters.Filters;
 import lavalink.client.io.jda.JdaLink;
 import lavalink.client.player.LavalinkPlayer;
 import lombok.Getter;
@@ -27,33 +28,65 @@ public class GuildMusicManager {
     private static final Logger logger = LogManager.getLogger();
 
     private final GuildConfig config;
-    private TrackScheduler scheduler;
     public Map<Long, Future<?>> listeners = new HashMap<>();
     float[] bands = new float[]{ 0.075f, 0.0375f, 0.03f, 0.022499999f, 0.0f, -0.015f, -0.022499999f, -0.0375f, -0.022499999f, -0.015f, 0.0f, 0.022499999f, 0.03f, 0.0375f, 0.075f };
+    private TrackScheduler scheduler;
 
     public GuildMusicManager(GuildConfig config) {
         this.config = config;
     }
 
-    public JdaLink getLink() {
-        JdaLink link = DiscordBot.get().getLavalink().getExistingLink(config.getGuild());
-        if (link == null) {
-            link = DiscordBot.get().getLavalink().getLink(config.getGuild());
-            initializePlayer(link.getPlayer());
+    private static void trackLoaded(DiscordUser user, AudioTrack track) {
+        user.sendMessage(String.format("Adding to queue, `%s` by `%s`.", track.getInfo().title, track.getInfo().author));
+        track.setUserData(user);
+        user.getGuildConfig().getMusicManager().getScheduler().queue(track);
+    }
+
+    public static void playlistLoaded(DiscordUser user, AudioPlaylist playlist, int limit) {
+        int start = playlist.getSelectedTrack() != null ? playlist.getTracks().indexOf(playlist.getSelectedTrack()) : 0; // Index of the starting track
+        int available = playlist.getTracks().size() - start; // Songs available after the starting track
+        int end = limit > 0 ? Math.min(limit, available) : available;
+        int loaded = 0;
+        for (int i = 0; i < end; i++) {
+            AudioTrack track = playlist.getTracks().get(start + i);
+            if (track == null) {
+                break;
+            }
+            track.setUserData(user);
+            user.getGuildConfig().getMusicManager().getScheduler().queue(track);
+            loaded++;
         }
-        return link;
+        if (limit > 1) {
+            user.sendMessage(String.format("Adding `%s` tracks to the queue from `%s`. :3.", loaded, playlist.getName()));
+        } else {
+            AudioTrack track = playlist.getTracks().get(0);
+            user.sendMessage(String.format("Adding to queue, `%s` by `%s`.", track.getInfo().title, track.getInfo().author));
+        }
     }
 
     public LavalinkPlayer getPlayer() {
         return getLink().getPlayer();
     }
 
+    public JdaLink getLink() {
+        JdaLink link = DiscordBot.get().getLavalink().getExistingLink(config.getGuild());
+        if (link == null || link.getNode() == null) {
+            link = DiscordBot.get().getLavalink().getLink(config.getGuild());
+            link.getNode(true);
+            initializePlayer(link.getPlayer());
+        }
+        return link;
+    }
+
     private void initializePlayer(LavalinkPlayer player) {
         logger.info("Setting resume volume of {} to {}", config.getGuild().getName(), config.getVolume());
-        player.getFilters().setVolume(config.getVolume()).commit();
+        // TODO: Fuck lavalink
+        player.setVolume((int) (config.getVolume() * 100));
+        Filters filters = player.getFilters().setVolume(config.getVolume());
         for (int i = 0; i < this.bands.length; i++) {
-            player.getFilters().setBand(i, this.bands[i]).commit();
+            filters = filters.setBand(i, this.bands[i]);
         }
+        filters.commit();
         this.scheduler = new TrackScheduler(this);
         player.addListener(scheduler);
     }
@@ -109,31 +142,9 @@ public class GuildMusicManager {
         });
     }
 
-    private static void trackLoaded(DiscordUser user, AudioTrack track) {
-        user.sendMessage(String.format("Adding to queue, `%s` by `%s`.", track.getInfo().title, track.getInfo().author));
-        track.setUserData(user);
-        user.getGuildConfig().getMusicManager().getScheduler().queue(track);
-    }
-
-    public static void playlistLoaded(DiscordUser user, AudioPlaylist playlist, int limit) {
-        int start = playlist.getSelectedTrack() != null ? playlist.getTracks().indexOf(playlist.getSelectedTrack()) : 0; // Index of the starting track
-        int available = playlist.getTracks().size() - start; // Songs available after the starting track
-        int end = limit > 0 ? Math.min(limit, available) : available;
-        int loaded = 0;
-        for (int i = 0; i < end; i++) {
-            AudioTrack track = playlist.getTracks().get(start + i);
-            if (track == null) {
-                break;
-            }
-            track.setUserData(user);
-            user.getGuildConfig().getMusicManager().getScheduler().queue(track);
-            loaded++;
-        }
-        if (limit > 1) {
-            user.sendMessage(String.format("Adding `%s` tracks to the queue from `%s`. :3.", loaded, playlist.getName()));
-        } else {
-            AudioTrack track = playlist.getTracks().get(0);
-            user.sendMessage(String.format("Adding to queue, `%s` by `%s`.", track.getInfo().title, track.getInfo().author));
-        }
+    public void setVolume(float vol) {
+        config.setVolume(vol);
+        getPlayer().setVolume((int) (vol * 100.0));
+        getPlayer().getFilters().setVolume(vol).commit();
     }
 }
