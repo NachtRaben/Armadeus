@@ -5,6 +5,7 @@ guilds/
 scripts/
 src/test/
 *.log
+run/
 
 # music
 *.mp3
