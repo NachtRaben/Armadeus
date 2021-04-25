@@ -44,7 +44,7 @@ public class ListenCommand extends AudioCommand {
             return;
         }
 
-        manager.listeners.put(user.getUser().getIdLong(), ArmaCore.get().getScheduler().buildTask(ArmaAudio.get(), new ListenRunnable(user)).delay(1, TimeUnit.SECONDS).repeat(3, TimeUnit.SECONDS).schedule());
+        manager.listeners.put(user.getUser().getIdLong(), ArmaCore.get().getScheduler().buildTask(ArmaAudio.get(), new ListenRunnable(user)).delay(1, TimeUnit.SECONDS).repeat(10, TimeUnit.SECONDS).schedule());
     }
 
     private static class SpotifyPresence {

@@ -15,7 +15,6 @@ import net.dv8tion.jda.api.entities.VoiceChannel;
 
 public interface DiscordCommandIssuer extends CommandIssuer {
 
-    @Getter
     int defaultPurgeDelay = 30;
     Message getMessage();
     User getUser();
