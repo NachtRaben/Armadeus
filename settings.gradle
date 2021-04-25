@@ -1,6 +1,6 @@
 rootProject.name = 'Armadeus'
 
-def importModule(name) {
+def importProject(name) {
     def tokens = name.split("/")
     def projectName = tokens.length > 1 ? Arrays.copyOfRange(tokens, 1, tokens.length).join("-") : tokens[0]
     include(projectName)
@@ -8,6 +8,11 @@ def importModule(name) {
     project.setProjectDir(new File("$name"))
 }
 
-importModule("armadeus-bot")
-importModule("armadeus-core")
+importProject("armadeus")
+
+importProject("arma-api")
+importProject("arma-core")
+importProject("modules/arma-audio")
+//importProject("modules/frontend")
+//importProject("modules/audio");
 

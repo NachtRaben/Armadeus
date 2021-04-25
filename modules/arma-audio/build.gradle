@@ -1,0 +1,62 @@
+plugins {
+    id 'idea'
+    id 'java-library'
+    id 'com.github.johnrengelman.shadow'
+    id 'nu.studer.jooq' version '5.2.1'
+}
+
+repositories {
+    mavenCentral()
+    // JDA and utilities
+    maven { name 'm2-dv8tion'; url 'https://m2.dv8tion.net/releases' }
+}
+
+dependencies {
+    jooqGenerator group: 'org.postgresql', name: 'postgresql', version: '42.2.19'
+    compileOnly project(":arma-api") // API
+    compileOnly project(":arma-core") // API
+    annotationProcessor project(":arma-api")
+
+    // Lombok
+    compileOnly group: 'org.projectlombok', name: 'lombok', version: lombokVersion
+    annotationProcessor group: 'org.projectlombok', name: 'lombok', version: lombokVersion
+
+    implementation group: 'dev.armadeus', name: 'LL-Client', version: 'master', changing: true // Lavalink
+}
+
+task copyPluginJar(type: Copy) {
+    from shadowJar
+    into '../../run/plugins/'
+}
+
+jooq {
+    version = '3.14.8'
+    edition = nu.studer.gradle.jooq.JooqEdition.OSS
+    configurations {
+        main {
+            generateSchemaSourceOnCompilation = false
+            generationTool {
+                logging = org.jooq.meta.jaxb.Logging.INFO
+                jdbc {
+                    driver = 'org.postgresql.Driver'
+                    url = postgresUrl
+                    user = postgresUser
+                    password = postgresPass
+                }
+                generator {
+                    name = 'org.jooq.codegen.DefaultGenerator'
+                    database {
+                        name = 'org.jooq.meta.postgres.PostgresDatabase'
+                        includes = 'lavalink'
+                        excludes = ''
+                        inputSchema = 'public'
+                    }
+                    target {
+                        packageName = 'dev.armadeus.discord.audio.database'
+                        directory = 'src/database/java'  // default (can be omitted)
+                    }
+                }
+            }
+        }
+    }
+}

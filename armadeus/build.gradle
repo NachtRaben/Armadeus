@@ -1,0 +1,43 @@
+plugins {
+    id 'idea'
+    id 'java-library'
+    id 'com.github.johnrengelman.shadow'
+}
+
+repositories {
+    // JDA and utilities
+    maven { name 'm2-dv8tion'; url 'https://m2.dv8tion.net/releases' }
+    // JDA Developmental
+    maven { url 'https://jitpack.io' }
+    // ImageBoard API
+    maven { name "Kodehawa"; url "https://dl.bintray.com/kodehawa/maven" }
+    // Kyori Dependencies
+    maven { name "Sonatype"; url 'https://oss.sonatype.org/content/groups/public/' }
+}
+
+dependencies {
+    compileOnly project(":arma-api") // API
+    annotationProcessor project(":arma-api")
+
+    compileOnly project(":arma-audio");
+
+    // Lombok
+    compileOnly group: 'org.projectlombok', name: 'lombok', version: lombokVersion
+    annotationProcessor group: 'org.projectlombok', name: 'lombok', version: lombokVersion
+
+    // For Commands
+    implementation group: 'net.kodehawa', name: 'imageboard-api', version: '2.4.1' // ImageBoard API
+    implementation group: 'org.codehaus.groovy', name: 'groovy-all', version: groovyVersion
+
+}
+
+compileJava {
+    options.compilerArgs += ["-parameters"]
+    options.fork = true
+    options.forkOptions.executable = 'javac'
+}
+
+task copyPluginJar(type: Copy) {
+    from shadowJar
+    into '../run/plugins/'
+}
