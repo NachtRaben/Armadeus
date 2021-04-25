@@ -93,7 +93,6 @@ public class GuildManagerImpl implements GuildManager {
     }
 
     private void saveGuilds() {
-        logger.warn("Tick");
         TomlWriter tomlWriter = TomlFormat.instance().createWriter();
         for (Map.Entry<Long, GuildConfig> entry : cache.asMap().entrySet()) {
             long guildId = entry.getKey();
