@@ -123,7 +123,7 @@ public class TrackScheduler extends AudioEventAdapter implements IPlayerEventLis
     }
 
     public boolean isPlaying() {
-        return currentTrack != null && manager.getPlayer().getPlayingTrack() != null;
+        return manager.getPlayer().getPlayingTrack() != null;
     }
 
     public boolean joinVoiceChannel(DiscordCommandIssuer user) {
