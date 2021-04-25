@@ -286,40 +286,15 @@ public class ArmaCoreImpl extends ArmaCore {
         guildManager.shutdown();
         eventManager.shutdown();
         scheduler.shutdown();
+        if(shardManager != null)
+            shardManager.shutdown();
     }
 
 //    public void shutdown(int code) {
-//        if (shutdownHandler != null) {
-//            try {
-//                Runtime.getRuntime().removeShutdownHook(shutdownHandler);
-//            } catch (Exception ignored) {}
-//        }
-//        DiscordMetrics.shutdown();
-//        Utils.stopExecutors();
-//        Iterator<Map.Entry<DiscordReference<Message>, CompletableFuture<?>>> it = CommandSenderImpl.getPendingDeletions().entrySet().iterator();
-//        while (it.hasNext()) {
-//            Map.Entry<DiscordReference<Message>, CompletableFuture<?>> entry = it.next();
-//            Message message = entry.getKey().resolve();
-//            if (message != null) {
-//                message.delete().complete();
-//            }
-//            it.remove();
-//        }
 //        lavalink.getLinks().forEach(link -> {
 //            if(link.getChannelId() != -1) {
 //                link.getPlayer().stopTrack();
 //            }
 //            link.destroy();
 //        });
-//        try {
-//            Thread.sleep(1000);
-//        } catch (InterruptedException ignored) {}
-////        lavalink.shutdown();
-//        shardManager.shutdown();
-//        Runtime.getRuntime().halt(code);
-//    }
-
-//    protected void postStart() {
-//        dmetrics = new DiscordMetrics(this);
-//    }
 }
