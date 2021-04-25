@@ -1,0 +1,31 @@
+#Rate-limit in seconds for command executions
+#Set to 0 to disable
+commandCooldown = 0
+#Delay in seconds for bot responses to be deleted
+#Set to -1 to disable
+#Set to 0 to use the default (120 Seconds)
+purgeDelay = 0
+#Should the bot delete user generated command message
+deleteCommands = true
+#Guild specific prefixes the bot will respond to
+#These will override any global prefixes defined by the bot
+prefixes = []
+#List of command permissions to disabled in the guild
+#These tokens can be regex to match multiple command permissions
+disabledCommands = ["command.unknown", "command.unknown2.*"]
+
+#List of command permissions to disable per role
+#These tokens can be regex to match multiple command permissions
+[disabledCommandsByRole]
+	123456789L = ["command.unknown", "command.unknown2.*"]
+
+#Metadata stored by other modules of the bot
+[metadata]
+
+	[metadata.example]
+		exampleKey = "exampleValue"
+
+
+	[metadata.example2]
+		exampleKey2 = "exampleValue2"
+

@@ -1,0 +1,44 @@
+plugins {
+    id 'idea'
+    id 'application'
+    id 'java-library'
+}
+
+jar {
+    mainClassName = 'dev.armadeus.core.Bootloader'
+}
+
+dependencies {
+    // Lombok
+    compileOnly group: 'org.projectlombok', name: 'lombok', version: lombokVersion
+    annotationProcessor group: 'org.projectlombok', name: 'lombok', version: lombokVersion
+
+    // API
+    implementation project(':arma-api')
+    implementation project(':arma-api').sourceSets.ap.output
+
+    // VelocityImpl
+    implementation 'org.lanternpowered:lmbda:2.0.0-SNAPSHOT'
+    implementation 'com.github.ben-manes.caffeine:caffeine:2.8.8'
+
+    // DatabaseImpl
+    implementation group: 'com.zaxxer', name: 'HikariCP', version: '4.0.3'
+
+    // LoggingImpl
+    implementation group: 'org.apache.logging.log4j', name: 'log4j-core', version: log4jVersion // Log4j2 Implementation
+    implementation group: 'org.apache.logging.log4j', name: 'log4j-jul', version: log4jVersion // JUL -> Log4j2 Converter
+    implementation group: 'org.apache.logging.log4j', name: 'log4j-slf4j18-impl', version: log4jVersion // Slf4J -> Log4j2 Converter
+
+    // Utility
+    api group: 'net.sf.jopt-simple', name: 'jopt-simple', version: '5.0.4' // Command Line Args
+    implementation group: 'org.spongepowered', name: 'configurate-hocon', version: configurateVersion // Configuration Files
+    implementation group: 'org.spongepowered', name: 'configurate-gson', version: configurateVersion // Configuration Files
+
+    api group: 'com.google.guava', name: 'guava', version: '30.0-jre' // TODO: Phase out
+}
+
+compileJava {
+    options.compilerArgs += ["-parameters"]
+    options.fork = true
+    options.forkOptions.executable = 'javac'
+}
