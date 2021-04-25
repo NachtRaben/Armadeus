@@ -14,7 +14,8 @@ import java.util.List;
 
 public class QueueShowCommand extends AudioCommand {
 
-    private static final String trackDescription = "\n**[%s](%s)** ) %s for (`%s`)";
+    private static final String trackDescription = "\n**[%s](%s)** ) `%s` for (`%s`)";
+
 
     @Conditions("guildonly")
     @CommandAlias("queue")

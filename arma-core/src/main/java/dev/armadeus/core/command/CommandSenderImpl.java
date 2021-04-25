@@ -32,8 +32,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 public class CommandSenderImpl extends JDACommandEvent implements DiscordCommandIssuer {
 
     private static final Logger logger = LogManager.getLogger();
-    @Getter
-    private static final int defaultMessageTimeout = 30;
+
     @Getter
     private static final Map<DiscordReference<Message>, CompletableFuture<?>> pendingDeletions = new ConcurrentHashMap<>();
 
@@ -165,7 +164,7 @@ public class CommandSenderImpl extends JDACommandEvent implements DiscordCommand
     private void sendAndPurge(Message message, MessageChannel channel, long purgeAfter) {
         if (channel.getType() == ChannelType.TEXT && purgeAfter == 0) {
             long guildMessageTimeout = getGuildConfig().getPurgeDelay();
-            purgeAfter = guildMessageTimeout != 0 ? guildMessageTimeout : defaultMessageTimeout;
+            purgeAfter = guildMessageTimeout != 0 ? guildMessageTimeout : defaultPurgeDelay;
         } else if (channel.getType() == ChannelType.PRIVATE) {
             purgeAfter = -1;
         }

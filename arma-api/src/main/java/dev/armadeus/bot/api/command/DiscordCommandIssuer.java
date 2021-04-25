@@ -2,6 +2,7 @@ package dev.armadeus.bot.api.command;
 
 import co.aikar.commands.CommandIssuer;
 import dev.armadeus.bot.api.config.GuildConfig;
+import lombok.Getter;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
@@ -14,6 +15,8 @@ import net.dv8tion.jda.api.entities.VoiceChannel;
 
 public interface DiscordCommandIssuer extends CommandIssuer {
 
+    @Getter
+    int defaultPurgeDelay = 30;
     Message getMessage();
     User getUser();
     MessageChannel getChannel();

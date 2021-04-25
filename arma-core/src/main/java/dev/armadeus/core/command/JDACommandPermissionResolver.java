@@ -1,5 +1,6 @@
 package dev.armadeus.core.command;
 
+import dev.armadeus.bot.api.ArmaCore;
 import net.dv8tion.jda.api.Permission;
 
 import java.util.HashMap;
@@ -18,8 +19,8 @@ public class JDACommandPermissionResolver implements CommandPermissionResolver {
 
     @Override
     public boolean hasPermission(JDACommandManager manager, JDACommandEvent event, String permission) {
-        // Explicitly return true if the issuer is the bot's owner. They are always allowed.
-        if (manager.getBotOwnerId() == event.getIssuer().getAuthor().getIdLong()) {
+        // Explicitly return true if the issuer a developer. They are always allowed.
+        if (ArmaCore.get().getArmaConfig().getDeveloperIds().contains(event.getIssuer().getAuthor().getIdLong())) {
             return true;
         }
 
@@ -33,8 +34,10 @@ public class JDACommandPermissionResolver implements CommandPermissionResolver {
             return false;
         }
 
-        return event.getIssuer().getMember().hasPermission(
-                Permission.getFromOffset(permissionOffset)
-        );
+        if(event.getIssuer().getMember() != null) {
+            return event.getIssuer().getMember().hasPermission(Permission.getFromOffset(permissionOffset));
+        } else {
+            return false;
+        }
     }
 }
