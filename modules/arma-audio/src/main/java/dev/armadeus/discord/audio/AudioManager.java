@@ -35,18 +35,18 @@ public class AudioManager {
     private TrackScheduler scheduler;
     private LavalinkPlayer player;
 
-    private float getVolume() {
+    private double getVolume() {
         return audioConfig.get("volume");
     }
 
     public AudioManager(Guild guild) {
         this.config = ArmaCore.get().getGuildManager().getConfigFor(guild);
-        this.audioConfig = config.getMetadataOrInitialize("arma-audio", conf -> conf.set("volume", 1.0f));
+        this.audioConfig = config.getMetadataOrInitialize("arma-audio", conf -> conf.set("volume", 1.0));
         this.player = getLink().getPlayer();
         logger.info("Setting resume vol for {} to {}", guild.getName(), audioConfig.get("volume"));
         player.getLink().getNode(true);
         Filters filters = player.getFilters();
-        filters = filters.setVolume(getVolume());
+        filters = filters.setVolume((float)getVolume());
         for (int i = 0; i < this.bands.length; i++) {
             filters = filters.setBand(i, this.bands[i]);
         }
@@ -78,10 +78,10 @@ public class AudioManager {
         }
     }
 
-    public void setVolume(float vol) {
-        vol = Math.min(1.0f, vol);
+    public void setVolume(double vol) {
+        vol = Math.min(1.0, vol);
         audioConfig.set("volume", vol);
-        getPlayer().getFilters().setVolume(vol).commit();
+        getPlayer().getFilters().setVolume((float)vol).commit();
     }
 
     public LavalinkPlayer getPlayer() {
