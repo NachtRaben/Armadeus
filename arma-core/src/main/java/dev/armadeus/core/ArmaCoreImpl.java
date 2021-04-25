@@ -17,6 +17,7 @@ import dev.armadeus.core.guild.GuildManagerImpl;
 import dev.armadeus.core.managers.ExecutorServiceEventManager;
 import joptsimple.OptionSet;
 import lombok.Getter;
+import lombok.SneakyThrows;
 import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.events.ReadyEvent;
@@ -44,7 +45,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.google.common.base.Preconditions.checkState;
@@ -267,12 +267,9 @@ public class ArmaCoreImpl extends ArmaCore {
 //        logger.info("Command System Initialized");
 //    }
 
-    public void shutdown(boolean explicitExit) throws InterruptedException {
-        try {
-            String s = String.valueOf(eventManager.fire(String.class).get());
-        } catch (InterruptedException | ExecutionException e) {
-            logger.error("Failed to send shutdown event", e);
-        }
+    @SneakyThrows
+    public void shutdown(boolean explicitExit) {
+        String s = String.valueOf(eventManager.fire(String.class).get());
 
         Iterator<Map.Entry<DiscordReference<Message>, CompletableFuture<?>>> it = CommandSenderImpl.getPendingDeletions().entrySet().iterator();
         while (it.hasNext()) {
@@ -286,7 +283,7 @@ public class ArmaCoreImpl extends ArmaCore {
         guildManager.shutdown();
         eventManager.shutdown();
         scheduler.shutdown();
-        if(shardManager != null)
+        if (shardManager != null)
             shardManager.shutdown();
     }
 
