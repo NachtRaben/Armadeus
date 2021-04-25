@@ -13,12 +13,16 @@ import static java.util.Arrays.asList;
 
 public class BootLoader {
 
-    public static void main(String... args) {
+    private static final Logger logger;
+
+    static {
         // Override LUL LogManager with an Log4J2 LogManager
         System.setProperty("java.util.logging.manager", "org.apache.logging.log4j.jul.LogManager");
+        logger = LogManager.getLogger();
+    }
 
+    public static void main(String[] args) {
         // Standard CLI arguments parser
-        Logger logger = LogManager.getLogger();
         OptionParser parser = new OptionParser() {{
             acceptsAll(asList("?", "help"), "Show the help");
             acceptsAll(asList("t", "token"), "Override bot token from CLI")

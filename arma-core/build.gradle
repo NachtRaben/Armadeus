@@ -1,12 +1,24 @@
+import com.github.jengelman.gradle.plugins.shadow.transformers.Log4j2PluginsCacheFileTransformer
+
 plugins {
     id 'idea'
-    id 'application'
     id 'java-library'
     id 'com.github.johnrengelman.shadow'
 }
 
 jar {
-    mainClassName = 'dev.armadeus.core.Bootloader'
+    manifest {
+        attributes "Main-Class": "dev.armadeus.core.BootLoader"
+        attributes 'Implementation-Title': "ArmaCore"
+        attributes 'Implementation-Version': version
+        attributes 'Implementation-Vendor': "Armadeus Devs"
+        attributes 'Multi-Release': 'true'
+        attributes 'Add-Opens': 'java.base/java.lang'
+    }
+}
+
+shadowJar {
+    transform(Log4j2PluginsCacheFileTransformer)
 }
 
 dependencies {
@@ -36,6 +48,10 @@ dependencies {
     implementation group: 'org.spongepowered', name: 'configurate-gson', version: configurateVersion // Configuration Files
 
     api group: 'com.google.guava', name: 'guava', version: '30.0-jre' // TODO: Phase out
+}
+
+shadowJar {
+    mergeServiceFiles()
 }
 
 compileJava {
