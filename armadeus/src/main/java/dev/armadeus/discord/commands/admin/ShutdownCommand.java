@@ -11,6 +11,7 @@ public class ShutdownCommand extends DiscordCommand {
     @CommandAlias("shutdown")
     public void shutdown(DiscordCommandIssuer user) {
         // TODO: Implement shutdown
+        System.exit(0);
 //        ArmaCore.get().shutdown();
     }
 }

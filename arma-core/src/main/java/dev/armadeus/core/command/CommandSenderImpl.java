@@ -3,6 +3,7 @@ package dev.armadeus.core.command;
 import dev.armadeus.bot.api.ArmaCore;
 import dev.armadeus.bot.api.command.DiscordCommandIssuer;
 import dev.armadeus.bot.api.config.GuildConfig;
+import dev.armadeus.bot.api.util.DiscordReference;
 import lombok.Getter;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.MessageBuilder;
@@ -34,7 +35,7 @@ public class CommandSenderImpl extends JDACommandEvent implements DiscordCommand
     @Getter
     private static final int defaultMessageTimeout = 30;
     @Getter
-    private static final Map<Message, CompletableFuture<?>> pendingDeletions = new ConcurrentHashMap<>();
+    private static final Map<DiscordReference<Message>, CompletableFuture<?>> pendingDeletions = new ConcurrentHashMap<>();
 
     // Instance settings
     private final ArmaCore core;
@@ -61,7 +62,7 @@ public class CommandSenderImpl extends JDACommandEvent implements DiscordCommand
 
         if (purge) {
             synchronized (pendingDeletions) {
-                pendingDeletions.put(message, message.delete().submitAfter(purgeAfter, TimeUnit.SECONDS).thenAccept(aVoid ->
+                pendingDeletions.put(new DiscordReference<>(message, id -> getChannel().getHistory().getMessageById(id)), message.delete().submitAfter(purgeAfter, TimeUnit.SECONDS).thenAccept(aVoid ->
                         pendingDeletions.remove(message)
                 ));
             }

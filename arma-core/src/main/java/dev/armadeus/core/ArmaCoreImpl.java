@@ -8,6 +8,8 @@ import com.velocitypowered.impl.plugin.VelocityPluginManager;
 import com.velocitypowered.impl.scheduler.VelocityScheduler;
 import dev.armadeus.bot.api.ArmaCore;
 import dev.armadeus.bot.api.config.GuildConfig;
+import dev.armadeus.bot.api.util.DiscordReference;
+import dev.armadeus.core.command.CommandSenderImpl;
 import dev.armadeus.core.command.JDACommandManager;
 import dev.armadeus.core.command.JDAOptions;
 import dev.armadeus.core.config.ArmaConfigImpl;
@@ -16,6 +18,7 @@ import dev.armadeus.core.managers.ExecutorServiceEventManager;
 import joptsimple.OptionSet;
 import lombok.Getter;
 import net.dv8tion.jda.api.entities.Activity;
+import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.events.ReadyEvent;
 import net.dv8tion.jda.api.hooks.EventListener;
 import net.dv8tion.jda.api.requests.GatewayIntent;
@@ -35,9 +38,13 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.google.common.base.Preconditions.checkState;
@@ -97,34 +104,6 @@ public class ArmaCoreImpl extends ArmaCore {
             LogManager.shutdown();
             System.exit(-1);
         }
-    }
-
-    private void loadCommandManager() {
-        logger.info("Initializing command manager...");
-        JDAOptions options = new JDAOptions();
-        options.configProvider(event -> () -> {
-            if (isDevMode() && !armaConfig.getDeveloperIds().contains(event.getAuthor().getIdLong())) {
-                return List.of("\u0000");
-            }
-            long id = shardManager.getShards().get(0).getSelfUser().getIdLong();
-            Set<String> prefixes = new HashSet<>(List.of("<@" + id + "> ", "<@!" + id + "> "));
-            if (event.isFromGuild()) {
-                GuildConfig config = guildManager.getConfigFor(event.getGuild());
-                prefixes.addAll(config.getPrefixes());
-            }
-            if (prefixes.size() < 3) {
-                prefixes.addAll(armaConfig.getDefaultPrefixes());
-            }
-            return new ArrayList<>(prefixes);
-        });
-        commandManager.initialize(options);
-        commandManager.enableUnstableAPI("help");
-        commandManager.getCommandConditions().addCondition("developeronly", context -> {
-            if (!armaConfig.getDeveloperIds().contains(context.getIssuer().getEvent().getAuthor().getIdLong())) {
-                throw new ConditionFailedException("Only the bot developers can use this command");
-            }
-        });
-        eventManager.fireAndForget(commandManager);
     }
 
     private void loadPlugins() {
@@ -215,6 +194,34 @@ public class ArmaCoreImpl extends ArmaCore {
         logger.info("JDA loaded");
     }
 
+    private void loadCommandManager() {
+        logger.info("Initializing command manager...");
+        JDAOptions options = new JDAOptions();
+        options.configProvider(event -> () -> {
+            if (isDevMode() && !armaConfig.getDeveloperIds().contains(event.getAuthor().getIdLong())) {
+                return List.of("\u0000");
+            }
+            long id = shardManager.getShards().get(0).getSelfUser().getIdLong();
+            Set<String> prefixes = new HashSet<>(List.of("<@" + id + "> ", "<@!" + id + "> "));
+            if (event.isFromGuild()) {
+                GuildConfig config = guildManager.getConfigFor(event.getGuild());
+                prefixes.addAll(config.getPrefixes());
+            }
+            if (prefixes.size() < 3) {
+                prefixes.addAll(armaConfig.getDefaultPrefixes());
+            }
+            return new ArrayList<>(prefixes);
+        });
+        commandManager.initialize(options);
+        commandManager.enableUnstableAPI("help");
+        commandManager.getCommandConditions().addCondition("developeronly", context -> {
+            if (!armaConfig.getDeveloperIds().contains(context.getIssuer().getEvent().getAuthor().getIdLong())) {
+                throw new ConditionFailedException("Only the bot developers can use this command");
+            }
+        });
+        eventManager.fireAndForget(commandManager);
+    }
+
     public boolean isDevMode() {
         return options.has("dev-mode");
     }
@@ -260,8 +267,25 @@ public class ArmaCoreImpl extends ArmaCore {
 //        logger.info("Command System Initialized");
 //    }
 
-    public void shutdown(boolean explicitExit) {
+    public void shutdown(boolean explicitExit) throws InterruptedException {
+        try {
+            String s = String.valueOf(eventManager.fire(String.class).get());
+        } catch (InterruptedException | ExecutionException e) {
+            logger.error("Failed to send shutdown event", e);
+        }
 
+        Iterator<Map.Entry<DiscordReference<Message>, CompletableFuture<?>>> it = CommandSenderImpl.getPendingDeletions().entrySet().iterator();
+        while (it.hasNext()) {
+            Map.Entry<DiscordReference<Message>, CompletableFuture<?>> entry = it.next();
+            Message message = entry.getKey().resolve();
+            if (message != null) {
+                message.delete().complete();
+            }
+            it.remove();
+        }
+        guildManager.shutdown();
+        eventManager.shutdown();
+        scheduler.shutdown();
     }
 
 //    public void shutdown(int code) {
