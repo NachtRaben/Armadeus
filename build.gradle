@@ -1,9 +1,6 @@
 buildscript {
     repositories {
-        maven {
-            url "https://plugins.gradle.org/m2/"
-        }
-        jcenter()
+        maven { url "https://plugins.gradle.org/m2/" }
     }
 
     dependencies {
@@ -19,17 +16,12 @@ buildscript {
         postgresPass = loadProperty("postgres.dev.armadeus.pass")
         postgresUrl = loadProperty("postgres.dev.armadeus.url")
     }
-
-}
-
-plugins {
-    id 'idea'
-    id 'java-library'
-    id 'application'
-    id "com.github.johnrengelman.shadow" version "6.1.0"
 }
 
 allprojects {
+    apply plugin: 'idea'
+    apply plugin: 'java-library'
+
     group 'dev.armadeus'
     version GIT_BRANCH
 
@@ -61,15 +53,13 @@ allprojects {
         maven {
             name = "NachtRaben-Nexus"
             url = "https://nachtraben.com/nexus/repository/maven-public/"
-            credentials {
-                username = nexusUser
-                password = nexusPass
-            }
         }
+        // JDA Dependencies
+        maven { name 'm2-dv8tion'; url 'https://m2.dv8tion.net/releases' }
         // Aikar Dependencies
         maven { name "Aikar"; url "https://repo.aikar.co/content/groups/aikar/" }
-        // JDA and utilities
-        maven { name 'm2-dv8tion'; url 'https://m2.dv8tion.net/releases' }
+        // Lmbda
+        maven { name "Sonatype"; url "https://oss.sonatype.org/content/repositories/snapshots/" }
     }
 
     task sourcesJar(type: Jar, dependsOn: classes) {

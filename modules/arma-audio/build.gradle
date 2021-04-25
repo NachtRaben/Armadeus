@@ -5,12 +5,6 @@ plugins {
     id 'nu.studer.jooq' version '5.2.1'
 }
 
-repositories {
-    mavenCentral()
-    // JDA and utilities
-    maven { name 'm2-dv8tion'; url 'https://m2.dv8tion.net/releases' }
-}
-
 dependencies {
     jooqGenerator group: 'org.postgresql', name: 'postgresql', version: '42.2.19'
     compileOnly project(":arma-api") // API

@@ -5,14 +5,8 @@ plugins {
 }
 
 repositories {
-    // JDA and utilities
-    maven { name 'm2-dv8tion'; url 'https://m2.dv8tion.net/releases' }
-    // JDA Developmental
-    maven { url 'https://jitpack.io' }
     // ImageBoard API
     maven { name "Kodehawa"; url "https://dl.bintray.com/kodehawa/maven" }
-    // Kyori Dependencies
-    maven { name "Sonatype"; url 'https://oss.sonatype.org/content/groups/public/' }
 }
 
 dependencies {
