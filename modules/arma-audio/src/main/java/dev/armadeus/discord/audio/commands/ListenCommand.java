@@ -38,6 +38,7 @@ public class ListenCommand extends AudioCommand {
         } else if (future != null && !listen) {
             future.cancel();
             user.sendMessage("Sorry Senpai~, guess I'm not good enough to listen to you :c");
+            manager.getListeners().remove(user.getUser().getIdLong());
             return;
         } else if (future != null) {
             user.sendMessage("Senpai~ I'm already listening to UwU");
