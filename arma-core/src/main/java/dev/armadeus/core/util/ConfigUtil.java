@@ -18,7 +18,7 @@ public class ConfigUtil {
                 continue;
             }
             // Check for missing config
-            if(entry.getComment() != null && !dest.commentMap().get(entry.getKey()).equals(entry.getComment())) {
+            if(entry.getComment() != null && (!dest.getComments().containsKey(entry.getKey()) || !dest.commentMap().get(entry.getKey()).equals(entry.getComment()))) {
 //                logger.warn("Adding missing comment {} \"{}\"", entry.getKey(), entry.getComment());
                 dest.commentMap().put(entry.getKey(), entry.getComment());
             }
