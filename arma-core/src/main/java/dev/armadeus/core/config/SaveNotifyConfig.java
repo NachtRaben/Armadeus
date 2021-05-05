@@ -81,19 +81,12 @@ public class SaveNotifyConfig extends CommentedConfigWrapper<CommentedConfig> {
     }
 
     public void save() {
-        if(parent != null) {
-            parent.save();
-            return;
-        }
         needsSaved.set(true);
     }
 
     public AtomicBoolean needsSaved() {
-        return needsSaved;
-    }
 
-    public SaveNotifyConfig createSubConfig() {
-        return new SaveNotifyConfig(this, super.createSubConfig());
+        return needsSaved;
     }
 
 }

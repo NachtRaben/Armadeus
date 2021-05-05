@@ -226,47 +226,6 @@ public class ArmaCoreImpl extends ArmaCore {
         return options.has("dev-mode");
     }
 
-//    public void start() {
-    // Shutdown Hook
-//        logger.info("Installing shutdown hooks...");
-//        shutdownHandler = new Thread(this::shutdown);
-//        Runtime.getRuntime().addShutdownHook(shutdownHandler);
-//        Thread.setDefaultUncaughtExceptionHandler((t, e) -> {
-//            System.err.println("Uncaught exception in { " + t.getName() + " }.");
-//            e.printStackTrace();
-//        });
-//        logger.info("Shutdown hooks installed");
-//
-//
-//        logger.info("Loading configuration...");
-//        ArmaConfigImpl.load();
-//        ArmaConfigImpl.save();
-//        logger.info("Configuration loaded");
-//
-//        logger.info("Loading Guild Manager...");
-//        guildManager = new GuildManager(this);
-//        logger.info("Guild Manager loaded");
-//
-//        logger.info("Loading LavaLink...");
-////
-//        logger.info("LavaLink loaded");
-
-    // Lavalink initialization
-//        logger.info("Registering LavaLink nodes...");
-//        lavalink.setUserId(shardManager.getShards().get(0).getSelfUser().getId());
-//        for (Tuple3<String, String, String> node : BotConfig.get().getLavalinkNodes()) {
-//            try {
-//                lavalink.addNode(node.getV1(), new URI(node.getV2()), node.getV3());
-//                logger.info("Registering LavaLinkNode {}@{}", node.getV1(), node.getV2());
-//            } catch (URISyntaxException e) {
-//                logger.error("URI error while mapping LavaLinkNodes nodes", e);
-//            }
-//        }
-//        logger.info("LavaLink nodes registered");
-
-//        logger.info("Command System Initialized");
-//    }
-
     @SneakyThrows
     public void shutdown(boolean explicitExit) {
         String s = String.valueOf(eventManager.fire(String.class).get());
@@ -276,7 +235,9 @@ public class ArmaCoreImpl extends ArmaCore {
             Map.Entry<DiscordReference<Message>, CompletableFuture<?>> entry = it.next();
             Message message = entry.getKey().resolve();
             if (message != null) {
-                message.delete().complete();
+                try {
+                    message.delete().complete();
+                } catch (Exception ignored) {}
             }
             it.remove();
         }
@@ -286,12 +247,4 @@ public class ArmaCoreImpl extends ArmaCore {
         if (shardManager != null)
             shardManager.shutdown();
     }
-
-//    public void shutdown(int code) {
-//        lavalink.getLinks().forEach(link -> {
-//            if(link.getChannelId() != -1) {
-//                link.getPlayer().stopTrack();
-//            }
-//            link.destroy();
-//        });
 }

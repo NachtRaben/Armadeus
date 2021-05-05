@@ -13,19 +13,18 @@ prefixes = []
 #List of command permissions to disabled in the guild
 #These tokens can be regex to match multiple command permissions
 disabledCommands = ["command.unknown", "command.unknown2.*"]
-
+#Developer guild, used to enable developer bots in this guild
+#If a dev instance is enabled, any other bots will not respond to commands
+#Only allowing the dev instance to respond
+devGuild = false
 #List of command permissions to disable per role
 #These tokens can be regex to match multiple command permissions
 [disabledCommandsByRole]
 	123456789L = ["command.unknown", "command.unknown2.*"]
 
-#Metadata stored by other modules of the bot
+#Metadata stored by other modules of the bot for guild specific settings
 [metadata]
 
 	[metadata.example]
 		exampleKey = "exampleValue"
-
-
-	[metadata.example2]
-		exampleKey2 = "exampleValue2"
 

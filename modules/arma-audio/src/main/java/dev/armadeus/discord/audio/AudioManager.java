@@ -1,6 +1,7 @@
 package dev.armadeus.discord.audio;
 
 import com.electronwill.nightconfig.core.CommentedConfig;
+import com.sedmelluq.discord.lavaplayer.player.AudioConfiguration;
 import com.sedmelluq.discord.lavaplayer.player.AudioLoadResultHandler;
 import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
 import com.sedmelluq.discord.lavaplayer.track.AudioPlaylist;
@@ -10,9 +11,9 @@ import com.velocitypowered.api.scheduler.ScheduledTask;
 import dev.armadeus.bot.api.ArmaCore;
 import dev.armadeus.bot.api.command.DiscordCommandIssuer;
 import dev.armadeus.bot.api.config.GuildConfig;
+import dev.armadeus.discord.audio.util.PlayerWrapper;
 import lavalink.client.io.filters.Filters;
 import lavalink.client.io.jda.JdaLink;
-import lavalink.client.player.LavalinkPlayer;
 import lombok.Getter;
 import net.dv8tion.jda.api.entities.Guild;
 import org.slf4j.Logger;
@@ -33,16 +34,12 @@ public class AudioManager {
     public Map<Long, ScheduledTask> listeners = new HashMap<Long, com.velocitypowered.api.scheduler.ScheduledTask>();
     float[] bands = new float[]{ 0.075f, 0.0375f, 0.03f, 0.022499999f, 0.0f, -0.015f, -0.022499999f, -0.0375f, -0.022499999f, -0.015f, 0.0f, 0.022499999f, 0.03f, 0.0375f, 0.075f };
     private TrackScheduler scheduler;
-    private LavalinkPlayer player;
-
-    private double getVolume() {
-        return audioConfig.get("volume");
-    }
+    private PlayerWrapper player;
 
     public AudioManager(Guild guild) {
         this.config = ArmaCore.get().getGuildManager().getConfigFor(guild);
         this.audioConfig = config.getMetadataOrInitialize("arma-audio", conf -> conf.set("volume", 1.0));
-        this.player = getLink().getPlayer();
+        this.player = new PlayerWrapper(getLink().getPlayer());
         logger.info("Setting resume vol for {} to {}", guild.getName(), audioConfig.get("volume"));
         player.getLink().getNode(true);
         Filters filters = player.getFilters();
@@ -53,6 +50,10 @@ public class AudioManager {
         filters.commit();
         this.scheduler = new TrackScheduler(this);
         player.addListener(scheduler);
+    }
+
+    private double getVolume() {
+        return audioConfig.get("volume");
     }
 
     public JdaLink getLink() {
@@ -79,12 +80,13 @@ public class AudioManager {
     }
 
     public void setVolume(double vol) {
-        vol = Math.min(1.0, vol);
+        vol = Math.min(Math.max(vol, 0.0), 1.0);
         audioConfig.set("volume", vol);
+        config.save();
         getPlayer().getFilters().setVolume((float)vol).commit();
     }
 
-    public LavalinkPlayer getPlayer() {
+    public PlayerWrapper getPlayer() {
         return player;
     }
 

@@ -127,6 +127,7 @@ public class GuildManagerImpl implements GuildManager {
         try {
             return cache.get(guildId, () -> {
                 URL defaultGuildConfigLocation = GuildManagerImpl.class.getClassLoader().getResource("configs/guild-config.toml");
+                assert defaultGuildConfigLocation != null;
                 checkNotNull(defaultGuildConfigLocation, "Default guild configuration does not exist");
                 CommentedConfig defaults = TomlFormat.instance().createParser().parse(defaultGuildConfigLocation);
                 CommentedConfig config;

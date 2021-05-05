@@ -1,5 +1,6 @@
 package dev.armadeus.discord.audio;
 
+import com.google.common.base.MoreObjects;
 import com.sedmelluq.discord.lavaplayer.player.event.AudioEventAdapter;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackEndReason;
@@ -55,14 +56,12 @@ public class TrackScheduler extends AudioEventAdapter implements IPlayerEventLis
     }
 
     public void play(AudioTrack track) {
-        currentTrack = track;
         logger.info("Playing track {} in {}", track.getInfo().title, manager.getConfig().getGuild().getName());
         DiscordCommandIssuer user = track.getUserData(DiscordCommandIssuer.class);
 
         // No requester set or banned
-        if(user == null) {
-            logger.warn("Null user objected provided");
-            Thread.dumpStack();
+        if (user == null) {
+            logger.warn("Null track requester");
             skip();
             return;
         }
@@ -78,7 +77,9 @@ public class TrackScheduler extends AudioEventAdapter implements IPlayerEventLis
             return;
         }
         sendEmbed(track, user);
+        long start = System.currentTimeMillis();
         manager.getPlayer().playTrack(track);
+        logger.warn("Took {} ms to play track", System.currentTimeMillis() - start);
     }
 
     public void stop() {
@@ -88,7 +89,9 @@ public class TrackScheduler extends AudioEventAdapter implements IPlayerEventLis
             manager.getPlayer().setPaused(false);
             queue.clear();
             if (isPlaying()) {
+                long start = System.currentTimeMillis();
                 manager.getPlayer().stopTrack();
+                logger.warn("Took {} ms to stop track", System.currentTimeMillis() - start);
             }
             currentTrack = null;
         }
@@ -123,7 +126,7 @@ public class TrackScheduler extends AudioEventAdapter implements IPlayerEventLis
     }
 
     public boolean isPlaying() {
-        return manager.getPlayer().getPlayingTrack() != null;
+        return currentTrack != null;
     }
 
     public boolean joinVoiceChannel(DiscordCommandIssuer user) {
@@ -132,13 +135,13 @@ public class TrackScheduler extends AudioEventAdapter implements IPlayerEventLis
         if (connected != -1 && isPlaying()) {
             return true;
         }
-        if(userChannel != null) {
+        if (userChannel != null) {
             try {
                 manager.getLink().connect(userChannel);
                 logger.info("Connecting to {} in {}", userChannel.getName(), userChannel.getGuild().getName());
                 return true;
             } catch (InsufficientPermissionException e) {
-                user.sendMessage(String.join("\n","Failed to join your channel because of missing permission `" + e.getPermission() + "`",
+                user.sendMessage(String.join("\n", "Failed to join your channel because of missing permission `" + e.getPermission() + "`",
                         "This may be due to a discord bug, please ensure the bot is an `Administrator` or add a channel specific override for `VOICE_CONNECT` and `VOICE_MOVE_OTHERS`"));
             }
         }
@@ -263,6 +266,7 @@ public class TrackScheduler extends AudioEventAdapter implements IPlayerEventLis
     }
 
     private void onTrackStart(TrackStartEvent event) {
-        logger.warn("I got a track start event!");
+        currentTrack = event.getTrack();
     }
+
 }

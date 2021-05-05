@@ -137,6 +137,12 @@ public class GuildConfigImpl implements GuildConfig {
     }
 
     @Override
+    public GuildConfig save() {
+        ((SaveNotifyConfig)config).save();
+        return this;
+    }
+
+    @Override
     public Guild getGuild() {
         return ArmaCore.get().getShardManager().getGuildById(guildId);
     }

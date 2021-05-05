@@ -11,6 +11,7 @@ import dev.armadeus.bot.api.util.StringUtils;
 import dev.armadeus.bot.api.util.TimeUtil;
 import dev.armadeus.discord.audio.ArmaAudio;
 import dev.armadeus.discord.audio.AudioManager;
+import dev.armadeus.discord.audio.AudioRequester;
 import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.entities.RichPresence;
 
@@ -165,7 +166,7 @@ public class ListenCommand extends AudioCommand {
                 manager.listeners.remove(user.getUser().getIdLong());
                 future.cancel();
             }
-            user.sendMessage("I am no longer listening to you Senpai~ {}", message);
+            user.sendMessage("I am no longer listening to you Senpai~ %s", message);
         }
     }
 }
