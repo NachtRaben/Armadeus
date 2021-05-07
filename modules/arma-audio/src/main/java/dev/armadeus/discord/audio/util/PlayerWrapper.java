@@ -5,12 +5,23 @@ import lavalink.client.io.Link;
 import lavalink.client.io.filters.Filters;
 import lavalink.client.player.IPlayer;
 import lavalink.client.player.LavalinkPlayer;
-import lavalink.client.player.event.*;
+import lavalink.client.player.event.IPlayerEventListener;
+import lavalink.client.player.event.PlayerEvent;
+import lavalink.client.player.event.TrackEndEvent;
+import lavalink.client.player.event.TrackExceptionEvent;
+import lavalink.client.player.event.TrackStartEvent;
+import lavalink.client.player.event.TrackStuckEvent;
 import lombok.Getter;
+
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.ReentrantLock;
+
+import static org.awaitility.Awaitility.await;
 
 @Getter
 public class PlayerWrapper implements IPlayer, IPlayerEventListener {
 
+    private final ReentrantLock lock = new ReentrantLock();
     private final LavalinkPlayer player;
     private PlayerStatus status;
 
@@ -19,30 +30,27 @@ public class PlayerWrapper implements IPlayer, IPlayerEventListener {
         player.addListener(this);
     }
 
-
-    public void playTrack(AudioTrack track) {
-        synchronized (player) {
-            status = PlayerStatus.REQUESTED;
-            player.playTrack(track);
-            while (status != PlayerStatus.PLAYING && status != PlayerStatus.STOPPED) {
-                try {
-                    player.wait(50);
-                } catch (InterruptedException ignored) {}
-            }
+    public synchronized void playTrack(AudioTrack track) {
+        status = PlayerStatus.REQUESTED;
+        player.playTrack(track);
+        try {
+            await().atMost(30, TimeUnit.SECONDS).until(() -> status == PlayerStatus.PLAYING || status == PlayerStatus.STOPPED);
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.out.println(status);
         }
     }
 
-    public void stopTrack() {
-        if(player.getPlayingTrack() == null)
+    public synchronized void stopTrack() {
+        if (player.getPlayingTrack() == null)
             return;
-        synchronized (player) {
-            status = PlayerStatus.STOPPING;
-            player.stopTrack();
-            while(status != PlayerStatus.STOPPED) {
-                try {
-                    player.wait(50);
-                } catch (InterruptedException ignored) {}
-            }
+        status = PlayerStatus.STOPPING;
+        player.stopTrack();
+        try {
+            await().atMost(30, TimeUnit.SECONDS).until(() -> status == PlayerStatus.STOPPED);
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.out.println(status);
         }
     }
 
@@ -64,7 +72,8 @@ public class PlayerWrapper implements IPlayer, IPlayerEventListener {
     }
 
     public void seekTo(long position) {
-        player.seekTo(position);
+        if (status == PlayerStatus.PLAYING)
+            player.seekTo(position);
     }
 
     @Override
@@ -96,21 +105,15 @@ public class PlayerWrapper implements IPlayer, IPlayerEventListener {
 
     @Override
     public void onEvent(PlayerEvent event) {
-        synchronized (player) {
             if (event instanceof TrackStartEvent) {
                 status = PlayerStatus.PLAYING;
-                player.notifyAll();
             } else if (event instanceof TrackEndEvent) {
                 status = PlayerStatus.STOPPED;
-                player.notifyAll();
             } else if (event instanceof TrackStuckEvent) {
                 status = PlayerStatus.STOPPED;
-                player.notifyAll();
             } else if (event instanceof TrackExceptionEvent) {
                 status = PlayerStatus.STOPPED;
-                player.notifyAll();
             }
-        }
     }
 
     public enum PlayerStatus {
@@ -119,5 +122,4 @@ public class PlayerWrapper implements IPlayer, IPlayerEventListener {
         STOPPING,
         STOPPED
     }
-
 }

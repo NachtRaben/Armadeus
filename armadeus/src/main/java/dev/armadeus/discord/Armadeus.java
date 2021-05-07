@@ -52,7 +52,6 @@ public class Armadeus {
 
     @Subscribe
     public void registerCommands(CommandManager manager) {
-        logger.warn(getClass().getClassLoader().getClass().getName());
         Reflections reflections = new Reflections(new ConfigurationBuilder()
                 .addClassLoader(getClass().getClassLoader())
                 .setUrls(ClasspathHelper.forPackage("dev.armadeus.discord", getClass().getClassLoader()))

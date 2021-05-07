@@ -5,8 +5,7 @@ plugins {
 }
 
 repositories {
-    // ImageBoard API
-    maven { name "Kodehawa"; url "https://dl.bintray.com/kodehawa/maven" }
+    maven { url "https://jitpack.io" }
 }
 
 dependencies {
@@ -20,7 +19,7 @@ dependencies {
     annotationProcessor group: 'org.projectlombok', name: 'lombok', version: lombokVersion
 
     // For Commands
-    implementation group: 'net.kodehawa', name: 'imageboard-api', version: '2.4.1' // ImageBoard API
+    implementation group: 'com.github.NachtRaben', name: 'imageboard-api', version: 'master-SNAPSHOT' // ImageBoard API
     implementation group: 'org.codehaus.groovy', name: 'groovy-all', version: groovyVersion
 
 }

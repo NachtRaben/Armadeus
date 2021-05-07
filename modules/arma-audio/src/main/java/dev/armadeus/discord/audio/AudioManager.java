@@ -38,12 +38,12 @@ public class AudioManager {
 
     public AudioManager(Guild guild) {
         this.config = ArmaCore.get().getGuildManager().getConfigFor(guild);
-        this.audioConfig = config.getMetadataOrInitialize("arma-audio", conf -> conf.set("volume", 1.0));
+        this.audioConfig = config.getMetadataOrInitialize("arma-audio", conf -> conf.set("volume", Float.toString(1.0f)));
         this.player = new PlayerWrapper(getLink().getPlayer());
         logger.info("Setting resume vol for {} to {}", guild.getName(), audioConfig.get("volume"));
         player.getLink().getNode(true);
         Filters filters = player.getFilters();
-        filters = filters.setVolume((float)getVolume());
+        filters = filters.setVolume(getVolume());
         for (int i = 0; i < this.bands.length; i++) {
             filters = filters.setBand(i, this.bands[i]);
         }
@@ -52,8 +52,8 @@ public class AudioManager {
         player.addListener(scheduler);
     }
 
-    private double getVolume() {
-        return audioConfig.get("volume");
+    private float getVolume() {
+        return Float.parseFloat(audioConfig.get("volume"));
     }
 
     public JdaLink getLink() {
@@ -79,11 +79,10 @@ public class AudioManager {
         }
     }
 
-    public void setVolume(double vol) {
-        vol = Math.min(Math.max(vol, 0.0), 1.0);
-        audioConfig.set("volume", vol);
-        config.save();
-        getPlayer().getFilters().setVolume((float)vol).commit();
+    public void setVolume(float vol) {
+        vol = (float)Math.min(Math.max(vol, 0.0), 1.0);
+        audioConfig.set("volume", Float.toString(vol));
+        getPlayer().getFilters().setVolume(vol).commit();
     }
 
     public PlayerWrapper getPlayer() {

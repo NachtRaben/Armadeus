@@ -1,6 +1,7 @@
 package dev.armadeus.core.config;
 
 import com.electronwill.nightconfig.core.CommentedConfig;
+import com.electronwill.nightconfig.core.conversion.ConversionTable;
 import com.electronwill.nightconfig.core.utils.CommentedConfigWrapper;
 import com.electronwill.nightconfig.core.utils.ObservedMap;
 import lombok.Getter;
@@ -15,7 +16,6 @@ public class SaveNotifyConfig extends CommentedConfigWrapper<CommentedConfig> {
 
     @Getter
     private final long guildId;
-    private final CommentedConfig config;
     private final AtomicBoolean needsSaved = new AtomicBoolean(false);
 
     // Children
@@ -24,16 +24,31 @@ public class SaveNotifyConfig extends CommentedConfigWrapper<CommentedConfig> {
     public SaveNotifyConfig(long guildId, CommentedConfig config) {
         super(config);
         this.guildId = guildId;
-        this.config = config;
     }
 
-    public SaveNotifyConfig(SaveNotifyConfig parent, CommentedConfig config) {
+    private SaveNotifyConfig(SaveNotifyConfig parent, CommentedConfig config) {
         super(config);
         this.parent = parent;
         this.guildId = parent.guildId;
-        this.config = config;
     }
 
+    @Override
+    public <T> T get(String path) {
+        T result = super.get(path);
+        if(result instanceof CommentedConfig) {
+            result = (T) new SaveNotifyConfig(this, (CommentedConfig)result);
+        }
+        return result;
+    }
+
+    @Override
+    public <T> T get(List<String> path) {
+        T result = super.get(path);
+        if(result instanceof CommentedConfig) {
+            result = (T) new SaveNotifyConfig(this, (CommentedConfig)result);
+        }
+        return result;
+    }
 
     @Override
     public <T> T set(List<String> path, Object value) {
@@ -81,12 +96,20 @@ public class SaveNotifyConfig extends CommentedConfigWrapper<CommentedConfig> {
     }
 
     public void save() {
+        if(parent != null) {
+            parent.save();
+            return;
+        }
         needsSaved.set(true);
     }
 
     public AtomicBoolean needsSaved() {
 
         return needsSaved;
+    }
+
+    public SaveNotifyConfig createSubConfig() {
+        return new SaveNotifyConfig(this, super.createSubConfig());
     }
 
 }
