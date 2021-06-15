@@ -29,6 +29,8 @@ import java.util.concurrent.LinkedBlockingDeque;
 
 public class TrackScheduler extends AudioEventAdapter implements IPlayerEventListener {
 
+    // TODO: Figure out locking issues with the Lavalink event subscribers
+    // TODO: Maybe move to generic fired events instead of using lavalink event subscriber
     private static final Logger logger = LoggerFactory.getLogger(TrackScheduler.class);
 
     private final AudioManager manager;

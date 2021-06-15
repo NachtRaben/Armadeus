@@ -40,6 +40,5 @@ public interface GuildConfig {
     CommentedConfig getMetadataOrInitialize(String key, Consumer<CommentedConfig> config);
     GuildConfig setMetadata(String key, CommentedConfig config);
 
-    GuildConfig save();
     Guild getGuild();
 }

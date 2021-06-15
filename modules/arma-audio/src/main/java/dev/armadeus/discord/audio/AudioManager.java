@@ -49,6 +49,7 @@ public class AudioManager {
         }
         filters.commit();
         this.scheduler = new TrackScheduler(this);
+        ArmaCore.get().getEventManager().register(ArmaAudio.get(), scheduler);
         player.addListener(scheduler);
     }
 

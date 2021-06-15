@@ -107,6 +107,7 @@ public class PlayerWrapper implements IPlayer, IPlayerEventListener {
     public void onEvent(PlayerEvent event) {
             if (event instanceof TrackStartEvent) {
                 status = PlayerStatus.PLAYING;
+
             } else if (event instanceof TrackEndEvent) {
                 status = PlayerStatus.STOPPED;
             } else if (event instanceof TrackStuckEvent) {
