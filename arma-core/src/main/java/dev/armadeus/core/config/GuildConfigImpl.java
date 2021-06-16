@@ -6,6 +6,7 @@ import com.electronwill.nightconfig.core.conversion.ObjectConverter;
 import com.electronwill.nightconfig.toml.TomlFormat;
 import dev.armadeus.bot.api.ArmaCore;
 import dev.armadeus.bot.api.config.GuildConfig;
+import dev.armadeus.core.ArmaCoreImpl;
 import net.dv8tion.jda.api.entities.Guild;
 
 import java.util.Collection;
@@ -138,6 +139,6 @@ public class GuildConfigImpl implements GuildConfig {
 
     @Override
     public Guild getGuild() {
-        return ArmaCore.get().getShardManager().getGuildById(guildId);
+        return ArmaCoreImpl.get().shardManager().getGuildById(guildId);
     }
 }

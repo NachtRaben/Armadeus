@@ -2,6 +2,7 @@ package dev.armadeus.discord;
 
 import co.aikar.commands.CommandManager;
 import com.google.inject.Inject;
+import com.velocitypowered.api.Velocity;
 import com.velocitypowered.api.event.Subscribe;
 import com.velocitypowered.api.plugin.Dependency;
 import com.velocitypowered.api.plugin.Plugin;
@@ -41,8 +42,8 @@ public class Armadeus {
     private ArmaCore core;
 
     @Inject
-    public Armadeus(ArmaCore core) {
-        this.core = core;
+    public Armadeus(Velocity core) {
+        this.core = (ArmaCore) core;
     }
 
     @Subscribe
@@ -53,8 +54,10 @@ public class Armadeus {
     @Subscribe
     public void registerCommands(CommandManager manager) {
         Reflections reflections = new Reflections(new ConfigurationBuilder()
-                .addClassLoader(getClass().getClassLoader())
-                .setUrls(ClasspathHelper.forPackage("dev.armadeus.discord", getClass().getClassLoader()))
+                .addClassLoader(Armadeus.class.getClassLoader())
+                .setScanners(new SubTypesScanner())
+                .setUrls(ClasspathHelper.forPackage("dev.armadeus.discord", Armadeus.class.getClassLoader()))
+                .filterInputsBy(new FilterBuilder().includePackage("dev.armadeus.discord"))
         );
         Set<Class<? extends DiscordCommand>> commandClazzes = reflections.getSubTypesOf(DiscordCommand.class);
         commandClazzes.forEach(clazz -> {

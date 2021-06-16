@@ -1,9 +1,10 @@
 package dev.armadeus.discord.audio.util;
 
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
-import lavalink.client.io.Link;
+import dev.armadeus.discord.audio.ArmaAudio;
+import dev.armadeus.discord.audio.TrackScheduler;
 import lavalink.client.io.filters.Filters;
-import lavalink.client.player.IPlayer;
+import lavalink.client.io.jda.JdaLink;
 import lavalink.client.player.LavalinkPlayer;
 import lavalink.client.player.event.IPlayerEventListener;
 import lavalink.client.player.event.PlayerEvent;
@@ -13,28 +14,31 @@ import lavalink.client.player.event.TrackStartEvent;
 import lavalink.client.player.event.TrackStuckEvent;
 import lombok.Getter;
 
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 
 import static org.awaitility.Awaitility.await;
 
 @Getter
-public class PlayerWrapper implements IPlayer, IPlayerEventListener {
+public class PlayerWrapper implements IPlayerEventListener {
 
     private final ReentrantLock lock = new ReentrantLock();
-    private final LavalinkPlayer player;
+    private final LavalinkPlayer internalPlayer;
     private PlayerStatus status;
+    private TrackScheduler scheduler;
 
-    public PlayerWrapper(LavalinkPlayer player) {
-        this.player = player;
-        player.addListener(this);
+    public PlayerWrapper(LavalinkPlayer internalPlayer) {
+        this.internalPlayer = internalPlayer;
+        this.scheduler = new TrackScheduler(this);
+        internalPlayer.addListener(this);
     }
 
     public synchronized void playTrack(AudioTrack track) {
         status = PlayerStatus.REQUESTED;
-        player.playTrack(track);
+        CompletableFuture.runAsync(() -> internalPlayer.playTrack(track));
         try {
-            await().atMost(30, TimeUnit.SECONDS).until(() -> status == PlayerStatus.PLAYING || status == PlayerStatus.STOPPED);
+//            await().atMost(30, TimeUnit.SECONDS).until(() -> status == PlayerStatus.PLAYING || status == PlayerStatus.STOPPED);
         } catch (Exception e) {
             e.printStackTrace();
             System.out.println(status);
@@ -42,79 +46,71 @@ public class PlayerWrapper implements IPlayer, IPlayerEventListener {
     }
 
     public synchronized void stopTrack() {
-        if (player.getPlayingTrack() == null)
+        if (internalPlayer.getPlayingTrack() == null)
             return;
         status = PlayerStatus.STOPPING;
-        player.stopTrack();
+        CompletableFuture.runAsync(internalPlayer::stopTrack);
         try {
-            await().atMost(30, TimeUnit.SECONDS).until(() -> status == PlayerStatus.STOPPED);
+//            await().atMost(30, TimeUnit.SECONDS).until(() -> status == PlayerStatus.STOPPED);
         } catch (Exception e) {
             e.printStackTrace();
             System.out.println(status);
         }
     }
 
-    public Link getLink() {
-        return player.getLink();
+    public JdaLink getLink() {
+        return ArmaAudio.get().getLavalink().getLink(internalPlayer.getLink().getGuildId());
     }
 
     public Filters getFilters() {
-        return player.getFilters();
-    }
-
-    public void addListener(IPlayerEventListener listener) {
-        player.addListener(listener);
-    }
-
-    @Override
-    public void removeListener(IPlayerEventListener listener) {
-        player.removeListener(listener);
+        return internalPlayer.getFilters();
     }
 
     public void seekTo(long position) {
         if (status == PlayerStatus.PLAYING)
-            player.seekTo(position);
+            internalPlayer.seekTo(position);
     }
 
-    @Override
     public void setVolume(int volume) {
-        player.getFilters().setVolume(Math.max(Math.min(volume / 100.0f, 0.0f), 1.0f)).commit();
+        internalPlayer.getFilters().setVolume(Math.max(Math.min(volume / 100.0f, 0.0f), 1.0f)).commit();
     }
 
-    @Override
     public int getVolume() {
-        return player.getVolume();
+        return internalPlayer.getVolume();
     }
 
     public void setPaused(boolean paused) {
-        player.setPaused(paused);
+        internalPlayer.setPaused(paused);
     }
 
-    @Override
     public boolean isPaused() {
-        return player.isPaused();
+        return internalPlayer.isPaused();
     }
 
     public AudioTrack getPlayingTrack() {
-        return player.getPlayingTrack();
+        return internalPlayer.getPlayingTrack();
     }
 
     public long getTrackPosition() {
-        return player.getTrackPosition();
+        return internalPlayer.getTrackPosition();
+    }
+
+    public boolean isPlaying() {
+        return scheduler.isPlaying();
     }
 
     @Override
     public void onEvent(PlayerEvent event) {
-            if (event instanceof TrackStartEvent) {
-                status = PlayerStatus.PLAYING;
-
-            } else if (event instanceof TrackEndEvent) {
-                status = PlayerStatus.STOPPED;
-            } else if (event instanceof TrackStuckEvent) {
-                status = PlayerStatus.STOPPED;
-            } else if (event instanceof TrackExceptionEvent) {
-                status = PlayerStatus.STOPPED;
-            }
+        if (event instanceof TrackStartEvent) {
+            status = PlayerStatus.PLAYING;
+        } else if (event instanceof TrackEndEvent) {
+            status = PlayerStatus.STOPPED;
+        } else if (event instanceof TrackStuckEvent) {
+            status = PlayerStatus.STOPPED;
+        } else if (event instanceof TrackExceptionEvent) {
+            status = PlayerStatus.STOPPED;
+        }
+        scheduler.onEvent(event);
     }
 
     public enum PlayerStatus {

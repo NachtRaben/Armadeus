@@ -8,8 +8,8 @@ plugins {
 dependencies {
     jooqGenerator group: 'org.postgresql', name: 'postgresql', version: '42.2.19'
     compileOnly project(":arma-api") // API
-    compileOnly project(":arma-core") // API
-    annotationProcessor project(":arma-api")
+//    compileOnly project(":arma-core") // API
+    annotationProcessor group: 'com.velocitypowered', name: 'velocity-utils-annotation-processor', version: '4.0.0-SNAPSHOT', changing: true
 
     // Lombok
     compileOnly group: 'org.projectlombok', name: 'lombok', version: lombokVersion

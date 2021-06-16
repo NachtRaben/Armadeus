@@ -1,7 +1,6 @@
 package dev.armadeus.discord.audio;
 
 import com.electronwill.nightconfig.core.CommentedConfig;
-import com.sedmelluq.discord.lavaplayer.player.AudioConfiguration;
 import com.sedmelluq.discord.lavaplayer.player.AudioLoadResultHandler;
 import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
 import com.sedmelluq.discord.lavaplayer.track.AudioPlaylist;
@@ -12,9 +11,11 @@ import dev.armadeus.bot.api.ArmaCore;
 import dev.armadeus.bot.api.command.DiscordCommandIssuer;
 import dev.armadeus.bot.api.config.GuildConfig;
 import dev.armadeus.discord.audio.util.PlayerWrapper;
+import lavalink.client.io.Link;
 import lavalink.client.io.filters.Filters;
 import lavalink.client.io.jda.JdaLink;
 import lombok.Getter;
+import lombok.experimental.Accessors;
 import net.dv8tion.jda.api.entities.Guild;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,46 +25,60 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
-@Getter
 public class AudioManager {
 
     private static final Logger logger = LoggerFactory.getLogger(AudioManager.class);
 
-    private final GuildConfig config;
+    @Getter
+    private final Guild guild;
     private final CommentedConfig audioConfig;
-    public Map<Long, ScheduledTask> listeners = new HashMap<Long, com.velocitypowered.api.scheduler.ScheduledTask>();
+    @Getter
+    public Map<Long, ScheduledTask> listeners = new HashMap<>();
     float[] bands = new float[]{ 0.075f, 0.0375f, 0.03f, 0.022499999f, 0.0f, -0.015f, -0.022499999f, -0.0375f, -0.022499999f, -0.015f, 0.0f, 0.022499999f, 0.03f, 0.0375f, 0.075f };
-    private TrackScheduler scheduler;
+    @Getter
     private PlayerWrapper player;
 
     public AudioManager(Guild guild) {
-        this.config = ArmaCore.get().getGuildManager().getConfigFor(guild);
-        this.audioConfig = config.getMetadataOrInitialize("arma-audio", conf -> conf.set("volume", Float.toString(1.0f)));
+        this.guild = guild;
+        // Load configurations
+        GuildConfig config = ArmaAudio.core().guildManager().getConfigFor(guild);
+        this.audioConfig = config.getMetadataOrInitialize("arma-audio", conf -> conf.set("volume", Float.toString(0.4f)));
+        // Initialize Player
         this.player = new PlayerWrapper(getLink().getPlayer());
-        logger.info("Setting resume vol for {} to {}", guild.getName(), audioConfig.get("volume"));
         player.getLink().getNode(true);
+        // Initialize Volume and Equalizer
         Filters filters = player.getFilters();
         filters = filters.setVolume(getVolume());
         for (int i = 0; i < this.bands.length; i++) {
-            filters = filters.setBand(i, this.bands[i]);
+            filters = filters.setBand(i, this.bands[i] * 2);
         }
         filters.commit();
-        this.scheduler = new TrackScheduler(this);
-        ArmaCore.get().getEventManager().register(ArmaAudio.get(), scheduler);
-        player.addListener(scheduler);
+        logger.info("Setting initial volume for {} to {}", guild.getName(), audioConfig.get("volume"));
     }
 
     private float getVolume() {
+        // We parse as string for better config formatting
         return Float.parseFloat(audioConfig.get("volume"));
     }
 
-    public JdaLink getLink() {
-        return ArmaAudio.get().getLavalink().getLink(config.getGuild());
+    public TrackScheduler getScheduler() {
+        return player.getScheduler();
     }
 
+    public void setVolume(float vol) {
+        vol = (float)Math.min(Math.max(vol, 0.0), 1.0);
+        audioConfig.set("volume", Float.toString(vol));
+        getPlayer().getFilters().setVolume(vol).commit();
+    }
+
+    public JdaLink getLink() {
+        return ArmaAudio.get().getLavalink().getLink(guild);
+    }
+
+    // Track Loading
     private static void trackLoaded(DiscordCommandIssuer user, AudioTrack track) {
         track.setUserData(user);
-        ArmaAudio.getManagerFor(user.getGuild()).getScheduler().queue(track);
+        ArmaAudio.getManagerFor(user.getGuild()).getPlayer().getScheduler().queue(track);
     }
 
     public static void playlistLoaded(DiscordCommandIssuer user, AudioPlaylist playlist, int limit) {
@@ -76,18 +91,8 @@ public class AudioManager {
                 break;
             }
             track.setUserData(user);
-            ArmaAudio.getManagerFor(user.getGuild()).getScheduler().queue(track);
+            ArmaAudio.getManagerFor(user.getGuild()).getPlayer().getScheduler().queue(track);
         }
-    }
-
-    public void setVolume(float vol) {
-        vol = (float)Math.min(Math.max(vol, 0.0), 1.0);
-        audioConfig.set("volume", Float.toString(vol));
-        getPlayer().getFilters().setVolume(vol).commit();
-    }
-
-    public PlayerWrapper getPlayer() {
-        return player;
     }
 
     public void loadAndPlay(DiscordCommandIssuer user, String identifier, int limit) {
@@ -133,10 +138,10 @@ public class AudioManager {
         }
         future.thenAccept(tracks -> {
             if (tracks.isEmpty()) {
-                user.sendMessage("No results found for `" + search.substring(search.indexOf(':')) + "`");
+                user.sendMessage("No results found for `" + search.substring(search.indexOf(':') + 1) + "`");
                 return;
             }
-            AudioPlaylist playlist = new BasicAudioPlaylist("Search Results for " + search.substring(search.indexOf(':')), tracks, tracks.get(0), true);
+            AudioPlaylist playlist = new BasicAudioPlaylist("Search Results for " + search.substring(search.indexOf(':') + 1), tracks, tracks.get(0), true);
             playlistLoaded(user, playlist, limit);
         });
     }

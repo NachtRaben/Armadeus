@@ -95,7 +95,7 @@ public class CommandSenderImpl extends JDACommandEvent implements DiscordCommand
     }
 
     public GuildConfig getGuildConfig() {
-        return core.getGuildManager().getConfigFor(getEvent().getGuild());
+        return core.guildManager().getConfigFor(getEvent().getGuild());
     }
 
     public TextChannel getTextChannel() {

@@ -1,12 +1,12 @@
 package dev.armadeus.discord.audio;
 
-import com.google.common.base.MoreObjects;
 import com.sedmelluq.discord.lavaplayer.player.event.AudioEventAdapter;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackEndReason;
 import com.velocitypowered.api.scheduler.ScheduledTask;
 import dev.armadeus.bot.api.command.DiscordCommandIssuer;
 import dev.armadeus.discord.audio.util.AudioEmbedUtils;
+import dev.armadeus.discord.audio.util.PlayerWrapper;
 import lavalink.client.player.IPlayer;
 import lavalink.client.player.event.IPlayerEventListener;
 import lavalink.client.player.event.PlayerEvent;
@@ -33,7 +33,7 @@ public class TrackScheduler extends AudioEventAdapter implements IPlayerEventLis
     // TODO: Maybe move to generic fired events instead of using lavalink event subscriber
     private static final Logger logger = LoggerFactory.getLogger(TrackScheduler.class);
 
-    private final AudioManager manager;
+    private final PlayerWrapper player;
 
     private final BlockingDeque<AudioTrack> queue;
 
@@ -43,8 +43,8 @@ public class TrackScheduler extends AudioEventAdapter implements IPlayerEventLis
     private boolean repeatTrack;
     private boolean repeatQueue;
 
-    public TrackScheduler(AudioManager audioManager) {
-        this.manager = audioManager;
+    public TrackScheduler(PlayerWrapper player) {
+        this.player = player;
         queue = new LinkedBlockingDeque<>();
     }
 
@@ -58,19 +58,17 @@ public class TrackScheduler extends AudioEventAdapter implements IPlayerEventLis
     }
 
     public void play(AudioTrack track) {
-        logger.info("Playing track {} in {}", track.getInfo().title, manager.getConfig().getGuild().getName());
+        logger.info("Playing track {} in {}", track.getInfo().title, ArmaAudio.core().shardManager().getGuildById(player.getLink().getGuildId()).getName());
         DiscordCommandIssuer user = track.getUserData(DiscordCommandIssuer.class);
 
         // No requester set or banned
         if (user == null) {
             logger.warn("Null track requester");
-            skip();
             return;
         }
 
         // Member left or banned
         if (user.getMember() == null) {
-            skip();
             return;
         }
 
@@ -80,7 +78,7 @@ public class TrackScheduler extends AudioEventAdapter implements IPlayerEventLis
         }
         sendEmbed(track, user);
         long start = System.currentTimeMillis();
-        manager.getPlayer().playTrack(track);
+        player.playTrack(track);
         logger.warn("Took {} ms to play track", System.currentTimeMillis() - start);
     }
 
@@ -88,11 +86,11 @@ public class TrackScheduler extends AudioEventAdapter implements IPlayerEventLis
         synchronized (queue) {
             repeatTrack = false;
             repeatQueue = false;
-            manager.getPlayer().setPaused(false);
+            player.setPaused(false);
             queue.clear();
             if (isPlaying()) {
                 long start = System.currentTimeMillis();
-                manager.getPlayer().stopTrack();
+                player.stopTrack();
                 logger.warn("Took {} ms to stop track", System.currentTimeMillis() - start);
             }
             currentTrack = null;
@@ -132,14 +130,14 @@ public class TrackScheduler extends AudioEventAdapter implements IPlayerEventLis
     }
 
     public boolean joinVoiceChannel(DiscordCommandIssuer user) {
-        long connected = manager.getLink().getChannelId();
+        long connected = player.getLink().getChannelId();
         VoiceChannel userChannel = user.getVoiceChannel();
         if (connected != -1 && isPlaying()) {
             return true;
         }
         if (userChannel != null) {
             try {
-                manager.getLink().connect(userChannel);
+                player.getLink().connect(userChannel);
                 logger.info("Connecting to {} in {}", userChannel.getName(), userChannel.getGuild().getName());
                 return true;
             } catch (InsufficientPermissionException e) {
@@ -178,11 +176,12 @@ public class TrackScheduler extends AudioEventAdapter implements IPlayerEventLis
         }
         logger.warn(event.getTrack().toString());
         logger.warn(event.getException().toString());
+        AudioManager manager = ArmaAudio.getManagerFor(player.getLink().getGuildId());
         Collection<ScheduledTask> future = manager.listeners.values();
         future.forEach(ScheduledTask::cancel);
         manager.listeners.clear();
         DiscordCommandIssuer requester = event.getTrack().getUserData(DiscordCommandIssuer.class);
-        requester.sendMessage(String.format("Failed to play `%s` because, `%s`", track.getInfo().title, exception.getMessage()));
+        requester.sendMessage(String.format("Failed to play `%s` because, `%s` ``", track.getInfo().title, exception.getMessage(), (exception.getCause() != null ? "`" + exception.getCause().getMessage() + "`" : "")));
         logger.warn("Something went wrong with lavaplayer.", exception);
     }
 
@@ -256,6 +255,7 @@ public class TrackScheduler extends AudioEventAdapter implements IPlayerEventLis
 
     @Override
     public void onEvent(PlayerEvent event) {
+        logger.warn("Scheduler received an event");
         if (event instanceof TrackStartEvent) {
             onTrackStart((TrackStartEvent) event);
         } else if (event instanceof TrackEndEvent) {
@@ -270,5 +270,4 @@ public class TrackScheduler extends AudioEventAdapter implements IPlayerEventLis
     private void onTrackStart(TrackStartEvent event) {
         currentTrack = event.getTrack();
     }
-
 }

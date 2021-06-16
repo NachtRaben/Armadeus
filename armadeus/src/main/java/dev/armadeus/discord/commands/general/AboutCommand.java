@@ -35,9 +35,9 @@ public class AboutCommand extends DiscordCommand {
             if (!config.getPrefixes().isEmpty())
                 sb.append(config.getPrefixes());
             else
-                sb.append(ArmaCore.get().getArmaConfig().getDefaultPrefixes());
+                sb.append(core.armaConfig().getDefaultPrefixes());
         } else {
-            sb.append(ArmaCore.get().getArmaConfig().getDefaultPrefixes());
+            sb.append(core.armaConfig().getDefaultPrefixes());
         }
         sb.append("`");
 

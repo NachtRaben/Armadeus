@@ -10,7 +10,7 @@ repositories {
 
 dependencies {
     compileOnly project(":arma-api") // API
-    annotationProcessor project(":arma-api")
+    annotationProcessor group: 'com.velocitypowered', name: 'velocity-utils-annotation-processor', version: '4.0.0-SNAPSHOT', changing: true
 
     compileOnly project(":arma-audio");
 

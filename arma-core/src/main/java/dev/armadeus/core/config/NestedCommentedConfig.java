@@ -1,32 +1,30 @@
 package dev.armadeus.core.config;
 
 import com.electronwill.nightconfig.core.CommentedConfig;
-import com.electronwill.nightconfig.core.conversion.ConversionTable;
+import com.electronwill.nightconfig.core.file.FileConfig;
 import com.electronwill.nightconfig.core.utils.CommentedConfigWrapper;
 import com.electronwill.nightconfig.core.utils.ObservedMap;
 import lombok.Getter;
-import lombok.Setter;
 
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.Consumer;
 
-public class SaveNotifyConfig extends CommentedConfigWrapper<CommentedConfig> {
+public class NestedCommentedConfig extends CommentedConfigWrapper<CommentedConfig> {
 
     @Getter
     private final long guildId;
     private final AtomicBoolean needsSaved = new AtomicBoolean(false);
 
     // Children
-    private SaveNotifyConfig parent;
+    private NestedCommentedConfig parent;
 
-    public SaveNotifyConfig(long guildId, CommentedConfig config) {
-        super(config);
+    public NestedCommentedConfig(long guildId, CommentedConfig internal) {
+        super(internal);
         this.guildId = guildId;
     }
 
-    private SaveNotifyConfig(SaveNotifyConfig parent, CommentedConfig config) {
+    private NestedCommentedConfig(NestedCommentedConfig parent, CommentedConfig config) {
         super(config);
         this.parent = parent;
         this.guildId = parent.guildId;
@@ -36,7 +34,8 @@ public class SaveNotifyConfig extends CommentedConfigWrapper<CommentedConfig> {
     public <T> T get(String path) {
         T result = super.get(path);
         if(result instanceof CommentedConfig) {
-            result = (T) new SaveNotifyConfig(this, (CommentedConfig)result);
+            //noinspection unchecked
+            result = (T) new NestedCommentedConfig(this, (CommentedConfig)result);
         }
         return result;
     }
@@ -45,7 +44,8 @@ public class SaveNotifyConfig extends CommentedConfigWrapper<CommentedConfig> {
     public <T> T get(List<String> path) {
         T result = super.get(path);
         if(result instanceof CommentedConfig) {
-            result = (T) new SaveNotifyConfig(this, (CommentedConfig)result);
+            //noinspection unchecked
+            result = (T) new NestedCommentedConfig(this, (CommentedConfig)result);
         }
         return result;
     }
@@ -100,7 +100,11 @@ public class SaveNotifyConfig extends CommentedConfigWrapper<CommentedConfig> {
             parent.save();
             return;
         }
-        needsSaved.set(true);
+        if(config instanceof FileConfig) {
+            ((FileConfig)config).save();
+        } else {
+            needsSaved.set(true);
+        }
     }
 
     public AtomicBoolean needsSaved() {
@@ -108,8 +112,8 @@ public class SaveNotifyConfig extends CommentedConfigWrapper<CommentedConfig> {
         return needsSaved;
     }
 
-    public SaveNotifyConfig createSubConfig() {
-        return new SaveNotifyConfig(this, super.createSubConfig());
+    public NestedCommentedConfig createSubConfig() {
+        return new NestedCommentedConfig(this, super.createSubConfig());
     }
 
 }

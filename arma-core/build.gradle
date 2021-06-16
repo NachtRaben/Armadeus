@@ -28,19 +28,22 @@ dependencies {
 
     // API
     implementation project(':arma-api')
-    implementation project(':arma-api').sourceSets.ap.output
+    implementation group: 'com.velocitypowered', name: 'velocity-utils', version: '4.0.0-SNAPSHOT', changing: true
 
     // VelocityImpl
-    implementation 'org.lanternpowered:lmbda:2.0.0-SNAPSHOT'
-    implementation 'com.github.ben-manes.caffeine:caffeine:2.8.8'
+//    implementation 'org.lanternpowered:lmbda:2.0.0-SNAPSHOT'
+//    implementation 'com.github.ben-manes.caffeine:caffeine:2.8.8'
 
     // DatabaseImpl
     implementation group: 'com.zaxxer', name: 'HikariCP', version: '4.0.3'
 
     // LoggingImpl
-    implementation group: 'org.apache.logging.log4j', name: 'log4j-core', version: log4jVersion // Log4j2 Implementation
-    implementation group: 'org.apache.logging.log4j', name: 'log4j-jul', version: log4jVersion // JUL -> Log4j2 Converter
-    implementation group: 'org.apache.logging.log4j', name: 'log4j-slf4j18-impl', version: log4jVersion // Slf4J -> Log4j2 Converter
+    implementation "org.apache.logging.log4j:log4j-api:${log4jVersion}"
+    implementation "org.apache.logging.log4j:log4j-core:${log4jVersion}"
+    implementation "org.apache.logging.log4j:log4j-slf4j-impl:${log4jVersion}"
+    implementation "org.apache.logging.log4j:log4j-iostreams:${log4jVersion}"
+    implementation "org.apache.logging.log4j:log4j-jul:${log4jVersion}"
+    implementation 'com.lmax:disruptor:3.4.2' // Async loggers
 
     // Utility
     api group: 'net.sf.jopt-simple', name: 'jopt-simple', version: '5.0.4' // Command Line Args

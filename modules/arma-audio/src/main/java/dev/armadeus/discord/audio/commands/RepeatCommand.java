@@ -21,7 +21,7 @@ public class RepeatCommand extends AudioCommand {
 
         AudioManager manager = getAudioManager(user);
 
-        manager.getScheduler().setRepeatTrack(repeat);
+        manager.getPlayer().getScheduler().setRepeatTrack(repeat);
         if (repeat) {
             user.sendMessage("I will now repeat `" + manager.getPlayer().getPlayingTrack().getInfo().title + "`");
         } else {
@@ -36,12 +36,12 @@ public class RepeatCommand extends AudioCommand {
             return;
 
         AudioManager manager = getAudioManager(user);
-        if (!manager.getScheduler().isPlaying()) {
+        if (!manager.getPlayer().getScheduler().isPlaying()) {
             user.sendMessage("There is currently nothing playing. Queue a song with the `play` command.");
             return;
         }
 
-        manager.getScheduler().setRepeatQueue(repeat);
+        manager.getPlayer().getScheduler().setRepeatQueue(repeat);
         if (repeat) {
             user.sendMessage("I will now repeat the queue");
         } else {

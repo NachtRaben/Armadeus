@@ -57,12 +57,12 @@ public class StatsCommand extends DiscordCommand {
                 getMemoryString(rt.totalMemory() - rt.freeMemory()), getMemoryString(rt.totalMemory()),
                 shard, total,
                 Thread.getAllStackTraces().keySet().size(),
-                ArmaCore.get().getShardManager().getTextChannels().size(),
-                ArmaCore.get().getShardManager().getVoiceChannels().size(),
-                ArmaCore.get().getShardManager().getPrivateChannels().size(),
+                core.shardManager().getTextChannels().size(),
+                core.shardManager().getVoiceChannels().size(),
+                core.shardManager().getPrivateChannels().size(),
                 0 /*ArmaCore.get().getLavalink().getLinks().stream().filter(link -> link.getChannelId() != -1).count()*/,
-                ArmaCore.get().getShardManager().getGuilds().size(),
-                ArmaCore.get().getShardManager().getUsers().size());
+                core.shardManager().getGuilds().size(),
+                core.shardManager().getUsers().size());
         EmbedBuilder eb = EmbedUtils.newBuilder(user);
         eb.setDescription(stats);
         user.sendMessage(eb.build());

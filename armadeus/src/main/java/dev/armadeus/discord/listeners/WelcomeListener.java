@@ -16,7 +16,7 @@ public class WelcomeListener extends ListenerAdapter {
 
     @Override
     public void onGuildMemberJoin(GuildMemberJoinEvent e) {
-        GuildConfig config = core.getGuildManager().getConfigFor(e.getGuild().getIdLong());
+        GuildConfig config = core.guildManager().getConfigFor(e.getGuild().getIdLong());
         CommentedConfig welcomer = config.getMetadata("arma-welcomer");
         if(welcomer == null)
             return;

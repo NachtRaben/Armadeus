@@ -12,9 +12,9 @@ public class AudioRequester {
     private transient final DiscordReference<TextChannel> textChannel;
 
     public AudioRequester(DiscordCommandIssuer issuer) {
-        user = new DiscordReference<>(issuer.getUser(), id -> ArmaCore.get().getShardManager().getUserById(id));
-        voiceChannel = new DiscordReference<>(issuer.getVoiceChannel(), id -> ArmaCore.get().getShardManager().getVoiceChannelById(id));
-        textChannel = new DiscordReference<>(issuer.getTextChannel(), id -> ArmaCore.get().getShardManager().getTextChannelById(id));
+        user = new DiscordReference<>(issuer.getUser(), id -> ArmaAudio.core().shardManager().getUserById(id));
+        voiceChannel = new DiscordReference<>(issuer.getVoiceChannel(), id -> ArmaAudio.core().shardManager().getVoiceChannelById(id));
+        textChannel = new DiscordReference<>(issuer.getTextChannel(), id -> ArmaAudio.core().shardManager().getTextChannelById(id));
     }
 
     public User getUser() {

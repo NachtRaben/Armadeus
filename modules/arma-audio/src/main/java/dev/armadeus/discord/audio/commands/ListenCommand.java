@@ -11,7 +11,6 @@ import dev.armadeus.bot.api.util.StringUtils;
 import dev.armadeus.bot.api.util.TimeUtil;
 import dev.armadeus.discord.audio.ArmaAudio;
 import dev.armadeus.discord.audio.AudioManager;
-import dev.armadeus.discord.audio.AudioRequester;
 import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.entities.RichPresence;
 
@@ -19,7 +18,6 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 public class ListenCommand extends AudioCommand {
@@ -46,7 +44,7 @@ public class ListenCommand extends AudioCommand {
             return;
         }
 
-        manager.listeners.put(user.getUser().getIdLong(), ArmaCore.get().getScheduler().buildTask(ArmaAudio.get(), new ListenRunnable(user)).delay(1, TimeUnit.SECONDS).repeat(10, TimeUnit.SECONDS).schedule());
+        manager.listeners.put(user.getUser().getIdLong(), ArmaAudio.core().scheduler().buildTask(ArmaAudio.get(), new ListenRunnable(user)).delay(1, TimeUnit.SECONDS).repeat(10, TimeUnit.SECONDS).schedule());
     }
 
     private static class SpotifyPresence {
@@ -97,7 +95,7 @@ public class ListenCommand extends AudioCommand {
 
             // Attempt a connection to get an exception
             if(botChannel == -1 && user.getVoiceChannel() != null) {
-                if(!manager.getScheduler().joinVoiceChannel(user)) {
+                if(!manager.getPlayer().getScheduler().joinVoiceChannel(user)) {
                     stop("Failed to join voice channel");
                 }
             }
@@ -139,7 +137,8 @@ public class ListenCommand extends AudioCommand {
                         if (!found)
                             continue;
                         t.setUserData(user);
-                        manager.getScheduler().play(t);
+                        manager.getPlayer().getScheduler().queue(t);
+                        manager.getPlayer().getScheduler().skip();
                         manager.getPlayer().seekTo(presence.getPosition());
                         break;
                     }

@@ -15,7 +15,7 @@ public class ShuffleCommand extends AudioCommand {
         if (isNotPlaying(user))
             return;
 
-        getAudioManager(user).getScheduler().shuffle();
+        getAudioManager(user).getPlayer().getScheduler().shuffle();
         user.sendMessage("The queue has been shuffled! ~owo~");
     }
 }

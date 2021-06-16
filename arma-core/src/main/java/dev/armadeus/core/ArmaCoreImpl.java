@@ -2,10 +2,12 @@ package dev.armadeus.core;
 
 import co.aikar.commands.ConditionFailedException;
 import com.electronwill.nightconfig.core.Config;
+import com.google.common.base.MoreObjects;
 import com.velocitypowered.api.plugin.PluginContainer;
-import com.velocitypowered.impl.event.VelocityEventManager;
-import com.velocitypowered.impl.plugin.VelocityPluginManager;
-import com.velocitypowered.impl.scheduler.VelocityScheduler;
+import com.velocitypowered.proxy.VelocityManager;
+import com.velocitypowered.proxy.event.VelocityEventManager;
+import com.velocitypowered.proxy.plugin.VelocityPluginManager;
+import com.velocitypowered.proxy.scheduler.VelocityScheduler;
 import dev.armadeus.bot.api.ArmaCore;
 import dev.armadeus.bot.api.config.GuildConfig;
 import dev.armadeus.bot.api.util.DiscordReference;
@@ -18,6 +20,7 @@ import dev.armadeus.core.managers.ExecutorServiceEventManager;
 import joptsimple.OptionSet;
 import lombok.Getter;
 import lombok.SneakyThrows;
+import lombok.experimental.Accessors;
 import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.events.ReadyEvent;
@@ -50,7 +53,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import static com.google.common.base.Preconditions.checkState;
 
 @Getter
-public class ArmaCoreImpl extends ArmaCore {
+@Accessors(fluent = true)
+public class ArmaCoreImpl extends VelocityManager implements ArmaCore {
 
     private static final Logger logger = LoggerFactory.getLogger(ArmaCore.class);
     private static ArmaCoreImpl instance;
@@ -64,7 +68,6 @@ public class ArmaCoreImpl extends ArmaCore {
     private VelocityEventManager eventManager;
     private JDACommandManager commandManager;
     private VelocityScheduler scheduler;
-
     private GuildManagerImpl guildManager;
     private DefaultShardManager shardManager;
 
@@ -109,34 +112,24 @@ public class ArmaCoreImpl extends ArmaCore {
     private void loadPlugins() {
         logger.info("Loading plugins...");
         try {
-            Path pluginPath = Paths.get("plugins");
-            if (!pluginPath.toFile().exists()) {
-                Files.createDirectory(pluginPath);
-            } else {
-                if (!pluginPath.toFile().isDirectory()) {
-                    logger.warn("Plugin location {} is not a directory, continuing without loading plugins",
-                            pluginPath);
-                    return;
-                }
-                pluginManager.loadPlugins(pluginPath);
-            }
-        } catch (Exception e) {
-            logger.error("Couldn't load plugins", e);
-        }
+            pluginManager.loadPlugins(Path.of("plugins"));
 
-        // Register the plugin main classes so that we can fire the proxy initialize event
-        for (PluginContainer plugin : pluginManager.plugins()) {
-            Optional<?> instance = plugin.instance();
-            if (instance.isPresent()) {
-                try {
-                    eventManager.registerInternally(plugin, instance.get());
-                } catch (Exception e) {
-                    logger.error("Unable to register plugin listener for {}",
-                            plugin.description().name().orElse(plugin.description().id()), e);
+            // Register the plugin main classes so that we can fire the proxy initialize event
+            for (PluginContainer plugin : pluginManager.plugins()) {
+                Object instance = plugin.instance();
+                if (instance != null) {
+                    try {
+                        eventManager.registerInternally(plugin, instance);
+                    } catch (Exception e) {
+                        logger.error("Unable to register plugin listener for {}",
+                                MoreObjects.firstNonNull(plugin.description().name(), plugin.description().id()), e);
+                    }
                 }
             }
+            logger.info("Loaded {} plugins", pluginManager.plugins().size());
+        } catch (IOException e) {
+            e.printStackTrace();
         }
-        logger.info("Loaded {} plugins", pluginManager.plugins().size());
     }
 
     private void loadGuildManager() {
@@ -213,6 +206,7 @@ public class ArmaCoreImpl extends ArmaCore {
             return new ArrayList<>(prefixes);
         });
         commandManager.initialize(options);
+        commandManager.registerDependency(ArmaCore.class, this);
         commandManager.enableUnstableAPI("help");
         commandManager.getCommandConditions().addCondition("developeronly", context -> {
             if (!armaConfig.getDeveloperIds().contains(context.getIssuer().getEvent().getAuthor().getIdLong())) {

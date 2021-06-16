@@ -27,7 +27,7 @@ public abstract class AudioCommand extends DiscordCommand {
 
     public boolean isNotPlaying(DiscordCommandIssuer user) {
         AudioManager manager = getAudioManager(user);
-        if (!manager.getScheduler().isPlaying()) {
+        if (!manager.getPlayer().isPlaying()) {
             user.sendMessage("There is currently nothing playing. Queue a song with the `play` command.");
             return true;
         }

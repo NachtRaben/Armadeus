@@ -5,15 +5,15 @@ Long Term: Admadeus 2.0
 -----------------------
 
 - Web based dashboard for guild configuration
-- __Use Night-Config for flat-file configurations (Velocity)__
-- __Create an EventManager/Scheduler for use with event waiters (Velocity)__
+- ~~Use Night-Config for flat-file configurations (Velocity)~~
+- ~~Create an EventManager/Scheduler for use with event waiters (Velocity)~~
 - Re-Implement Command Cooldowns
 - Group based command modules to be enabled per guild  
 - Command Permissions & Documentation
 - Create Help command
 - Module based extensions
     - Audio
-        - __Create Module__
+        - ~~Create Module~~
         - Only query songs once they are next to play, save on requests
         - Write new Radio system
       - ImagesBoards

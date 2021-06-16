@@ -8,15 +8,15 @@ import com.electronwill.nightconfig.toml.TomlWriter;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.velocitypowered.api.scheduler.ScheduledTask;
+import com.velocitypowered.proxy.plugin.util.DummyPluginContainer;
 import dev.armadeus.bot.api.ArmaCore;
 import dev.armadeus.bot.api.config.GuildConfig;
 import dev.armadeus.bot.api.guild.GuildManager;
 import dev.armadeus.bot.database.Tables;
 import dev.armadeus.bot.database.tables.records.GuildsRecord;
 import dev.armadeus.core.config.ArmaConfigImpl;
-import dev.armadeus.core.config.SaveNotifyConfig;
+import dev.armadeus.core.config.NestedCommentedConfig;
 import dev.armadeus.core.config.GuildConfigImpl;
-import dev.armadeus.core.plugin.ArmaCorePlugin;
 import dev.armadeus.core.util.ConfigUtil;
 import net.dv8tion.jda.api.entities.Guild;
 import org.jooq.DSLContext;
@@ -63,7 +63,6 @@ public class GuildManagerImpl implements GuildManager {
         Path path = guildDir.resolve(guildId + ".toml");
         CommentedFileConfig config = CommentedFileConfig.builder(path)
                 .preserveInsertionOrder()
-                .autosave()
                 .sync()
                 .concurrent()
                 .build();
@@ -75,7 +74,7 @@ public class GuildManagerImpl implements GuildManager {
         this.core = core;
         this.guildDir = guildDir;
         this.cache = CacheBuilder.newBuilder().expireAfterWrite(5, TimeUnit.MINUTES).build();
-        if (core.getArmaConfig().isDatabaseEnabled()) {
+        if (core.armaConfig().isDatabaseEnabled()) {
             initializeDatabase();
         }
         return this;
@@ -83,12 +82,13 @@ public class GuildManagerImpl implements GuildManager {
 
     private void initializeDatabase() {
         try {
-            ArmaConfigImpl.Database db = ((ArmaConfigImpl) core.getArmaConfig()).getDatabaseInfo();
+            ArmaConfigImpl.Database db = ((ArmaConfigImpl) core.armaConfig()).getDatabaseInfo();
             conn = DriverManager.getConnection(db.getUri(), db.getUsername(), db.getPassword());
-            saveFuture = core.getScheduler().buildTask(ArmaCorePlugin.get(), this::saveGuilds).repeat(5, TimeUnit.SECONDS).schedule();
             logger.warn("Enabled SQL based guild configurations");
+            saveFuture = core.scheduler().buildTask(DummyPluginContainer.VELOCITY, this::saveGuilds).repeat(5, TimeUnit.SECONDS).schedule();
         } catch (SQLException e) {
             logger.error("Failed to connect to database", e);
+            System.exit(-1);
         }
     }
 
@@ -96,12 +96,13 @@ public class GuildManagerImpl implements GuildManager {
         TomlWriter tomlWriter = TomlFormat.instance().createWriter();
         for (Map.Entry<Long, GuildConfig> entry : cache.asMap().entrySet()) {
             long guildId = entry.getKey();
-            SaveNotifyConfig config = (SaveNotifyConfig) ((GuildConfigImpl) entry.getValue()).getConfig();
+            NestedCommentedConfig config = (NestedCommentedConfig) ((GuildConfigImpl) entry.getValue()).getConfig();
             AtomicBoolean needsSaved = config.needsSaved();
             if (needsSaved.get()) {
                 logger.info("Saving guild configuration for {}", guildId);
                 try (StringWriter writer = new StringWriter()) {
                     tomlWriter.write(config, writer);
+                    if(core.armaConfig().isDatabaseEnabled()) {
                     DSLContext c2 = DSL.using(conn, SQLDialect.POSTGRES);
                     c2.insertInto(Tables.GUILDS)
                             .set(Tables.GUILDS.ID, guildId)
@@ -109,6 +110,9 @@ public class GuildManagerImpl implements GuildManager {
                             .onDuplicateKeyUpdate()
                             .set(Tables.GUILDS.CONFIG, writer.toString())
                             .execute();
+                    } else {
+
+                    }
                     needsSaved.set(false);
                 } catch (IOException e) {
                     logger.error("Failed to save guild configuration for " + guildId, e);
@@ -131,10 +135,10 @@ public class GuildManagerImpl implements GuildManager {
                 checkNotNull(defaultGuildConfigLocation, "Default guild configuration does not exist");
                 CommentedConfig defaults = TomlFormat.instance().createParser().parse(defaultGuildConfigLocation);
                 CommentedConfig config;
-                if (core.getArmaConfig().isDatabaseEnabled()) {
-                    config = new SaveNotifyConfig(guildId, loadDatabaseConfig.apply(guildId));
+                if (core.armaConfig().isDatabaseEnabled()) {
+                    config = new NestedCommentedConfig(guildId, loadDatabaseConfig.apply(guildId));
                 } else  {
-                    config = loadFileConfig.apply(guildId);
+                    config = new NestedCommentedConfig(guildId, loadFileConfig.apply(guildId));
                 }
                 // Merges defaults into the config, saving if necessary
                 ConfigUtil.merge(defaults, config);

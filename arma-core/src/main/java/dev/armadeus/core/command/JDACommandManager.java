@@ -2,7 +2,7 @@ package dev.armadeus.core.command;
 
 import co.aikar.commands.*;
 import co.aikar.commands.apachecommonslang.ApacheCommonsExceptionUtil;
-import dev.armadeus.core.plugin.ArmaCorePlugin;
+import com.velocitypowered.proxy.plugin.util.DummyPluginContainer;
 import net.dv8tion.jda.api.AccountType;
 import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.entities.Message;
@@ -17,6 +17,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
@@ -47,12 +48,12 @@ public class JDACommandManager extends CommandManager<
     }
 
     public void initialize(JDAOptions options) {
-        this.shardManager = core.getShardManager();
+        this.shardManager = core.shardManager();
         if (options == null) {
             options = new JDAOptions();
         }
         this.permissionResolver = options.permissionResolver;
-        core.getEventManager().register(ArmaCorePlugin.get(), new JDAListener(this));
+        core.eventManager().register(DummyPluginContainer.VELOCITY, new JDAListener(this));
         this.configProvider = options.configProvider;
         this.defaultFormatter = new JDAMessageFormatter();
         this.completions = new JDACommandCompletions(this);
@@ -271,7 +272,9 @@ public class JDACommandManager extends CommandManager<
         } else {
             args = new String[0];
         }
-        rootCommand.execute(this.getCommandIssuer(event), cmd, args);
+        String[] finalArgs = args;
+        CompletableFuture.runAsync(() -> rootCommand.execute(this.getCommandIssuer(event), cmd, finalArgs));
+
     }
 
     private CommandConfig getCommandConfig(MessageReceivedEvent event) {

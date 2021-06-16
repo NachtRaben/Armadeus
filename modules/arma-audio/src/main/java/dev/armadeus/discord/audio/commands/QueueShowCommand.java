@@ -25,7 +25,7 @@ public class QueueShowCommand extends AudioCommand {
             return;
 
         AudioTrack current = manager.getPlayer().getPlayingTrack();
-        List<AudioTrack> tracks = manager.getScheduler().getQueue();
+        List<AudioTrack> tracks = manager.getPlayer().getScheduler().getQueue();
         long totalTime = current.getInfo().isStream ? 0 : current.getDuration();
         totalTime += tracks.stream().mapToLong(track -> track.getInfo().isStream ? 0 : track.getDuration()).sum() + current.getDuration() - current.getPosition();
 

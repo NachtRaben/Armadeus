@@ -28,7 +28,7 @@ public class ConfCommands extends DiscordCommand {
                 user.sendMessage("The guild prefixes have been updated to `" + config.getPrefixes() + "`");
             } else {
                 config.setPrefixes(Collections.emptyList());
-                user.sendMessage("The guild prefixes have been cleared falling back to `" + ArmaCore.get().getArmaConfig().getDeveloperIds() + "`");
+                user.sendMessage("The guild prefixes have been cleared falling back to `" + core.armaConfig().getDeveloperIds() + "`");
             }
         }
 
