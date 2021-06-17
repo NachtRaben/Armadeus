@@ -16,7 +16,7 @@ pipeline {
     // Tools to specify specific gradle/jdk/etc tools
     tools {
         gradle 'latest'
-        jdk 'JDK-11'
+        jdk 'JDK-16'
     }
     stages {
         // Test code can compile successfully

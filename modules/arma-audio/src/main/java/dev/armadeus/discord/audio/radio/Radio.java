@@ -11,16 +11,19 @@ import dev.armadeus.discord.audio.radio.stations.Hive365;
 import dev.armadeus.discord.audio.util.AudioInfoModifier;
 import lombok.Getter;
 import net.dv8tion.jda.api.entities.MessageEmbed;
+import okhttp3.OkHttpClient;
 
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 @Getter
 public abstract class Radio {
 
     private static final Map<String, Radio> STATIONS = new HashMap<>();
     private static final Hive365 HIVE_365 = new Hive365();
+    protected static final OkHttpClient CLIENT = new OkHttpClient.Builder().callTimeout(5, TimeUnit.SECONDS).build();
 
     protected final String identifier;
     protected final String title;

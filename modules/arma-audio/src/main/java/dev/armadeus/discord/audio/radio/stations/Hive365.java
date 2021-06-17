@@ -7,7 +7,7 @@ import dev.armadeus.bot.api.util.EmbedUtils;
 import dev.armadeus.discord.audio.radio.Radio;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.MessageEmbed;
-import org.jsoup.Jsoup;
+import okhttp3.Request;
 
 import java.awt.*;
 import java.io.IOException;
@@ -35,7 +35,7 @@ public class Hive365 extends Radio {
 
     private JsonObject getSongInfo() {
         try {
-            return JsonParser.parseString(Jsoup.connect("https://hive365.co.uk/streaminfo/info.php").get().body().text()).getAsJsonObject().get("info").getAsJsonObject();
+            return JsonParser.parseString(CLIENT.newCall(new Request.Builder().url("https://hive365.co.uk/streaminfo/info.php").build()).execute().body().string()).getAsJsonObject().get("info").getAsJsonObject();
         } catch (IOException e) {
             e.printStackTrace();
         }
