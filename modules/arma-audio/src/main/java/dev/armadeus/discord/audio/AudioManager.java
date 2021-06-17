@@ -44,7 +44,7 @@ public class AudioManager {
         GuildConfig config = ArmaAudio.core().guildManager().getConfigFor(guild);
         this.audioConfig = config.getMetadataOrInitialize("arma-audio", conf -> conf.set("volume", Float.toString(0.4f)));
         // Initialize Player
-        this.player = new PlayerWrapper(getLink().getPlayer());
+        this.player = new PlayerWrapper(this, ArmaAudio.get().getLavalink().getLink(guild).getPlayer());
         player.getLink().getNode(true);
         // Initialize Volume and Equalizer
         Filters filters = player.getFilters();
@@ -71,78 +71,77 @@ public class AudioManager {
         getPlayer().getFilters().setVolume(vol).commit();
     }
 
-    public JdaLink getLink() {
-        return ArmaAudio.get().getLavalink().getLink(guild);
-    }
-
-    // Track Loading
-    private static void trackLoaded(DiscordCommandIssuer user, AudioTrack track) {
-        track.setUserData(user);
-        ArmaAudio.getManagerFor(user.getGuild()).getPlayer().getScheduler().queue(track);
-    }
-
-    public static void playlistLoaded(DiscordCommandIssuer user, AudioPlaylist playlist, int limit) {
-        int start = playlist.getSelectedTrack() != null ? playlist.getTracks().indexOf(playlist.getSelectedTrack()) : 0; // Index of the starting track
-        int available = playlist.getTracks().size() - start; // Songs available after the starting track
-        int end = limit > 0 ? Math.min(limit, available) : available;
-        for (int i = 0; i < end; i++) {
-            AudioTrack track = playlist.getTracks().get(start + i);
-            if (track == null) {
-                break;
+    public static class TrackLoader {
+        public static void loadAndPlay(DiscordCommandIssuer user, String identifier, int limit) {
+            boolean isSearch = identifier.startsWith("ytsearch:") || identifier.startsWith("scsearch:");
+            if (isSearch) {
+                processSearch(user, identifier, limit);
+                return;
             }
+            ArmaAudio.getManagerFor(user.getGuild()).getPlayer().getLink().getRestClient().loadItem(identifier, new AudioLoadResultHandler() {
+
+                @Override
+                public void trackLoaded(AudioTrack track) {
+                    TrackLoader.trackLoaded(user, track);
+                }
+
+                @Override
+                public void playlistLoaded(AudioPlaylist playlist) {
+                    TrackLoader.playlistLoaded(user, playlist, limit);
+                }
+
+                @Override
+                public void noMatches() {
+                    TrackLoader.loadAndPlay(user, "ytsearch:" + identifier, limit);
+                }
+
+                @Override
+                public void loadFailed(FriendlyException e) {
+                    user.sendMessage(String.format("Failed to load results because of `%s`", e.getMessage()));
+                    logger.warn("Exception encountered during track loading for " + identifier, e);
+                }
+            });
+        }
+
+        private static void processSearch(DiscordCommandIssuer user, String search, int limit) {
+            user.getChannel().sendTyping().queue();
+            CompletableFuture<List<AudioTrack>> future;
+            JdaLink link = ArmaAudio.getManagerFor(user.getGuild()).getPlayer().getLink();
+            if (search.startsWith("ytsearch:")) {
+                future = link.getRestClient().getYoutubeSearchResult(search.replaceFirst("ytsearch:", ""));
+            } else if (search.startsWith("scsearch:")) {
+                future = link.getRestClient().getSoundcloudSearchResult(search.replaceFirst("scsearch:", ""));
+            } else {
+                throw new IllegalArgumentException("Unknown search pattern: " + search);
+            }
+            future.thenAccept(tracks -> {
+                if (tracks.isEmpty()) {
+                    user.sendMessage("No results found for `" + search.substring(search.indexOf(':') + 1) + "`");
+                    return;
+                }
+                AudioPlaylist playlist = new BasicAudioPlaylist("Search Results for " + search.substring(search.indexOf(':') + 1), tracks, tracks.get(0), true);
+                TrackLoader.playlistLoaded(user, playlist, limit);
+            });
+        }
+
+        private static void trackLoaded(DiscordCommandIssuer user, AudioTrack track) {
             track.setUserData(user);
             ArmaAudio.getManagerFor(user.getGuild()).getPlayer().getScheduler().queue(track);
         }
-    }
 
-    public void loadAndPlay(DiscordCommandIssuer user, String identifier, int limit) {
-        boolean isSearch = identifier.startsWith("ytsearch:") || identifier.startsWith("scsearch:");
-        if (isSearch) {
-            processSearch(user, identifier, limit);
-            return;
+        public static void playlistLoaded(DiscordCommandIssuer user, AudioPlaylist playlist, int limit) {
+            int start = playlist.getSelectedTrack() != null ? playlist.getTracks().indexOf(playlist.getSelectedTrack()) : 0; // Index of the starting track
+            int available = playlist.getTracks().size() - start; // Songs available after the starting track
+            int end = limit > 0 ? Math.min(limit, available) : available;
+            for (int i = 0; i < end; i++) {
+                AudioTrack track = playlist.getTracks().get(start + i);
+                if (track == null) {
+                    break;
+                }
+                track.setUserData(user);
+                ArmaAudio.getManagerFor(user.getGuild()).getPlayer().getScheduler().queue(track);
+            }
         }
-        getLink().getRestClient().loadItem(identifier, new AudioLoadResultHandler() {
-
-            @Override
-            public void trackLoaded(AudioTrack track) {
-                AudioManager.trackLoaded(user, track);
-            }
-
-            @Override
-            public void playlistLoaded(AudioPlaylist playlist) {
-                AudioManager.playlistLoaded(user, playlist, limit);
-            }
-
-            @Override
-            public void noMatches() {
-                loadAndPlay(user, "ytsearch:" + identifier, limit);
-            }
-
-            @Override
-            public void loadFailed(FriendlyException e) {
-                user.sendMessage(String.format("Failed to load results because of `%s`", e.getMessage()));
-                logger.warn("Exception encountered during track loading for " + identifier, e);
-            }
-        });
     }
 
-    private void processSearch(DiscordCommandIssuer user, String search, int limit) {
-        user.getChannel().sendTyping().queue();
-        CompletableFuture<List<AudioTrack>> future;
-        if (search.startsWith("ytsearch:")) {
-            future = getLink().getRestClient().getYoutubeSearchResult(search.replaceFirst("ytsearch:", ""));
-        } else if (search.startsWith("scsearch:")) {
-            future = getLink().getRestClient().getSoundcloudSearchResult(search.replaceFirst("scsearch:", ""));
-        } else {
-            throw new IllegalArgumentException("Unknown search pattern: " + search);
-        }
-        future.thenAccept(tracks -> {
-            if (tracks.isEmpty()) {
-                user.sendMessage("No results found for `" + search.substring(search.indexOf(':') + 1) + "`");
-                return;
-            }
-            AudioPlaylist playlist = new BasicAudioPlaylist("Search Results for " + search.substring(search.indexOf(':') + 1), tracks, tracks.get(0), true);
-            playlistLoaded(user, playlist, limit);
-        });
-    }
 }

@@ -29,13 +29,14 @@ public class SkipCommand extends AudioCommand {
 
         List<AudioTrack> tracks = manager.getScheduler().getQueue();
         try {
-            int index = Integer.parseInt(track);
-            manager.getScheduler().skipTo(tracks.get(Math.max(tracks.size() - 1, index)));
+            int index = Integer.parseInt(track) - 1;
+            manager.getScheduler().skipTo(tracks.get(Math.min(tracks.size() - 1, index)));
             return;
         } catch (NumberFormatException ignored) {
         }
 
         String[] tokens = track.split(" ");
+        logger.warn("skip token");
         for (AudioTrack t : tracks) {
             if (StringUtils.tokenCompare(t.getInfo().title, tokens)) {
                 manager.getScheduler().skipTo(t);

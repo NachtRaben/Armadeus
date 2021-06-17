@@ -7,12 +7,10 @@ import dev.armadeus.discord.audio.AudioManager;
 
 public abstract class AudioCommand extends DiscordCommand {
 
-
-
     protected boolean cannotQueueMusic(DiscordCommandIssuer user) {
         if (!user.isFromGuild()) return true;
         long userChannel = user.getVoiceChannel() != null ? user.getVoiceChannel().getIdLong() : -1;
-        long botChannel = getAudioManager(user).getLink().getChannelId();
+        long botChannel = getAudioManager(user).getPlayer().getLink().getChannelId();
 
         if (userChannel == -1) {
             user.sendMessage("You are not in a voice channel, you cannot execute this command.");

@@ -1,6 +1,10 @@
 package dev.armadeus.discord.audio;
 
+import co.aikar.commands.CommandExecutionContext;
+import co.aikar.commands.CommandIssuer;
 import co.aikar.commands.CommandManager;
+import co.aikar.commands.ConditionContext;
+import co.aikar.commands.MessageFormatter;
 import com.electronwill.nightconfig.core.CommentedConfig;
 import com.google.inject.Inject;
 import com.velocitypowered.api.Velocity;
@@ -77,7 +81,7 @@ public class ArmaAudio {
         logger.info("Registering LavaLink nodes...");
         if (core.armaConfig().isDatabaseEnabled()) {
             Connection conn = core().armaConfig().createDatabaseConnection();
-            logger.warn("Enabled SQL based lavalink nodes");
+            logger.warn("Searching database for lavalink nodes...");
             DSLContext context = DSL.using(conn, SQLDialect.POSTGRES);
             List<LavalinkRecord> records = context.select(DSL.asterisk()).from(Tables.LAVALINK).fetchInto(LavalinkRecord.class);
             for (LavalinkRecord record : records) {
@@ -97,29 +101,30 @@ public class ArmaAudio {
     private void registerNode(String name, String uri, String password) {
         try {
             lavalink.addNode(name, new URI(uri), password);
-            logger.info("Added LavaLink node {}@{}", name, uri);
+            logger.info("Registered LavaLink node {}@{}", name, uri);
         } catch (URISyntaxException e) {
             logger.error("Failed to register LavaLink node " + uri, e);
         }
     }
 
+    @SuppressWarnings("rawtypes")
     @Subscribe
     public void registerCommands(CommandManager manager) {
+        logger.info("Registering Arma-Audio commands...");
         Reflections reflections = new Reflections(new ConfigurationBuilder()
                 .addClassLoader(ArmaAudio.class.getClassLoader())
                 .setScanners(new SubTypesScanner())
                 .setUrls(ClasspathHelper.forPackage("dev.armadeus.discord", ArmaAudio.class.getClassLoader()))
                 .filterInputsBy(new FilterBuilder().includePackage("dev.armadeus.discord"))
         );
-        Set<Class<? extends DiscordCommand>> commandClazzes = reflections.getSubTypesOf(DiscordCommand.class);
-        commandClazzes.forEach(clazz -> {
+        reflections.getSubTypesOf(DiscordCommand.class).forEach(clazz -> {
             try {
                 if (!clazz.isSynthetic() && !clazz.isAnonymousClass() && !Modifier.isAbstract(clazz.getModifiers())) {
-                    logger.info("Registering command class {}", clazz.getSimpleName());
                     manager.registerCommand(clazz.getConstructor().newInstance());
+                    logger.info("Registered command {}", clazz.getSimpleName());
                 }
             } catch (InvocationTargetException | InstantiationException | IllegalAccessException | NoSuchMethodException e) {
-                logger.error("Failed to register command class", e);
+                logger.error("Failed to register command class " + clazz.getSimpleName(), e);
             }
         });
     }

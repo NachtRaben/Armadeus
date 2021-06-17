@@ -1,5 +1,6 @@
 package dev.armadeus.discord.audio;
 
+import com.google.common.base.MoreObjects;
 import com.sedmelluq.discord.lavaplayer.player.event.AudioEventAdapter;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackEndReason;
@@ -14,6 +15,8 @@ import lavalink.client.player.event.TrackEndEvent;
 import lavalink.client.player.event.TrackExceptionEvent;
 import lavalink.client.player.event.TrackStartEvent;
 import lavalink.client.player.event.TrackStuckEvent;
+import lombok.Getter;
+import lombok.Setter;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.VoiceChannel;
 import net.dv8tion.jda.api.exceptions.InsufficientPermissionException;
@@ -26,21 +29,24 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.locks.ReentrantLock;
 
+@Getter
 public class TrackScheduler extends AudioEventAdapter implements IPlayerEventListener {
 
-    // TODO: Figure out locking issues with the Lavalink event subscribers
-    // TODO: Maybe move to generic fired events instead of using lavalink event subscriber
     private static final Logger logger = LoggerFactory.getLogger(TrackScheduler.class);
 
     private final PlayerWrapper player;
 
+    private final ReentrantLock lock = new ReentrantLock();
     private final BlockingDeque<AudioTrack> queue;
 
     private AudioTrack lastTrack;
     private AudioTrack currentTrack;
 
+    @Setter
     private boolean repeatTrack;
+    @Setter
     private boolean repeatQueue;
 
     public TrackScheduler(PlayerWrapper player) {
@@ -49,26 +55,28 @@ public class TrackScheduler extends AudioEventAdapter implements IPlayerEventLis
     }
 
     public void queue(AudioTrack track) {
-        synchronized (queue) {
-            synchronized (queue) {
-                queue.offer(track);
-            }
+        lock.lock();
+        try {
+            queue.offer(track);
             if (!isPlaying()) skip();
+        } finally {
+            lock.unlock();
         }
     }
 
     public void play(AudioTrack track) {
-        logger.info("Playing track {} in {}", track.getInfo().title, ArmaAudio.core().shardManager().getGuildById(player.getLink().getGuildId()).getName());
+        logger.info("{} => Playing {}", player.getManager().getGuild().getName(), track.getInfo().title);
         DiscordCommandIssuer user = track.getUserData(DiscordCommandIssuer.class);
 
         // No requester set or banned
         if (user == null) {
-            logger.warn("Null track requester");
+            logger.warn("Failed to play track due to missing user data");
             return;
         }
 
         // Member left or banned
         if (user.getMember() == null) {
+            logger.warn("Failed to play track due to missing member");
             return;
         }
 
@@ -76,52 +84,58 @@ public class TrackScheduler extends AudioEventAdapter implements IPlayerEventLis
             stop();
             return;
         }
+
+        currentTrack = track;
         sendEmbed(track, user);
-        long start = System.currentTimeMillis();
         player.playTrack(track);
-        logger.warn("Took {} ms to play track", System.currentTimeMillis() - start);
     }
 
     public void stop() {
-        synchronized (queue) {
+        logger.info("{} => Stopping audio playback", player.getManager().getGuild().getName());
+        lock.lock();
+        try {
             repeatTrack = false;
             repeatQueue = false;
             player.setPaused(false);
             queue.clear();
-            if (isPlaying()) {
-                long start = System.currentTimeMillis();
+            if (isPlaying())
                 player.stopTrack();
-                logger.warn("Took {} ms to stop track", System.currentTimeMillis() - start);
-            }
             currentTrack = null;
+        } finally {
+            lock.unlock();
         }
     }
 
     public void skip() {
-        synchronized (queue) {
+        logger.info("{} => Skipping track", player.getManager().getGuild().getName());
+        lock.lock();
+        try {
             repeatTrack = false;
             lastTrack = currentTrack;
             if (currentTrack != null && repeatQueue)
                 queue.addLast(getCurrentTrack());
             if (queue.isEmpty() && isPlaying()) {
+                logger.info("{} => Stopping, empty queue", player.getManager().getGuild().getName());
                 stop();
             } else if (!queue.isEmpty()) {
                 play(queue.poll());
-            } else {
             }
+        } finally {
+            lock.unlock();
         }
     }
 
-    public boolean shuffle() {
-        synchronized (queue) {
+    public void shuffle() {
+        lock.lock();
+        try {
             if (!queue.isEmpty()) {
                 List<AudioTrack> tracks = new ArrayList<>();
                 queue.drainTo(tracks);
                 Collections.shuffle(tracks);
                 queue.addAll(tracks);
-                return true;
             }
-            return false;
+        } finally {
+            lock.unlock();
         }
     }
 
@@ -138,7 +152,7 @@ public class TrackScheduler extends AudioEventAdapter implements IPlayerEventLis
         if (userChannel != null) {
             try {
                 player.getLink().connect(userChannel);
-                logger.info("Connecting to {} in {}", userChannel.getName(), userChannel.getGuild().getName());
+                logger.info("{} => Connecting to {}", userChannel.getGuild().getName(), userChannel.getName());
                 return true;
             } catch (InsufficientPermissionException e) {
                 user.sendMessage(String.join("\n", "Failed to join your channel because of missing permission `" + e.getPermission() + "`",
@@ -148,50 +162,6 @@ public class TrackScheduler extends AudioEventAdapter implements IPlayerEventLis
         return false;
     }
 
-    public void onTrackEnd(TrackEndEvent event) {
-        IPlayer player = event.getPlayer();
-        AudioTrackEndReason endReason = event.getReason();
-        if (endReason.mayStartNext && repeatTrack) {
-            player.playTrack(getCurrentTrack());
-        } else if (endReason.mayStartNext) {
-            skip();
-        } else {
-            stop();
-        }
-    }
-
-    public void onTrackException(TrackExceptionEvent event) {
-        AudioTrack track = event.getTrack();
-        Exception exception = event.getException();
-        if (exception == null) {
-            logger.warn("Null exception in audio manager");
-            return;
-        }
-        if (repeatTrack) {
-            repeatTrack = false;
-        }
-        if (exception.getCause().getMessage().toLowerCase().contains("read timed out")) {
-            queue.addFirst(event.getTrack().makeClone());
-            return;
-        }
-        logger.warn(event.getTrack().toString());
-        logger.warn(event.getException().toString());
-        AudioManager manager = ArmaAudio.getManagerFor(player.getLink().getGuildId());
-        Collection<ScheduledTask> future = manager.listeners.values();
-        future.forEach(ScheduledTask::cancel);
-        manager.listeners.clear();
-        DiscordCommandIssuer requester = event.getTrack().getUserData(DiscordCommandIssuer.class);
-        requester.sendMessage(String.format("Failed to play `%s` because, `%s` ``", track.getInfo().title, exception.getMessage(), (exception.getCause() != null ? "`" + exception.getCause().getMessage() + "`" : "")));
-        logger.warn("Something went wrong with lavaplayer.", exception);
-    }
-
-    public void onTrackStuck(TrackStuckEvent event) {
-        AudioTrack track = event.getTrack();
-        DiscordCommandIssuer requestor = track.getUserData(DiscordCommandIssuer.class);
-        requestor.sendMessage("Got stuck while playing `" + track.getInfo().title + "`. It will be skipped.");
-        skip();
-    }
-
     private void sendEmbed(AudioTrack track, DiscordCommandIssuer sender) {
         EmbedBuilder builder = AudioEmbedUtils.getNowPlayingEmbed(sender, track);
         sender.sendMessage(builder.build());
@@ -199,23 +169,31 @@ public class TrackScheduler extends AudioEventAdapter implements IPlayerEventLis
 
     public List<AudioTrack> getQueue() {
         List<AudioTrack> tracks;
-        synchronized (queue) {
+        lock.lock();
+        try {
             tracks = new ArrayList<>(queue);
+        } finally {
+            lock.unlock();
         }
         return tracks;
     }
 
     public void skipTo(AudioTrack track) {
-        synchronized (queue) {
-            if (queue.contains(track)) {
-                while (queue.peek() != track) {
-                    if (repeatQueue)
-                        queue.addLast(queue.pop());
-                    else
-                        queue.pop();
-                }
-                skip();
+        lock.lock();
+        logger.warn("{} {} {}", track.getInfo().title, track.getInfo().author, track.getInfo().identifier);
+        try {
+            if (!queue.contains(track))
+                return;
+
+            while (queue.peek() != track) {
+                if (repeatQueue)
+                    queue.addLast(queue.pop());
+                else
+                    queue.pop();
             }
+            skip();
+        } finally {
+            lock.unlock();
         }
     }
 
@@ -237,25 +215,65 @@ public class TrackScheduler extends AudioEventAdapter implements IPlayerEventLis
         return null;
     }
 
-    public boolean isRepeatTrack() {
-        return repeatTrack;
+    // Events
+    private void onTrackStart(TrackStartEvent event) {
+        logger.info("{} => Track start {}", player.getManager().getGuild().getName(), event.getTrack().getInfo().title);
+        currentTrack = event.getTrack();
     }
 
-    public void setRepeatTrack(boolean repeatTrack) {
-        this.repeatTrack = repeatTrack;
+    public void onTrackEnd(TrackEndEvent event) {
+        logger.info("{} => Track end {} - Reason: {}", player.getManager().getGuild().getName(), event.getTrack().getInfo().title, event.getReason());
+        IPlayer player = event.getPlayer();
+        AudioTrackEndReason endReason = event.getReason();
+        switch (endReason) {
+            case FINISHED:
+                if (repeatTrack) {
+                    player.playTrack(getCurrentTrack());
+                    break;
+                }
+            case LOAD_FAILED:
+                skip();
+                break;
+            case STOPPED:
+                stop();
+                break;
+        }
     }
 
-    public boolean isRepeatQueue() {
-        return repeatQueue;
+    public void onTrackException(TrackExceptionEvent event) {
+        AudioTrack track = event.getTrack();
+        Exception exception = event.getException();
+        AudioManager manager = player.getManager();
+        logger.warn(String.format("%s => Track exception for %s", player.getManager().getGuild().getName(), track.getInfo().title), exception);
+        if (exception == null) {
+            logger.warn("Null exception in audio manager");
+            return;
+        }
+        if (repeatTrack) {
+            repeatTrack = false;
+        }
+        if (exception.getCause().getMessage().toLowerCase().contains("read timed out")) {
+            queue.addFirst(event.getTrack().makeClone());
+            return;
+        }
+        Collection<ScheduledTask> future = manager.listeners.values();
+        future.forEach(ScheduledTask::cancel);
+        manager.listeners.clear();
+        DiscordCommandIssuer requester = event.getTrack().getUserData(DiscordCommandIssuer.class);
+        requester.sendMessage(String.format("Failed to play `%s` because, `%s` %s", track.getInfo().title, exception.getMessage(), (exception.getCause() != null ? "`" + exception.getCause().getMessage() + "`" : "")));
+        skip();
     }
 
-    public void setRepeatQueue(boolean repeatQueue) {
-        this.repeatQueue = repeatQueue;
+    public void onTrackStuck(TrackStuckEvent event) {
+        logger.info("{} => Track stuck {}", player.getManager().getGuild().getName(), event.getTrack().getInfo().title);
+        AudioTrack track = event.getTrack();
+        DiscordCommandIssuer requestor = track.getUserData(DiscordCommandIssuer.class);
+        requestor.sendMessage("Got stuck while playing `" + track.getInfo().title + "`. It will be skipped.");
+        skip();
     }
 
     @Override
     public void onEvent(PlayerEvent event) {
-        logger.warn("Scheduler received an event");
         if (event instanceof TrackStartEvent) {
             onTrackStart((TrackStartEvent) event);
         } else if (event instanceof TrackEndEvent) {
@@ -265,9 +283,5 @@ public class TrackScheduler extends AudioEventAdapter implements IPlayerEventLis
         } else if (event instanceof TrackStuckEvent) {
             onTrackStuck((TrackStuckEvent) event);
         }
-    }
-
-    private void onTrackStart(TrackStartEvent event) {
-        currentTrack = event.getTrack();
     }
 }

@@ -91,7 +91,7 @@ public class ListenCommand extends AudioCommand {
         @Override
         public void run() {
             AudioManager manager = getAudioManager(user);
-            long botChannel = manager.getLink().getChannelId();
+            long botChannel = manager.getPlayer().getLink().getChannelId();
 
             // Attempt a connection to get an exception
             if(botChannel == -1 && user.getVoiceChannel() != null) {
@@ -120,7 +120,7 @@ public class ListenCommand extends AudioCommand {
             boolean shouldSearch = (track == null || !StringUtils.tokenCompare(track.getInfo().title, presence.getTitle(), presence.getAuthor()));
             if (shouldSearch) {
                 ListenCommand.this.logger.info("Changing track expected {} but got {}", presence.getTitle(), track == null ? "NULL" : track.getInfo().title);
-                CompletableFuture<List<AudioTrack>> future = manager.getLink().getRestClient().getYoutubeSearchResult(presence.getTitle() + " " + presence.getAuthor());
+                CompletableFuture<List<AudioTrack>> future = manager.getPlayer().getLink().getRestClient().getYoutubeSearchResult(presence.getTitle() + " " + presence.getAuthor());
                 try {
                     List<AudioTrack> tracks = future.get(10, TimeUnit.SECONDS);
 

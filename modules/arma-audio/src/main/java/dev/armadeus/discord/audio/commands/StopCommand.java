@@ -11,9 +11,9 @@ public class StopCommand extends AudioCommand {
     @CommandAlias("stop")
     public void stop(DiscordCommandIssuer user) {
         AudioManager manager = getAudioManager(user);
-        if (manager.getLink().getChannelId() != -1) {
+        if (manager.getPlayer().getLink().getChannelId() != -1) {
             manager.getScheduler().stop();
-            manager.getLink().destroy();
+            manager.getPlayer().getLink().destroy();
         }
     }
 }

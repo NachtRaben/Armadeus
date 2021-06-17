@@ -2,6 +2,7 @@ package dev.armadeus.discord.audio.util;
 
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import dev.armadeus.discord.audio.ArmaAudio;
+import dev.armadeus.discord.audio.AudioManager;
 import dev.armadeus.discord.audio.TrackScheduler;
 import lavalink.client.io.filters.Filters;
 import lavalink.client.io.jda.JdaLink;
@@ -23,12 +24,13 @@ import static org.awaitility.Awaitility.await;
 @Getter
 public class PlayerWrapper implements IPlayerEventListener {
 
-    private final ReentrantLock lock = new ReentrantLock();
+    private final AudioManager manager;
     private final LavalinkPlayer internalPlayer;
     private PlayerStatus status;
     private TrackScheduler scheduler;
 
-    public PlayerWrapper(LavalinkPlayer internalPlayer) {
+    public PlayerWrapper(AudioManager manager, LavalinkPlayer internalPlayer) {
+        this.manager = manager;
         this.internalPlayer = internalPlayer;
         this.scheduler = new TrackScheduler(this);
         internalPlayer.addListener(this);
@@ -36,30 +38,18 @@ public class PlayerWrapper implements IPlayerEventListener {
 
     public synchronized void playTrack(AudioTrack track) {
         status = PlayerStatus.REQUESTED;
-        CompletableFuture.runAsync(() -> internalPlayer.playTrack(track));
-        try {
-//            await().atMost(30, TimeUnit.SECONDS).until(() -> status == PlayerStatus.PLAYING || status == PlayerStatus.STOPPED);
-        } catch (Exception e) {
-            e.printStackTrace();
-            System.out.println(status);
-        }
+        internalPlayer.playTrack(track);
     }
 
     public synchronized void stopTrack() {
         if (internalPlayer.getPlayingTrack() == null)
             return;
         status = PlayerStatus.STOPPING;
-        CompletableFuture.runAsync(internalPlayer::stopTrack);
-        try {
-//            await().atMost(30, TimeUnit.SECONDS).until(() -> status == PlayerStatus.STOPPED);
-        } catch (Exception e) {
-            e.printStackTrace();
-            System.out.println(status);
-        }
+        internalPlayer.stopTrack();
     }
 
     public JdaLink getLink() {
-        return ArmaAudio.get().getLavalink().getLink(internalPlayer.getLink().getGuildId());
+        return ArmaAudio.get().getLavalink().getLink(manager.getGuild());
     }
 
     public Filters getFilters() {
