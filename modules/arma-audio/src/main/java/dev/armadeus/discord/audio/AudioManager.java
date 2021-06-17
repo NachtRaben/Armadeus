@@ -47,6 +47,7 @@ public class AudioManager {
         this.player = new PlayerWrapper(this, ArmaAudio.get().getLavalink().getLink(guild).getPlayer());
         player.getLink().getNode(true);
         // Initialize Volume and Equalizer
+        player.setVolume((int) (getVolume() * 100.0f)); // Bug in lavalink, this sets initial volume state since filters don't take effect initially
         Filters filters = player.getFilters();
         filters = filters.setVolume(getVolume());
         for (int i = 0; i < this.bands.length; i++) {

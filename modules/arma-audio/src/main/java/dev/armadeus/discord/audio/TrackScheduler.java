@@ -140,6 +140,10 @@ public class TrackScheduler extends AudioEventAdapter implements IPlayerEventLis
     }
 
     public boolean isPlaying() {
+        AudioTrack ptrack = player.getPlayingTrack();
+        if(currentTrack == null && ptrack != null) {
+            currentTrack = ptrack;
+        }
         return currentTrack != null;
     }
 
@@ -180,7 +184,6 @@ public class TrackScheduler extends AudioEventAdapter implements IPlayerEventLis
 
     public void skipTo(AudioTrack track) {
         lock.lock();
-        logger.warn("{} {} {}", track.getInfo().title, track.getInfo().author, track.getInfo().identifier);
         try {
             if (!queue.contains(track))
                 return;
@@ -208,7 +211,7 @@ public class TrackScheduler extends AudioEventAdapter implements IPlayerEventLis
 
     public AudioTrack getCurrentTrack() {
         if (currentTrack != null) {
-            AudioTrack track = currentTrack.makeClone();
+            AudioTrack track = player.getPlayingTrack();
             track.setUserData(currentTrack.getUserData());
             return track;
         }
@@ -267,8 +270,8 @@ public class TrackScheduler extends AudioEventAdapter implements IPlayerEventLis
     public void onTrackStuck(TrackStuckEvent event) {
         logger.info("{} => Track stuck {}", player.getManager().getGuild().getName(), event.getTrack().getInfo().title);
         AudioTrack track = event.getTrack();
-        DiscordCommandIssuer requestor = track.getUserData(DiscordCommandIssuer.class);
-        requestor.sendMessage("Got stuck while playing `" + track.getInfo().title + "`. It will be skipped.");
+        DiscordCommandIssuer requester = track.getUserData(DiscordCommandIssuer.class);
+        requester.sendMessage("Got stuck while playing `" + track.getInfo().title + "`. It will be skipped.");
         skip();
     }
 

@@ -9,42 +9,29 @@ import lavalink.client.io.jda.JdaLink;
 import lavalink.client.player.LavalinkPlayer;
 import lavalink.client.player.event.IPlayerEventListener;
 import lavalink.client.player.event.PlayerEvent;
-import lavalink.client.player.event.TrackEndEvent;
-import lavalink.client.player.event.TrackExceptionEvent;
-import lavalink.client.player.event.TrackStartEvent;
-import lavalink.client.player.event.TrackStuckEvent;
 import lombok.Getter;
 
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.ReentrantLock;
-
-import static org.awaitility.Awaitility.await;
-
 @Getter
-public class PlayerWrapper implements IPlayerEventListener {
+public class PlayerWrapper {
 
     private final AudioManager manager;
     private final LavalinkPlayer internalPlayer;
-    private PlayerStatus status;
     private TrackScheduler scheduler;
 
     public PlayerWrapper(AudioManager manager, LavalinkPlayer internalPlayer) {
         this.manager = manager;
         this.internalPlayer = internalPlayer;
         this.scheduler = new TrackScheduler(this);
-        internalPlayer.addListener(this);
+        internalPlayer.addListener(scheduler);
     }
 
     public synchronized void playTrack(AudioTrack track) {
-        status = PlayerStatus.REQUESTED;
         internalPlayer.playTrack(track);
     }
 
     public synchronized void stopTrack() {
         if (internalPlayer.getPlayingTrack() == null)
             return;
-        status = PlayerStatus.STOPPING;
         internalPlayer.stopTrack();
     }
 
@@ -57,7 +44,7 @@ public class PlayerWrapper implements IPlayerEventListener {
     }
 
     public void seekTo(long position) {
-        if (status == PlayerStatus.PLAYING)
+        if(internalPlayer.getPlayingTrack() != null)
             internalPlayer.seekTo(position);
     }
 
@@ -89,24 +76,4 @@ public class PlayerWrapper implements IPlayerEventListener {
         return scheduler.isPlaying();
     }
 
-    @Override
-    public void onEvent(PlayerEvent event) {
-        if (event instanceof TrackStartEvent) {
-            status = PlayerStatus.PLAYING;
-        } else if (event instanceof TrackEndEvent) {
-            status = PlayerStatus.STOPPED;
-        } else if (event instanceof TrackStuckEvent) {
-            status = PlayerStatus.STOPPED;
-        } else if (event instanceof TrackExceptionEvent) {
-            status = PlayerStatus.STOPPED;
-        }
-        scheduler.onEvent(event);
-    }
-
-    public enum PlayerStatus {
-        REQUESTED,
-        PLAYING,
-        STOPPING,
-        STOPPED
-    }
 }

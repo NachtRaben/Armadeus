@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class ListenCommand extends AudioCommand {
 
@@ -43,8 +44,8 @@ public class ListenCommand extends AudioCommand {
             user.sendMessage("Senpai~ I'm already listening to UwU");
             return;
         }
-
-        manager.listeners.put(user.getUser().getIdLong(), ArmaAudio.core().scheduler().buildTask(ArmaAudio.get(), new ListenRunnable(user)).delay(1, TimeUnit.SECONDS).repeat(10, TimeUnit.SECONDS).schedule());
+        manager.getPlayer().getScheduler().stop();
+        manager.listeners.put(user.getUser().getIdLong(), ArmaAudio.core().scheduler().buildTask(ArmaAudio.get(), new ListenRunnable(user)).delay(1, TimeUnit.SECONDS).repeat(5, TimeUnit.SECONDS).schedule());
     }
 
     private static class SpotifyPresence {
@@ -83,13 +84,15 @@ public class ListenCommand extends AudioCommand {
     private class ListenRunnable implements Runnable {
 
         private DiscordCommandIssuer user;
-
         public ListenRunnable(DiscordCommandIssuer user) {
             this.user = user;
         }
 
+        private AtomicBoolean skip = new AtomicBoolean(false);
+
         @Override
         public void run() {
+            if(skip.get()) return;
             AudioManager manager = getAudioManager(user);
             long botChannel = manager.getPlayer().getLink().getChannelId();
 
@@ -122,8 +125,8 @@ public class ListenCommand extends AudioCommand {
                 ListenCommand.this.logger.info("Changing track expected {} but got {}", presence.getTitle(), track == null ? "NULL" : track.getInfo().title);
                 CompletableFuture<List<AudioTrack>> future = manager.getPlayer().getLink().getRestClient().getYoutubeSearchResult(presence.getTitle() + " " + presence.getAuthor());
                 try {
+                    skip.set(true);
                     List<AudioTrack> tracks = future.get(10, TimeUnit.SECONDS);
-
                     // Couldn't locate track
                     if (tracks.isEmpty()) {
                         logger.warn("Stopped listening to {} because no results found", user.getMember().getEffectiveName());
@@ -137,8 +140,7 @@ public class ListenCommand extends AudioCommand {
                         if (!found)
                             continue;
                         t.setUserData(user);
-                        manager.getPlayer().getScheduler().queue(t);
-                        manager.getPlayer().getScheduler().skip();
+                        manager.getPlayer().getScheduler().play(t);
                         manager.getPlayer().seekTo(presence.getPosition());
                         break;
                     }
@@ -152,6 +154,7 @@ public class ListenCommand extends AudioCommand {
                     logger.warn("Exception encountered while loading tracks", e);
                     stop(e.getLocalizedMessage());
                 }
+                skip.set(false);
             } else if (Math.abs(presence.getPosition() - position) > 5000) {
                 ListenCommand.this.logger.info("We detected drift, expected {} but got {}", TimeUtil.format(presence.getPosition()), TimeUtil.format(position));
                 manager.getPlayer().seekTo(presence.getPosition());
