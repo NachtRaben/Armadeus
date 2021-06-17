@@ -29,12 +29,12 @@ public class QueueShowCommand extends AudioCommand {
         long totalTime = current.getInfo().isStream ? 0 : current.getDuration();
         totalTime += tracks.stream().mapToLong(track -> track.getInfo().isStream ? 0 : track.getDuration()).sum() + current.getDuration() - current.getPosition();
 
-        EmbedBuilder eb = AudioEmbedUtils.getNowPlayingEmbed(user, current);
+        EmbedBuilder eb = new EmbedBuilder(AudioEmbedUtils.getNowPlayingEmbed(user, current));
         eb.setAuthor(user.getGuild().getSelfMember().getEffectiveName() + "'s Queue:",
                 EmbedBuilder.URL_PATTERN.matcher(current.getInfo().uri).matches() ? current.getInfo().uri : null,
                 null);
 
-        eb.getDescriptionBuilder().insert(0, "**Currently Playing:**");
+        eb.getDescriptionBuilder().insert(0, "**Currently Playing:** ");
         eb.appendDescription("\n\n**Queued:**\n");
         int counter = 0;
         for (AudioTrack track : tracks) {

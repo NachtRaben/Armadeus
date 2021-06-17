@@ -51,7 +51,7 @@ public class AudioManager {
         Filters filters = player.getFilters();
         filters = filters.setVolume(getVolume());
         for (int i = 0; i < this.bands.length; i++) {
-            filters = filters.setBand(i, this.bands[i] * 2);
+            filters = filters.setBand(i, this.bands[i] * 1.5f);
         }
         filters.commit();
         logger.info("Setting initial volume for {} to {}", guild.getName(), audioConfig.get("volume"));

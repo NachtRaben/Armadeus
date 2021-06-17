@@ -1,11 +1,11 @@
 package dev.armadeus.discord.audio;
 
-import com.google.common.base.MoreObjects;
 import com.sedmelluq.discord.lavaplayer.player.event.AudioEventAdapter;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackEndReason;
 import com.velocitypowered.api.scheduler.ScheduledTask;
 import dev.armadeus.bot.api.command.DiscordCommandIssuer;
+import dev.armadeus.discord.audio.radio.Radio;
 import dev.armadeus.discord.audio.util.AudioEmbedUtils;
 import dev.armadeus.discord.audio.util.PlayerWrapper;
 import lavalink.client.player.IPlayer;
@@ -18,6 +18,7 @@ import lavalink.client.player.event.TrackStuckEvent;
 import lombok.Getter;
 import lombok.Setter;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.VoiceChannel;
 import net.dv8tion.jda.api.exceptions.InsufficientPermissionException;
 import org.slf4j.Logger;
@@ -167,8 +168,7 @@ public class TrackScheduler extends AudioEventAdapter implements IPlayerEventLis
     }
 
     private void sendEmbed(AudioTrack track, DiscordCommandIssuer sender) {
-        EmbedBuilder builder = AudioEmbedUtils.getNowPlayingEmbed(sender, track);
-        sender.sendMessage(builder.build());
+        sender.sendMessage(AudioEmbedUtils.getNowPlayingEmbed(sender, track));
     }
 
     public List<AudioTrack> getQueue() {

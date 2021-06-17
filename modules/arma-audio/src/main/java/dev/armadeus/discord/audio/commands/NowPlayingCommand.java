@@ -21,7 +21,7 @@ public class NowPlayingCommand extends AudioCommand {
 
         AudioManager manager = getAudioManager(user);
         TrackScheduler scheduler = manager.getPlayer().getScheduler();
-        EmbedBuilder eb = AudioEmbedUtils.getNowPlayingEmbed(user, manager.getPlayer().getPlayingTrack());
+        EmbedBuilder eb = new EmbedBuilder(AudioEmbedUtils.getNowPlayingEmbed(user, manager.getPlayer().getPlayingTrack()));
         if (extended) {
             AudioTrack current = manager.getPlayer().getPlayingTrack();
             eb.addField("Position:", "`" + TimeUtil.format(manager.getPlayer().getTrackPosition())
