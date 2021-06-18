@@ -1,6 +1,7 @@
 package dev.armadeus.discord.audio.commands;
 
 import co.aikar.commands.annotation.CommandAlias;
+import co.aikar.commands.annotation.CommandPermission;
 import co.aikar.commands.annotation.Conditions;
 import co.aikar.commands.annotation.Default;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
@@ -16,6 +17,7 @@ public class RadioCommand extends AudioCommand {
 
     @Conditions("guildonly")
     @CommandAlias("radio")
+    @CommandPermission("armadeus.radio")
     public void radio(DiscordCommandIssuer user, String station) {
         if (cannotQueueMusic(user))
             return;

@@ -17,9 +17,9 @@ public interface ArmaConfig {
     String getToken();
     List<Integer> getShards();
     Integer getShardsTotal();
-    List<Long> getOwnerIds();
-    List<Long> getDeveloperIds();
-    List<String> getDefaultPrefixes();
+    Set<Long> getOwnerIds();
+    Set<Long> getDeveloperIds();
+    Set<String> getDefaultPrefixes();
     boolean isDatabaseEnabled();
 
     Map<String, CommentedConfig> getMetadata();

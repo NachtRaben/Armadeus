@@ -6,6 +6,7 @@ import com.velocitypowered.proxy.plugin.util.DummyPluginContainer;
 import net.dv8tion.jda.api.AccountType;
 import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.sharding.ShardManager;
 import org.jetbrains.annotations.NotNull;
@@ -234,6 +235,17 @@ public class JDACommandManager extends CommandManager<
         }
     }
 
+    void dispatchSlash(SlashCommandEvent event) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("SlashEvent:");
+        sb.append("\nName: ").append(event.getName());
+        sb.append("\nOptions: ").append(event.getOptions());
+        sb.append("\nSubName: ").append(event.getSubcommandName());
+        sb.append("\nSubGroup: ").append(event.getSubcommandGroup());
+        System.out.println(sb.toString());
+        event.reply(event.getOption("content").getAsString()).queue();
+    }
+
     void dispatchEvent(MessageReceivedEvent event) {
         Message message = event.getMessage();
         if (message.getAuthor().isBot())
@@ -250,11 +262,13 @@ public class JDACommandManager extends CommandManager<
             }
         }
         if (prefixFound == null) {
+            System.out.println("No prefix");
             return;
         }
 
         String[] args = ACFPatterns.SPACE.split(msg.substring(prefixFound.length()), -1);
         if (args.length == 0) {
+            System.out.println("No Tokens");
             return;
         }
         // Hacky way to allow newlines right next to the command
@@ -265,6 +279,7 @@ public class JDACommandManager extends CommandManager<
         String cmd = args[0].toLowerCase(Locale.ENGLISH);
         JDARootCommand rootCommand = this.commands.get(cmd);
         if (rootCommand == null) {
+            System.out.println("No Command");
             return;
         }
         if (args.length > 1) {
@@ -274,7 +289,6 @@ public class JDACommandManager extends CommandManager<
         }
         String[] finalArgs = args;
         CompletableFuture.runAsync(() -> rootCommand.execute(this.getCommandIssuer(event), cmd, finalArgs));
-
     }
 
     private CommandConfig getCommandConfig(MessageReceivedEvent event) {
@@ -287,7 +301,6 @@ public class JDACommandManager extends CommandManager<
         }
         return config;
     }
-
 
     @Override
     public String getCommandPrefix(CommandIssuer issuer) {

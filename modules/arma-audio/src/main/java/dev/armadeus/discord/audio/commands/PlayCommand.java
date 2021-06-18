@@ -1,6 +1,7 @@
 package dev.armadeus.discord.audio.commands;
 
 import co.aikar.commands.annotation.CommandAlias;
+import co.aikar.commands.annotation.CommandPermission;
 import co.aikar.commands.annotation.Conditions;
 import co.aikar.commands.annotation.Description;
 import dev.armadeus.bot.api.command.DiscordCommandIssuer;
@@ -16,6 +17,7 @@ public class PlayCommand extends AudioCommand {
     @Conditions("guildonly")
     @CommandAlias("play")
     @Description("Request the specified track")
+    @CommandPermission("armadeus.play")
     public void play(DiscordCommandIssuer user, String identifier) {
         if (cannotQueueMusic(user))
             return;

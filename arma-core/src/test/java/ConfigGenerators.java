@@ -71,10 +71,6 @@ public class ConfigGenerators {
         save(config, Path.of("arma-core/src/main/resources/configs/guild-config.toml"));
         config.setComment("disabledCommandsByRole", "List of command permissions to disable per role\nThese tokens can be regex to match multiple command permissions");
         config.set(asList("disabledCommandsByRole", "123456789L"), List.of("command.unknown", "command.unknown2.*"));
-        config.setComment("metadata", "Metadata stored by other modules of the bot");
-        CommentedConfig example = format.createConfig();
-        example.set("exampleKey", "exampleValue");
-        config.set(asList("metadata", "example"), example);
         save(config, Path.of("arma-core/src/main/resources/configs/guild-config.toml"));
     }
 

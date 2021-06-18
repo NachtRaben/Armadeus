@@ -1,6 +1,7 @@
 package dev.armadeus.discord.audio.commands;
 
 import co.aikar.commands.annotation.CommandAlias;
+import co.aikar.commands.annotation.CommandPermission;
 import co.aikar.commands.annotation.Conditions;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import dev.armadeus.bot.api.command.DiscordCommandIssuer;
@@ -12,13 +13,14 @@ import net.dv8tion.jda.api.entities.MessageEmbed;
 
 import java.util.List;
 
-public class QueueShowCommand extends AudioCommand {
+public class QueueCommand extends AudioCommand {
 
     private static final String trackDescription = "\n**[%s](%s)** ) `%s` for (`%s`)";
 
 
     @Conditions("guildonly")
     @CommandAlias("queue")
+    @CommandPermission("armadeus.queue")
     public void queue(DiscordCommandIssuer user) {
         AudioManager manager = getAudioManager(user);
         if (isNotPlaying(user))

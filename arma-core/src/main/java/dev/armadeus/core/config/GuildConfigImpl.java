@@ -2,16 +2,18 @@ package dev.armadeus.core.config;
 
 import com.electronwill.nightconfig.core.CommentedConfig;
 import com.electronwill.nightconfig.core.UnmodifiableConfig;
-import com.electronwill.nightconfig.core.conversion.ObjectConverter;
-import com.electronwill.nightconfig.toml.TomlFormat;
-import dev.armadeus.bot.api.ArmaCore;
 import dev.armadeus.bot.api.config.GuildConfig;
 import dev.armadeus.core.ArmaCoreImpl;
 import net.dv8tion.jda.api.entities.Guild;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -55,52 +57,93 @@ public class GuildConfigImpl implements GuildConfig {
     }
 
     @Override
-    public GuildConfig setDeleteCommandMessages(boolean delete) {
+    public GuildConfig deleteCommandMessages(boolean delete) {
         config.set("deleteCommands", delete);
         return this;
     }
 
     @Override
-    public List<String> getPrefixes() {
-        return config.getOrElse("prefixes", List.of());
+    public Set<String> getPrefixes() {
+        return new HashSet<>(config.getOrElse("prefixes", List.of()));
     }
 
     @Override
-    public GuildConfig setPrefixes(Collection<String> prefixes) {
-        config.set("prefixes", prefixes);
+    public GuildConfig setPrefixes(Set<String> prefixes) {
+        config.set("prefixes", new ArrayList<>(prefixes));
         return this;
     }
 
     @Override
-    public List<String> getDisabledCommands() {
-        return config.getOrElse("disabledCommands", List.of());
-    }
-
-    @Override
-    public GuildConfig setDisabledCommands(List<String> commands) {
-        config.set("disabledCommands", commands);
+    public GuildConfig addPrefixes(String... prefixes) {
+        Set<String> pre = getPrefixes();
+        pre.addAll(Arrays.asList(prefixes));
+        setPrefixes(pre);
         return this;
     }
 
     @Override
-    public Map<Long, List<String>> getDisabledCommandsByRole() {
-        return config.getOrElse("disabledCommandsPerRole", Map.of());
-    }
-
-    @Override
-    public GuildConfig setDisabledCommandsByRole(Map<Long, List<String>> disabledCommandsByRole) {
-        config.set("disabledCommandsByRole", disabledCommandsByRole);
+    public GuildConfig removePrefixes(String... prefixes) {
+        Set<String> pre = getPrefixes();
+        Arrays.asList(prefixes).forEach(pre::remove);
+        setPrefixes(pre);
         return this;
     }
 
     @Override
-    public List<String> getDisabledCommandsFor(long roleId) {
-        return config.getOrElse(asList("disabledCommandsByRole", Long.toString(roleId)), List.of());
+    public Set<String> getDisabledCommands() {
+        return new HashSet<>(config.getOrElse("disabledCommands", List.of()));
     }
 
     @Override
-    public GuildConfig setDisabledCommandsFor(long roleId, List<String> commands) {
-        config.set(asList("disabledCommandsByRole", Long.toString(roleId)), commands);
+    public GuildConfig setDisabledCommands(Set<String> permissions) {
+        config.set("disabledCommands", new ArrayList<>(permissions));
+        return this;
+    }
+
+    @Override
+    public GuildConfig addDisabledCommand(String... permissions) {
+        Set<String> disabled = getDisabledCommands();
+        disabled.addAll(Arrays.asList(permissions));
+        setDisabledCommands(disabled);
+        return this;
+    }
+
+    @Override
+    public GuildConfig removeDisabledCommand(String... permissions) {
+        Set<String> disabled = getDisabledCommands();
+        Arrays.asList(permissions).forEach(disabled::remove);
+        setDisabledCommands(disabled);
+        return this;
+    }
+
+    @Override
+    public Set<String> getDisabledCommandsForRole(long roleId) {
+        return new HashSet<>(config.getOrElse(asList("disabledCommandsByRole", Long.toString(roleId)), List.of()));
+    }
+
+    @Override
+    public GuildConfig setDisabledCommandsForRole(long roleId, Set<String> permissions) {
+        config.set(asList("disabledCommandsByRole", Long.toString(roleId)), new ArrayList<>(permissions));
+        return this;
+    }
+
+    @Override
+    public GuildConfig addDisabledCommandsForRole(long roleId, String... permissions) {
+        Set<String> disabled = getDisabledCommandsForRole(roleId);
+        disabled.addAll(Arrays.asList(permissions));
+        setDisabledCommandsForRole(roleId, disabled);
+        return this;
+    }
+
+    @Override
+    public GuildConfig removeDisabledCommandsForRole(long roleId, String... permissions) {
+        Set<String> disabled = getDisabledCommandsForRole(roleId);
+        Arrays.asList(permissions).forEach(disabled::remove);
+        if(disabled.isEmpty()) {
+            config.remove(asList("disabledCommandsByRole", Long.toString(roleId)));
+            return this;
+        }
+        setDisabledCommandsForRole(roleId, disabled);
         return this;
     }
 

@@ -1,6 +1,7 @@
 package dev.armadeus.discord.audio.commands;
 
 import co.aikar.commands.annotation.CommandAlias;
+import co.aikar.commands.annotation.CommandPermission;
 import co.aikar.commands.annotation.Conditions;
 import co.aikar.commands.annotation.Default;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
@@ -15,6 +16,7 @@ public class NowPlayingCommand extends AudioCommand {
 
     @Conditions("guildonly")
     @CommandAlias("np|playing")
+    @CommandPermission("armadeus.playing")
     public void nowPlaying(DiscordCommandIssuer user, @Default(value = "false") boolean extended) {
         if (isNotPlaying(user))
             return;
@@ -25,7 +27,7 @@ public class NowPlayingCommand extends AudioCommand {
         if (extended) {
             AudioTrack current = manager.getPlayer().getPlayingTrack();
             eb.addField("Position:", "`" + TimeUtil.format(manager.getPlayer().getTrackPosition())
-                    + "/" + TimeUtil.format(current.getDuration()) + "`", true);
+                    + "/" + (!current.getInfo().isStream ? TimeUtil.format(current.getDuration()) : "unknown") + "`", true);
             eb.addField("Volume:", "`" + manager.getPlayer().getFilters().getVolume() * 100 + "%" + "`", true);
             eb.addField("QueueSize:", "`" + scheduler.getQueue().size() + "`", true);
             eb.addField("RepeatAll:", "`" + scheduler.isRepeatQueue() + "`", true);

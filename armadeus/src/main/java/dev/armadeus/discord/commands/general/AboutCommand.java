@@ -1,6 +1,7 @@
 package dev.armadeus.discord.commands.general;
 
 import co.aikar.commands.annotation.CommandAlias;
+import co.aikar.commands.annotation.CommandPermission;
 import co.aikar.commands.annotation.Default;
 import dev.armadeus.bot.api.ArmaCore;
 import dev.armadeus.bot.api.command.DiscordCommand;
@@ -15,6 +16,7 @@ public class AboutCommand extends DiscordCommand {
 
     @Default
     @CommandAlias("about")
+    @CommandPermission("armadeus.about")
     public void about(DiscordCommandIssuer user) {
         EmbedBuilder builder = EmbedUtils.newBuilder(user);
         ApplicationInfo info = user.getJda().retrieveApplicationInfo().complete();
@@ -27,21 +29,6 @@ public class AboutCommand extends DiscordCommand {
                 "\nSupport: [Discord](https://discord.armadeus.net)" +
                 "\nDonations: [PayPal](https://paypal.me/nachtraben)", false);
         builder.setFooter(String.format("Author: %s#%s", info.getOwner().getName(), info.getOwner().getDiscriminator()), info.getOwner().getAvatarUrl());
-
-        StringBuilder sb = new StringBuilder();
-        sb.append("`");
-        if (user.isFromGuild()) {
-            GuildConfig config = user.getGuildConfig();
-            if (!config.getPrefixes().isEmpty())
-                sb.append(config.getPrefixes());
-            else
-                sb.append(core.armaConfig().getDefaultPrefixes());
-        } else {
-            sb.append(core.armaConfig().getDefaultPrefixes());
-        }
-        sb.append("`");
-
-        builder.addField("Prefixes", sb.toString(), false);
         user.sendMessage(builder.build());
     }
 

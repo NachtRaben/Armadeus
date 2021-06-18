@@ -1,8 +1,8 @@
-package dev.armadeus.discord.listeners;
+package dev.armadeus.discord.welcome.listeners;
 
 import com.electronwill.nightconfig.core.CommentedConfig;
 import dev.armadeus.bot.api.ArmaCore;
-import dev.armadeus.bot.api.config.GuildConfig;
+import dev.armadeus.discord.welcome.ArmaWelcome;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberJoinEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 
@@ -16,15 +16,16 @@ public class WelcomeListener extends ListenerAdapter {
 
     @Override
     public void onGuildMemberJoin(GuildMemberJoinEvent e) {
-        GuildConfig config = core.guildManager().getConfigFor(e.getGuild().getIdLong());
-        CommentedConfig welcomer = config.getMetadata("arma-welcomer");
-        if(welcomer == null)
+        CommentedConfig wConf = ArmaWelcome.get().getConfig(e.getGuild());
+        if(wConf == null)
             return;
-        String action = welcomer.get("action");
-        String message = welcomer.get("message");
+
+        boolean enabled = wConf.get("enabled");
+        boolean dm = wConf.get("dm");
+        String message = wConf.get("message");
 
         // If unconfigured, don't do anything.
-        if (action.isEmpty() || message == null)
+        if (!enabled || message == null)
             return;
 
         // Filter out and replace some tags.
@@ -36,9 +37,9 @@ public class WelcomeListener extends ListenerAdapter {
 
         // Send based on action.
         // TODO: Implement setting this metadata
-        if (action.equalsIgnoreCase("dm")) {
+        if (dm) {
             e.getMember().getUser().openPrivateChannel().queue(pc -> pc.sendMessage(msg).queue());
-        } else if (action.equalsIgnoreCase("message") && e.getGuild().getDefaultChannel() != null) {
+        } else if (e.getGuild().getDefaultChannel() != null) {
             e.getGuild().getDefaultChannel().sendMessage(msg).queue();
         }
     }

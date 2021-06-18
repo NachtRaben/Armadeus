@@ -6,11 +6,8 @@ import com.velocitypowered.api.Velocity;
 import com.velocitypowered.api.event.Subscribe;
 import com.velocitypowered.api.plugin.Dependency;
 import com.velocitypowered.api.plugin.Plugin;
-import com.velocitypowered.api.plugin.PluginContainer;
-import com.velocitypowered.api.plugin.PluginDescription;
 import dev.armadeus.bot.api.ArmaCore;
 import dev.armadeus.bot.api.command.DiscordCommand;
-import dev.armadeus.discord.listeners.WelcomeListener;
 import lombok.Getter;
 import net.dv8tion.jda.api.sharding.ShardManager;
 import org.reflections.Reflections;
@@ -21,8 +18,6 @@ import org.reflections.util.FilterBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nullable;
-import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
 import java.util.Map;
@@ -47,11 +42,6 @@ public class Armadeus {
     }
 
     @Subscribe
-    public void registerJDAListeners(ShardManager manager) {
-        manager.addEventListener(new WelcomeListener(core));
-    }
-
-    @Subscribe
     public void registerCommands(CommandManager manager) {
         Reflections reflections = new Reflections(new ConfigurationBuilder()
                 .addClassLoader(Armadeus.class.getClassLoader())
@@ -69,6 +59,15 @@ public class Armadeus {
             } catch (InvocationTargetException | InstantiationException | IllegalAccessException | NoSuchMethodException e) {
                 logger.error("Failed to register command class", e);
             }
+        });
+    }
+
+    @Subscribe
+    public void test(ShardManager manager) {
+        logger.error("Injecting command map");
+        manager.getShards().forEach(shard -> {
+            shard.upsertCommand("play", "plays a song").complete();
+            shard.updateCommands().complete();
         });
     }
 

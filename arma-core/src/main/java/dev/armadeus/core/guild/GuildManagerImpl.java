@@ -102,7 +102,6 @@ public class GuildManagerImpl implements GuildManager {
                 logger.info("Saving guild configuration for {}", guildId);
                 try (StringWriter writer = new StringWriter()) {
                     tomlWriter.write(config, writer);
-                    if(core.armaConfig().isDatabaseEnabled()) {
                     DSLContext c2 = DSL.using(conn, SQLDialect.POSTGRES);
                     c2.insertInto(Tables.GUILDS)
                             .set(Tables.GUILDS.ID, guildId)
@@ -110,9 +109,6 @@ public class GuildManagerImpl implements GuildManager {
                             .onDuplicateKeyUpdate()
                             .set(Tables.GUILDS.CONFIG, writer.toString())
                             .execute();
-                    } else {
-
-                    }
                     needsSaved.set(false);
                 } catch (IOException e) {
                     logger.error("Failed to save guild configuration for " + guildId, e);

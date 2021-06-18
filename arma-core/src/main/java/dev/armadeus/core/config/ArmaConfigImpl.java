@@ -52,21 +52,21 @@ public class ArmaConfigImpl implements ArmaConfig {
     }
 
     @Override
-    public List<Long> getOwnerIds() {
-        return config.get(asList("arma-core", "ownerIds"));
+    public Set<Long> getOwnerIds() {
+        return Set.copyOf(config.get(asList("arma-core", "ownerIds")));
     }
 
     @Override
-    public List<Long> getDeveloperIds() {
+    public Set<Long> getDeveloperIds() {
         Set<Long> joined = new HashSet<>();
         joined.addAll(config.get(asList("arma-core", "developerIds")));
         joined.addAll(config.get(asList("arma-core", "ownerIds")));
-        return new ArrayList<>(joined);
+        return joined;
     }
 
     @Override
-    public List<String> getDefaultPrefixes() {
-        return config.get(asList("arma-core", "defaultPrefixes"));
+    public Set<String> getDefaultPrefixes() {
+        return Set.copyOf(config.get(asList("arma-core", "defaultPrefixes")));
     }
 
     public boolean isDatabaseEnabled() {

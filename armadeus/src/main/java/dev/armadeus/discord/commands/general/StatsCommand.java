@@ -1,6 +1,7 @@
 package dev.armadeus.discord.commands.general;
 
 import co.aikar.commands.annotation.CommandAlias;
+import co.aikar.commands.annotation.CommandPermission;
 import co.aikar.commands.annotation.Default;
 import dev.armadeus.bot.api.ArmaCore;
 import dev.armadeus.bot.api.command.DiscordCommand;
@@ -47,6 +48,7 @@ public class StatsCommand extends DiscordCommand {
 
     @Default
     @CommandAlias("stats")
+    @CommandPermission("armadeus.stats")
     public void stats(DiscordCommandIssuer user) {
         Runtime rt = Runtime.getRuntime();
         JDA.ShardInfo info = user.getJda().getShardInfo();

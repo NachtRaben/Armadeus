@@ -13,6 +13,7 @@ importProject("armadeus")
 importProject("arma-api")
 importProject("arma-core")
 importProject("modules/arma-audio")
+importProject("modules/arma-welcome")
 //importProject("modules/frontend")
 //importProject("modules/audio");
 

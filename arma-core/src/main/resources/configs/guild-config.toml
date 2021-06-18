@@ -22,9 +22,3 @@ devGuild = false
 [disabledCommandsByRole]
 	123456789L = ["command.unknown", "command.unknown2.*"]
 
-#Metadata stored by other modules of the bot for guild specific settings
-[metadata]
-
-	[metadata.example]
-		exampleKey = "exampleValue"
-

@@ -1,6 +1,7 @@
 package dev.armadeus.discord.commands.general;
 
 import co.aikar.commands.annotation.CommandAlias;
+import co.aikar.commands.annotation.CommandPermission;
 import co.aikar.commands.annotation.Default;
 import dev.armadeus.bot.api.command.DiscordCommand;
 import dev.armadeus.bot.api.command.DiscordCommandIssuer;
@@ -12,6 +13,7 @@ public class InviteCommand extends DiscordCommand {
 
     @Default
     @CommandAlias("invite|join")
+    @CommandPermission("armadeus.invite")
     public void invite(DiscordCommandIssuer user) {
         EmbedBuilder embedBuilder = EmbedUtils.newBuilder(user);
         SelfUser bot = user.getJda().getSelfUser();
