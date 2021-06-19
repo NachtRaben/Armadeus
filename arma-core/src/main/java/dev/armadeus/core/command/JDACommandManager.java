@@ -269,7 +269,6 @@ public class JDACommandManager extends CommandManager<
 
         String[] args = ACFPatterns.SPACE.split(msg.substring(prefixFound.length()), -1);
         if (args.length == 0) {
-            System.out.println("No Tokens");
             return;
         }
         // Hacky way to allow newlines right next to the command
@@ -280,7 +279,6 @@ public class JDACommandManager extends CommandManager<
         String cmd = args[0].toLowerCase(Locale.ENGLISH);
         JDARootCommand rootCommand = this.commands.get(cmd);
         if (rootCommand == null) {
-            System.out.println("No Command");
             return;
         }
         if (args.length > 1) {
