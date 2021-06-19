@@ -295,6 +295,7 @@ public class JDACommandManager extends CommandManager<
             if(gc.isDevGuild() && !core.armaConfig().isDevMode()){
                 // Prod Bot
                 logger.warning("Ignoring command message in " + event.getGuild().getName() + " because a dev instance is active");
+                return;
             }
             if(!gc.isDevGuild() && core.armaConfig().isDevMode()) {
                 // Dev Bot
