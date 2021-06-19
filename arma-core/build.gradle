@@ -4,6 +4,7 @@ plugins {
     id 'idea'
     id 'java-library'
     id 'com.github.johnrengelman.shadow'
+    id 'nu.studer.jooq' version '5.2.1'
 }
 
 jar {
@@ -22,6 +23,8 @@ shadowJar {
 }
 
 dependencies {
+    // Jooq
+    jooqGenerator group: 'org.postgresql', name: 'postgresql', version: '42.2.19'
     // Lombok
     compileOnly group: 'org.projectlombok', name: 'lombok', version: lombokVersion
     annotationProcessor group: 'org.projectlombok', name: 'lombok', version: lombokVersion
@@ -61,4 +64,36 @@ compileJava {
     options.compilerArgs += ["-parameters"]
     options.fork = true
     options.forkOptions.executable = 'javac'
+}
+
+jooq {
+    version = '3.14.8'
+    edition = nu.studer.gradle.jooq.JooqEdition.OSS
+    configurations {
+        main {
+            generateSchemaSourceOnCompilation = false
+            generationTool {
+                logging = org.jooq.meta.jaxb.Logging.INFO
+                jdbc {
+                    driver = 'org.postgresql.Driver'
+                    url = postgresUrl
+                    user = postgresUser
+                    password = postgresPass
+                }
+                generator {
+                    name = 'org.jooq.codegen.DefaultGenerator'
+                    database {
+                        name = 'org.jooq.meta.postgres.PostgresDatabase'
+                        includes = 'instances'
+                        excludes = ''
+                        inputSchema = 'public'
+                    }
+                    target {
+                        packageName = 'dev.armadeus.bot.database.core'
+                        directory = 'src/database/java'  // default (can be omitted)
+                    }
+                }
+            }
+        }
+    }
 }

@@ -3,6 +3,8 @@ package dev.armadeus.core.command;
 import co.aikar.commands.*;
 import co.aikar.commands.apachecommonslang.ApacheCommonsExceptionUtil;
 import com.velocitypowered.proxy.plugin.util.DummyPluginContainer;
+import dev.armadeus.bot.api.config.GuildConfig;
+import dev.armadeus.core.ArmaCoreImpl;
 import net.dv8tion.jda.api.AccountType;
 import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.entities.Message;
@@ -32,7 +34,7 @@ public class JDACommandManager extends CommandManager<
         JDAConditionContext
         > {
 
-    private final dev.armadeus.bot.api.ArmaCore core;
+    private final ArmaCoreImpl core;
     private ShardManager shardManager;
     protected JDACommandCompletions completions;
     protected JDACommandContexts contexts;
@@ -44,7 +46,7 @@ public class JDACommandManager extends CommandManager<
     private CommandPermissionResolver permissionResolver;
     private long botOwner = 0L;
 
-    public JDACommandManager(dev.armadeus.bot.api.ArmaCore core) {
+    public JDACommandManager(ArmaCoreImpl core) {
         this.core = core;
     }
 
@@ -262,7 +264,6 @@ public class JDACommandManager extends CommandManager<
             }
         }
         if (prefixFound == null) {
-            System.out.println("No prefix");
             return;
         }
 
@@ -288,6 +289,19 @@ public class JDACommandManager extends CommandManager<
             args = new String[0];
         }
         String[] finalArgs = args;
+
+        if(event.isFromGuild() && core.isDevActive()) {
+            GuildConfig gc = core.guildManager().getConfigFor(event.getGuild());
+            if(gc.isDevGuild() && !core.armaConfig().isDevMode()){
+                // Prod Bot
+                logger.warning("Ignoring command message in " + event.getGuild().getName() + " because a dev instance is active");
+            }
+            if(!gc.isDevGuild() && core.armaConfig().isDevMode()) {
+                // Dev Bot
+                logger.warning("Ignoring command message in " + event.getGuild().getName() + " because it is not a dev guild");
+                return;
+            }
+        }
         CompletableFuture.runAsync(() -> rootCommand.execute(this.getCommandIssuer(event), cmd, finalArgs));
     }
 

@@ -18,6 +18,9 @@ public interface GuildConfig {
     long getPurgeDelay();
     GuildConfig setPurgeDelay(long delay);
 
+    boolean isDevGuild();
+    GuildConfig setDevGuild(boolean enabled);
+
     // Command Deletion
     boolean deleteCommandMessages();
     GuildConfig deleteCommandMessages(boolean delete);

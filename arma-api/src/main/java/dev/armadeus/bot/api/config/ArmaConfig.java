@@ -8,12 +8,15 @@ import java.sql.Connection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import java.util.function.Consumer;
 
 public interface ArmaConfig {
 
     Logger logger = LoggerFactory.getLogger(ArmaConfig.class);
 
+    UUID getUuid();
+    boolean isDevMode();
     String getToken();
     List<Integer> getShards();
     Integer getShardsTotal();

@@ -52,6 +52,17 @@ public class GuildConfigImpl implements GuildConfig {
     }
 
     @Override
+    public boolean isDevGuild() {
+        return config.getOrElse("devGuild", false);
+    }
+
+    @Override
+    public GuildConfig setDevGuild(boolean enabled) {
+        config.set("devGuild", enabled);
+        return this;
+    }
+
+    @Override
     public boolean deleteCommandMessages() {
         return config.getOrElse("deleteCommands", true);
     }

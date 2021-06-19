@@ -21,6 +21,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -30,10 +31,29 @@ import static java.util.Arrays.asList;
 @Getter
 public class ArmaConfigImpl implements ArmaConfig {
 
-    private transient CommentedConfig config;
+    private transient CommentedFileConfig config;
 
-    public ArmaConfigImpl(CommentedConfig config) {
+    public ArmaConfigImpl(CommentedFileConfig config) {
         this.config = config;
+    }
+
+    @Override
+    public UUID getUuid() {
+        String id = config.getOrElse(asList("arma-core", "uuid"), "-1");
+        UUID uid;
+        try {
+            uid = UUID.fromString(id);
+        } catch (IllegalArgumentException e) {
+            uid = UUID.randomUUID();
+            config.set(asList("arma-core", "uuid"), String.valueOf(uid));
+            config.save();
+        }
+        return uid;
+    }
+
+    @Override
+    public boolean isDevMode() {
+        return ArmaCoreImpl.options().has("dev-mode");
     }
 
     @Override

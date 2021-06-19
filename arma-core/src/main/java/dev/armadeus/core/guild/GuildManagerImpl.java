@@ -51,6 +51,7 @@ public class GuildManagerImpl implements GuildManager {
     private ScheduledTask saveFuture;
 
     private Function<Long, CommentedConfig> loadDatabaseConfig = guildId -> {
+        logger.info("Loading guild configuration {}", guildId);
         TomlFormat format = TomlFormat.instance();
         TomlParser parser = format.createParser();
         DSLContext context = DSL.using(conn, SQLDialect.POSTGRES);
