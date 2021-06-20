@@ -28,3 +28,4 @@ Long Term: Admadeus 2.0
   - ~~register ID in armadeus.instances~~
   - ~~Add guild dev_enabled flag~~
     - ~~If dev-instance is online, normal nodes will ignore all commands from said guild~~
+    - blah
