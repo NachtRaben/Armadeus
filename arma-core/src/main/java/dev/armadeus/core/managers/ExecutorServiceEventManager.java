@@ -17,7 +17,7 @@ public class ExecutorServiceEventManager extends InterfacedEventManager {
         return managers.computeIfAbsent(i, id -> new ExecutorServiceEventManager());
     }
 
-    private final ExecutorService executor = Executors.newSingleThreadExecutor(new ThreadFactoryBuilder().setNameFormat("EventThread-%d").setDaemon(true).build());
+    private final ExecutorService executor = Executors.newFixedThreadPool(4, new ThreadFactoryBuilder().setNameFormat("EventThread-%d").setDaemon(true).build());
 
     public void handle(Event event) {
         executor.submit(() -> super.handle(event));

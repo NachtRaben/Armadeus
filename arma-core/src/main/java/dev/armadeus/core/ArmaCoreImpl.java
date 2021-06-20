@@ -7,18 +7,17 @@ import com.velocitypowered.api.plugin.PluginContainer;
 import com.velocitypowered.proxy.VelocityManager;
 import com.velocitypowered.proxy.event.VelocityEventManager;
 import com.velocitypowered.proxy.plugin.VelocityPluginManager;
-import com.velocitypowered.proxy.plugin.util.DummyPluginContainer;
 import com.velocitypowered.proxy.scheduler.VelocityScheduler;
 import dev.armadeus.bot.api.ArmaCore;
 import dev.armadeus.bot.api.config.GuildConfig;
 import dev.armadeus.bot.api.util.DiscordReference;
-import dev.armadeus.bot.database.core.tables.records.InstancesRecord;
 import dev.armadeus.core.command.CommandSenderImpl;
 import dev.armadeus.core.command.JDACommandManager;
 import dev.armadeus.core.command.JDAOptions;
 import dev.armadeus.core.config.ArmaConfigImpl;
-import dev.armadeus.core.guild.GuildManagerImpl;
+import dev.armadeus.core.managers.GuildManagerImpl;
 import dev.armadeus.core.managers.ExecutorServiceEventManager;
+import dev.armadeus.core.managers.InstanceManager;
 import joptsimple.OptionSet;
 import lombok.Getter;
 import lombok.SneakyThrows;
@@ -34,17 +33,12 @@ import net.dv8tion.jda.api.utils.ChunkingFilter;
 import net.dv8tion.jda.api.utils.MemberCachePolicy;
 import net.dv8tion.jda.api.utils.cache.CacheFlag;
 import org.apache.logging.log4j.LogManager;
-import org.jooq.DSLContext;
-import org.jooq.Result;
-import org.jooq.SQLDialect;
-import org.jooq.impl.DSL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.HashSet;
@@ -53,11 +47,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.google.common.base.Preconditions.checkState;
-import static dev.armadeus.bot.database.core.tables.Instances.INSTANCES;
 
 @Getter
 @Accessors(fluent = true)
@@ -77,7 +69,7 @@ public class ArmaCoreImpl extends VelocityManager implements ArmaCore {
     private VelocityScheduler scheduler;
     private GuildManagerImpl guildManager;
     private DefaultShardManager shardManager;
-    private boolean isDevActive = false;
+    private InstanceManager instanceManager;
 
     public ArmaCoreImpl(OptionSet options) {
         checkState(instance == null, "The DiscordBot has already been initialized!");
@@ -103,17 +95,7 @@ public class ArmaCoreImpl extends VelocityManager implements ArmaCore {
         loadJda();
         loadCommandManager();
         if (armaConfig.isDatabaseEnabled()) {
-            Connection dbConnection = armaConfig().createDatabaseConnection();
-            DSLContext context = DSL.using(dbConnection, SQLDialect.POSTGRES);
-            scheduler().buildTask(DummyPluginContainer.VELOCITY, () -> {
-                InstancesRecord record = new InstancesRecord(armaConfig.getUuid(), armaConfig.isDevMode(), System.currentTimeMillis());
-                context.insertInto(INSTANCES)
-                        .set(record)
-                        .onDuplicateKeyUpdate()
-                        .set(record).execute();
-                Result<InstancesRecord> result = context.selectFrom(INSTANCES).where(INSTANCES.DEV_MODE.eq(true)).fetch();
-                isDevActive = result.stream().anyMatch(i -> System.currentTimeMillis() - i.getUpdated() < 30000);
-            }).repeat(10, TimeUnit.SECONDS).schedule();
+            instanceManager = new InstanceManager(this);
         }
     }
 
@@ -239,8 +221,9 @@ public class ArmaCoreImpl extends VelocityManager implements ArmaCore {
 
     @SneakyThrows
     public void shutdown(boolean explicitExit) {
-        String s = String.valueOf(eventManager.fire(String.class).get());
-
+        // TODO: Shutdown event
+        if(instanceManager != null)
+            instanceManager.shutdown();
         Iterator<Map.Entry<DiscordReference<Message>, CompletableFuture<?>>> it = CommandSenderImpl.getPendingDeletions().entrySet().iterator();
         while (it.hasNext()) {
             Map.Entry<DiscordReference<Message>, CompletableFuture<?>> entry = it.next();

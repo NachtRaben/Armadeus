@@ -1,4 +1,4 @@
-package dev.armadeus.core.guild;
+package dev.armadeus.core.managers;
 
 import com.electronwill.nightconfig.core.CommentedConfig;
 import com.electronwill.nightconfig.core.file.CommentedFileConfig;

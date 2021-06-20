@@ -288,7 +288,7 @@ public class JDACommandManager extends CommandManager<
         }
         String[] finalArgs = args;
 
-        if(event.isFromGuild() && core.isDevActive()) {
+        if(event.isFromGuild() && core.instanceManager() != null && core.instanceManager().isDevActive()) {
             GuildConfig gc = core.guildManager().getConfigFor(event.getGuild());
             if(gc.isDevGuild() && !core.armaConfig().isDevMode()){
                 // Prod Bot
