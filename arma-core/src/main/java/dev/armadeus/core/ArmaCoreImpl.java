@@ -219,8 +219,12 @@ public class ArmaCoreImpl extends VelocityManager implements ArmaCore {
         eventManager.fireAndForget(commandManager);
     }
 
+    public void shutdown() {
+        shutdown(false);
+    }
+
     @SneakyThrows
-    public void shutdown(boolean explicitExit) {
+    private void shutdown(boolean explicitExit) {
         // TODO: Shutdown event
         if(instanceManager != null)
             instanceManager.shutdown();

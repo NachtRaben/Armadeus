@@ -271,6 +271,7 @@ public class JDACommandManager extends CommandManager<
         if (args.length == 0) {
             return;
         }
+
         // Hacky way to allow newlines right next to the command
         if (ACFPatterns.NEWLINE.matcher(args[0]).find()) {
             args = Stream.concat(Arrays.stream(ACFPatterns.NEWLINE.split(args[0])), Arrays.stream(Arrays.copyOfRange(args, 1, args.length))).toArray(String[]::new);
@@ -281,12 +282,7 @@ public class JDACommandManager extends CommandManager<
         if (rootCommand == null) {
             return;
         }
-        if (args.length > 1) {
-            args = Arrays.copyOfRange(args, 1, args.length);
-        } else {
-            args = new String[0];
-        }
-        String[] finalArgs = args;
+        args = args.length > 1 ? Arrays.copyOfRange(args, 1, args.length) : new String[0];
 
         if(event.isFromGuild() && core.instanceManager() != null && core.instanceManager().isDevActive()) {
             GuildConfig gc = core.guildManager().getConfigFor(event.getGuild());
@@ -301,7 +297,7 @@ public class JDACommandManager extends CommandManager<
                 return;
             }
         }
-        CompletableFuture.runAsync(() -> rootCommand.execute(this.getCommandIssuer(event), cmd, finalArgs));
+        rootCommand.execute(this.getCommandIssuer(event), cmd, args);
     }
 
     private CommandConfig getCommandConfig(MessageReceivedEvent event) {

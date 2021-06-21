@@ -10,6 +10,7 @@ import dev.armadeus.bot.api.guild.GuildManager;
 import net.dv8tion.jda.api.sharding.ShardManager;
 
 public interface ArmaCore extends Velocity {
+    // TODO: Replace with abstract class again
     GuildManager guildManager();
     ArmaConfig armaConfig();
 
@@ -20,4 +21,5 @@ public interface ArmaCore extends Velocity {
 
     CommandManager commandManager();
     ShardManager shardManager();
+    void shutdown();
 }

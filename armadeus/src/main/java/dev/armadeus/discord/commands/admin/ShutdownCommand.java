@@ -11,7 +11,6 @@ public class ShutdownCommand extends DiscordCommand {
     @Conditions("developeronly")
     @CommandAlias("shutdown")
     public void shutdown(DiscordCommandIssuer user) {
-        // TODO: Implement shutdown
-        System.exit(0);
+        core.shutdown();
     }
 }
