@@ -28,4 +28,11 @@ public class StringUtils {
         }
         return (float) matches >= (target * expected.size());
     }
+
+    public static String getOrDefault(String target, String ifNullOrEmpty) {
+        if(target == null || target.trim().isEmpty())
+            return ifNullOrEmpty;
+        else
+            return target;
+    }
 }

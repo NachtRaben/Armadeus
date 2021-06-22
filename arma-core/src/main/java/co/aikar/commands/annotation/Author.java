@@ -1,4 +1,4 @@
-package dev.armadeus.core.command.annotation;
+package co.aikar.commands.annotation;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

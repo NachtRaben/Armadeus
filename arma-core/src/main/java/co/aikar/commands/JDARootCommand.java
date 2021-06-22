@@ -1,13 +1,10 @@
-package dev.armadeus.core.command;
+package co.aikar.commands;
 
-import co.aikar.commands.BaseCommand;
-import co.aikar.commands.CommandManager;
-import co.aikar.commands.RegisteredCommand;
-import co.aikar.commands.RootCommand;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.SetMultimap;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class JDARootCommand implements RootCommand {
@@ -58,4 +55,18 @@ public class JDARootCommand implements RootCommand {
         return defCommand;
     }
 
+    public CommandHelp getCommandHelp(CommandIssuer issuer, String[] args) {
+        CommandHelp help = getManager().generateCommandHelp(issuer, this);
+        if(args.length != 0)
+            help.setSearch(Arrays.asList(args));
+        return help;
+    }
+
+    public boolean isRegistered() {
+        return isRegistered;
+    }
+
+    public void setRegistered(boolean registered) {
+        isRegistered = registered;
+    }
 }

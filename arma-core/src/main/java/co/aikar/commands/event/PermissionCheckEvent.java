@@ -1,6 +1,6 @@
-package dev.armadeus.core.command.event;
+package co.aikar.commands.event;
 
-import dev.armadeus.core.command.JDACommandEvent;
+import co.aikar.commands.JDACommandEvent;
 import lombok.Data;
 
 @Data

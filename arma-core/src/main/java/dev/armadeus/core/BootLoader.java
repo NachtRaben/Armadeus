@@ -72,7 +72,7 @@ public class BootLoader {
         long startTime = System.currentTimeMillis();
         ArmaCoreImpl core = new ArmaCoreImpl(options);
         core.start();
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> core.shutdown(false), "Shutdown Thread"));
+        Runtime.getRuntime().addShutdownHook(new Thread(core::shutdown, "Shutdown Thread"));
         double bootTime = (System.currentTimeMillis() - startTime) / 1000D;
         logger.info("Loaded in ({}s)", bootTime);
     }

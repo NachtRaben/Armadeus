@@ -1,6 +1,9 @@
 package dev.armadeus.core;
 
+import co.aikar.commands.CommandSenderImpl;
 import co.aikar.commands.ConditionFailedException;
+import co.aikar.commands.JDACommandManager;
+import co.aikar.commands.JDAOptions;
 import com.electronwill.nightconfig.core.Config;
 import com.google.common.base.MoreObjects;
 import com.velocitypowered.api.plugin.PluginContainer;
@@ -11,12 +14,11 @@ import com.velocitypowered.proxy.scheduler.VelocityScheduler;
 import dev.armadeus.bot.api.ArmaCore;
 import dev.armadeus.bot.api.config.GuildConfig;
 import dev.armadeus.bot.api.util.DiscordReference;
-import dev.armadeus.core.command.CommandSenderImpl;
-import dev.armadeus.core.command.JDACommandManager;
-import dev.armadeus.core.command.JDAOptions;
+import dev.armadeus.core.command.HelpCommand;
+import dev.armadeus.core.command.SlashCommands;
 import dev.armadeus.core.config.ArmaConfigImpl;
-import dev.armadeus.core.managers.GuildManagerImpl;
 import dev.armadeus.core.managers.ExecutorServiceEventManager;
+import dev.armadeus.core.managers.GuildManagerImpl;
 import dev.armadeus.core.managers.InstanceManager;
 import joptsimple.OptionSet;
 import lombok.Getter;
@@ -212,10 +214,12 @@ public class ArmaCoreImpl extends VelocityManager implements ArmaCore {
         commandManager.registerDependency(ArmaCore.class, this);
         commandManager.enableUnstableAPI("help");
         commandManager.getCommandConditions().addCondition("developeronly", context -> {
-            if (!armaConfig.getDeveloperIds().contains(context.getIssuer().getEvent().getAuthor().getIdLong())) {
+            if (!armaConfig.getDeveloperIds().contains(context.getIssuer().getUser().getIdLong())) {
                 throw new ConditionFailedException("Only the bot developers can use this command");
             }
         });
+        commandManager.registerCommand(new HelpCommand());
+        commandManager.registerCommand(new SlashCommands());
         eventManager.fireAndForget(commandManager);
     }
 
@@ -226,7 +230,7 @@ public class ArmaCoreImpl extends VelocityManager implements ArmaCore {
     @SneakyThrows
     private void shutdown(boolean explicitExit) {
         // TODO: Shutdown event
-        if(instanceManager != null)
+        if (instanceManager != null)
             instanceManager.shutdown();
         Iterator<Map.Entry<DiscordReference<Message>, CompletableFuture<?>>> it = CommandSenderImpl.getPendingDeletions().entrySet().iterator();
         while (it.hasNext()) {

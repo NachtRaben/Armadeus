@@ -1,23 +1,21 @@
-package dev.armadeus.core.command;
+package co.aikar.commands;
 
 import dev.armadeus.bot.api.ArmaCore;
 import dev.armadeus.bot.api.command.DiscordCommandIssuer;
 import dev.armadeus.bot.api.config.GuildConfig;
 import dev.armadeus.bot.api.util.DiscordReference;
 import lombok.Getter;
-import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.MessageBuilder;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.ChannelType;
-import net.dv8tion.jda.api.entities.Guild;
-import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageChannel;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.TextChannel;
-import net.dv8tion.jda.api.entities.User;
-import net.dv8tion.jda.api.entities.VoiceChannel;
+import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import net.dv8tion.jda.api.interactions.InteractionHook;
+import net.dv8tion.jda.internal.interactions.InteractionImpl;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -38,6 +36,11 @@ public class CommandSenderImpl extends JDACommandEvent implements DiscordCommand
 
     // Instance settings
     private final ArmaCore core;
+
+    public CommandSenderImpl(ArmaCore core, JDACommandManager manager, SlashCommandEvent event) {
+        super(manager, event);
+        this.core = core;
+    }
 
     public CommandSenderImpl(ArmaCore core, JDACommandManager manager, MessageReceivedEvent event) {
         super(manager, event);
@@ -68,51 +71,8 @@ public class CommandSenderImpl extends JDACommandEvent implements DiscordCommand
         }
     }
 
-    public Message getMessage() {
-        return getEvent().getMessage();
-    }
-
-    public User getUser() {
-        return getEvent().getAuthor();
-    }
-
-    // Ambiguous
-    public MessageChannel getChannel() {
-        return getEvent().getChannel();
-    }
-
-    // Guild Specific
-    public Guild getGuild() {
-        return getEvent().getGuild();
-    }
-
-    public Member getMember() {
-        return getEvent().getMember();
-    }
-
-    public boolean isFromGuild() {
-        return getEvent().isFromGuild();
-    }
-
     public GuildConfig getGuildConfig() {
-        return core.guildManager().getConfigFor(getEvent().getGuild());
-    }
-
-    public TextChannel getTextChannel() {
-        MessageChannel ch = getEvent().getChannel();
-        return ch.getType() == ChannelType.TEXT ? (TextChannel) ch : null;
-    }
-
-    public VoiceChannel getVoiceChannel() {
-        Member m = getMember();
-        if (m != null && m.getVoiceState() != null) {
-            return m.getVoiceState().getChannel();
-        }
-        return null;
-    }
-
-    public JDA getJda() {
-        return getEvent().getJDA();
+        return core.guildManager().getConfigFor(getGuild());
     }
 
     public void sendMessage(String pattern, Object... args) {

@@ -16,7 +16,7 @@ public class EvalCommand extends DiscordCommand {
 
     @Conditions("developeronly")
     @CommandAlias("eval")
-    public void eval(DiscordCommandIssuer user, @Default String output) {
+    public void eval(DiscordCommandIssuer user, @Default String script) {
         // This fuckery is because some newlines get consumed inside the code-block
         String raw = user.getMessage().getContentRaw();
         int startIndex = raw.indexOf("\n```\n");
@@ -27,7 +27,7 @@ public class EvalCommand extends DiscordCommand {
         }
         startIndex += 5;
 
-        String script = raw.substring(startIndex, endIndex);
+        script = raw.substring(startIndex, endIndex);
 
         Eval eval = new Eval(user, script);
         Tuple3<Object, String, Throwable> result = eval.run();

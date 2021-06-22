@@ -1,6 +1,4 @@
-package dev.armadeus.core.command;
-
-import co.aikar.commands.ConditionContext;
+package co.aikar.commands;
 
 public class JDAConditionContext extends ConditionContext<JDACommandEvent> {
     JDAConditionContext(JDACommandEvent issuer, String config) {

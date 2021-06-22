@@ -1,8 +1,4 @@
-package dev.armadeus.core.command;
-
-import co.aikar.commands.CommandExecutionContext;
-import co.aikar.commands.CommandParameter;
-import co.aikar.commands.RegisteredCommand;
+package co.aikar.commands;
 
 import java.util.List;
 import java.util.Map;

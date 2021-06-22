@@ -1,18 +1,24 @@
-package dev.armadeus.core.command;
+package co.aikar.commands;
 
-import co.aikar.commands.*;
 import co.aikar.commands.apachecommonslang.ApacheCommonsExceptionUtil;
 import com.velocitypowered.proxy.plugin.util.DummyPluginContainer;
 import dev.armadeus.bot.api.config.GuildConfig;
 import dev.armadeus.core.ArmaCoreImpl;
+import dev.armadeus.core.command.NullCommandIssuer;
 import net.dv8tion.jda.api.AccountType;
+import net.dv8tion.jda.api.MessageBuilder;
 import net.dv8tion.jda.api.entities.ChannelType;
+import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.events.Event;
+import net.dv8tion.jda.api.events.guild.GenericGuildEvent;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.sharding.ShardManager;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -20,7 +26,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
@@ -63,28 +68,34 @@ public class JDACommandManager extends CommandManager<
         this.logger = Logger.getLogger(this.getClass().getSimpleName());
 
         getCommandConditions().addCondition("owneronly", context -> {
-            if (context.getIssuer().getEvent().getAuthor().getIdLong() != getBotOwnerId()) {
+            JDACommandEvent jce = context.getIssuer();
+            if (jce.getUser().getIdLong() != getBotOwnerId()) {
                 throw new ConditionFailedException("Only the bot owner can use this command."); // TODO: MessageKey
             }
         });
 
         getCommandConditions().addCondition("guildonly", context -> {
-            if (context.getIssuer().getEvent().getChannelType() != ChannelType.TEXT) {
+            JDACommandEvent jce = context.getIssuer();
+            if (jce.getChannel().getType() != ChannelType.TEXT) {
                 throw new ConditionFailedException("This command must be used in guild chat."); // TODO: MessageKey
             }
         });
 
         getCommandConditions().addCondition("privateonly", context -> {
-            if (context.getIssuer().getEvent().getChannelType() != ChannelType.PRIVATE) {
+            JDACommandEvent jce = context.getIssuer();
+            if (jce.getChannel().getType() != ChannelType.PRIVATE) {
                 throw new ConditionFailedException("This command must be used in private chat."); // TODO: MessageKey
             }
         });
 
         getCommandConditions().addCondition("grouponly", context -> {
-            if (context.getIssuer().getEvent().getChannelType() != ChannelType.GROUP) {
+            JDACommandEvent jce = context.getIssuer();
+            if (jce.getChannel().getType() != ChannelType.GROUP) {
                 throw new ConditionFailedException("This command must be used in group chat."); // TODO: MessageKey
             }
         });
+
+        setHelpFormatter(new JDAHelpFormatter(this));
     }
 
     void initializeBotOwner() {
@@ -189,10 +200,13 @@ public class JDACommandManager extends CommandManager<
 
     @Override
     public JDACommandEvent getCommandIssuer(Object issuer) {
-        if (!(issuer instanceof MessageReceivedEvent)) {
-            throw new IllegalArgumentException(issuer.getClass().getName() + " is not a Message Received Event.");
+        if (issuer instanceof MessageReceivedEvent) {
+            return new CommandSenderImpl(core, this, (MessageReceivedEvent) issuer);
+        } else if (issuer instanceof SlashCommandEvent) {
+            return new CommandSenderImpl(core, this, (SlashCommandEvent) issuer);
+        } else {
+            throw new IllegalArgumentException(issuer.getClass().getName() + " is not a valid event type");
         }
-        return new CommandSenderImpl(core, this, (MessageReceivedEvent) issuer);
     }
 
     @Override
@@ -244,8 +258,35 @@ public class JDACommandManager extends CommandManager<
         sb.append("\nOptions: ").append(event.getOptions());
         sb.append("\nSubName: ").append(event.getSubcommandName());
         sb.append("\nSubGroup: ").append(event.getSubcommandGroup());
-        System.out.println(sb.toString());
-        event.reply(event.getOption("content").getAsString()).queue();
+        sb.append("\nPath: ").append(event.getCommandPath());
+        System.out.println(sb);
+
+        event.getCommandPath().replace("/", " ").split("\\s+");
+
+        List<String> largs = new ArrayList<>(List.of(event.getCommandPath().split("/")));
+        for(OptionMapping option : event.getOptions()) {
+            largs.add(option.getAsString());
+        }
+
+        String[] args = largs.toArray(new String[0]);
+        System.out.println(args);
+
+        String cmd = args[0].toLowerCase(Locale.ENGLISH);
+        JDARootCommand rootCommand = this.commands.get(cmd);
+        if (rootCommand == null) {
+            return;
+        }
+
+        // Hacky way to allow newlines right next to the command
+        if (ACFPatterns.NEWLINE.matcher(args[0]).find()) {
+            args = Stream.concat(Arrays.stream(ACFPatterns.NEWLINE.split(args[0])), Arrays.stream(Arrays.copyOfRange(args, 1, args.length))).toArray(String[]::new);
+        }
+
+        args = args.length > 1 ? Arrays.copyOfRange(args, 1, args.length) : new String[0];
+        if (!devCheck(event))
+            return;
+        event.deferReply().queue(c -> c.deleteOriginal().queue());
+        rootCommand.execute(this.getCommandIssuer(event), cmd, args);
     }
 
     void dispatchEvent(MessageReceivedEvent event) {
@@ -283,21 +324,27 @@ public class JDACommandManager extends CommandManager<
             return;
         }
         args = args.length > 1 ? Arrays.copyOfRange(args, 1, args.length) : new String[0];
+        if (!devCheck(event))
+            return;
+        rootCommand.execute(this.getCommandIssuer(event), cmd, args);
+    }
 
-        if(event.isFromGuild() && core.instanceManager() != null && core.instanceManager().isDevActive()) {
-            GuildConfig gc = core.guildManager().getConfigFor(event.getGuild());
-            if(gc.isDevGuild() && !core.armaConfig().isDevMode()){
+    private boolean devCheck(Event e) {
+        if (core.instanceManager() != null && core.instanceManager().isDevActive()) {
+            Guild guild = e instanceof GenericGuildEvent ? ((GenericGuildEvent) e).getGuild() : ((SlashCommandEvent) e).getGuild();
+            GuildConfig gc = core.guildManager().getConfigFor(guild);
+            if (gc.isDevGuild() && !core.armaConfig().isDevMode()) {
                 // Prod Bot
-                logger.warning("Ignoring command message in " + event.getGuild().getName() + " because a dev instance is active");
-                return;
+                logger.warning("Ignoring command message in " + guild.getName() + " because a dev instance is active");
+                return false;
             }
-            if(!gc.isDevGuild() && core.armaConfig().isDevMode()) {
+            if (!gc.isDevGuild() && core.armaConfig().isDevMode()) {
                 // Dev Bot
-                logger.warning("Ignoring command message in " + event.getGuild().getName() + " because it is not a dev guild");
-                return;
+                logger.warning("Ignoring command message in " + guild.getName() + " because it is not a dev guild");
+                return false;
             }
         }
-        rootCommand.execute(this.getCommandIssuer(event), cmd, args);
+        return true;
     }
 
     private CommandConfig getCommandConfig(MessageReceivedEvent event) {
@@ -313,6 +360,8 @@ public class JDACommandManager extends CommandManager<
 
     @Override
     public String getCommandPrefix(CommandIssuer issuer) {
+        if (issuer.equals(NullCommandIssuer.INSTANCE))
+            return "";
         MessageReceivedEvent event = ((JDACommandEvent) issuer).getEvent();
         CommandConfig commandConfig = getCommandConfig(event);
         List<String> prefixes = commandConfig.getCommandPrefixes();

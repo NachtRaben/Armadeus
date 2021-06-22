@@ -1,4 +1,4 @@
-package dev.armadeus.core.command;
+package co.aikar.commands;
 
 import com.velocitypowered.api.event.Subscribe;
 import net.dv8tion.jda.api.entities.ChannelType;

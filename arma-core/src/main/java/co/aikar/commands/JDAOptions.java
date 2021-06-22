@@ -1,7 +1,5 @@
-package dev.armadeus.core.command;
+package co.aikar.commands;
 
-import dev.armadeus.bot.api.ArmaCore;
-import net.dv8tion.jda.api.sharding.ShardManager;
 import org.jetbrains.annotations.NotNull;
 
 public class JDAOptions {

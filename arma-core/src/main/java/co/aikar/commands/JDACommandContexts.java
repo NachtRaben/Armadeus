@@ -1,12 +1,9 @@
-package dev.armadeus.core.command;
+package co.aikar.commands;
 
-import co.aikar.commands.CommandContexts;
-import co.aikar.commands.CommandExecutionContext;
-import co.aikar.commands.InvalidCommandArgument;
 import dev.armadeus.bot.api.command.DiscordCommandIssuer;
-import dev.armadeus.core.command.annotation.Author;
-import dev.armadeus.core.command.annotation.CrossGuild;
-import dev.armadeus.core.command.annotation.SelfUser;
+import co.aikar.commands.annotation.Author;
+import co.aikar.commands.annotation.CrossGuild;
+import co.aikar.commands.annotation.SelfUser;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.entities.Guild;
@@ -15,6 +12,7 @@ import net.dv8tion.jda.api.entities.MessageChannel;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.sharding.ShardManager;
 
@@ -32,29 +30,30 @@ public class JDACommandContexts extends CommandContexts<JDACommandExecutionConte
         this.shardManager = this.manager.getShardManager();
         this.registerIssuerOnlyContext(JDACommandEvent.class, CommandExecutionContext::getIssuer);
         this.registerIssuerOnlyContext(DiscordCommandIssuer.class, c -> (DiscordCommandIssuer) c.getIssuer());
-        this.registerIssuerOnlyContext(MessageReceivedEvent.class, c -> c.getIssuer().getIssuer());
-        this.registerIssuerOnlyContext(Message.class, c -> c.getIssuer().getIssuer().getMessage());
-        this.registerIssuerOnlyContext(ChannelType.class, c -> c.getIssuer().getIssuer().getChannelType());
-        this.registerIssuerOnlyContext(JDA.class, c -> c.getIssuer().getIssuer().getJDA());
+        this.registerIssuerOnlyContext(MessageReceivedEvent.class, c -> c.getIssuer().getEvent());
+        this.registerIssuerOnlyContext(SlashCommandEvent.class, c -> c.getIssuer().getSlash());
+        this.registerIssuerOnlyContext(Message.class, c -> c.getIssuer().getMessage());
+        this.registerIssuerOnlyContext(ChannelType.class, c -> c.getIssuer().getChannel().getType());
+        this.registerIssuerOnlyContext(JDA.class, c -> c.getIssuer().getJda());
         this.registerIssuerOnlyContext(ShardManager.class, c -> shardManager);
         this.registerIssuerOnlyContext(Guild.class, c -> {
-            MessageReceivedEvent event = c.getIssuer().getIssuer();
-            if (event.isFromType(ChannelType.PRIVATE) && !c.isOptional()) {
+            MessageChannel channel = c.getIssuer().getChannel();
+            if (channel.getType() == ChannelType.PRIVATE && !c.isOptional()) {
                 throw new InvalidCommandArgument("This command can only be executed in a Guild.", false);
             } else {
-                return event.getGuild();
+                return c.getIssuer().getGuild();
             }
         });
         this.registerIssuerAwareContext(MessageChannel.class, c -> {
             if (c.hasAnnotation(Author.class)) {
-                return c.getIssuer().getIssuer().getChannel();
+                return c.getIssuer().getChannel();
             }
             boolean isCrossGuild = c.hasAnnotation(CrossGuild.class);
             String argument = c.popFirstArg(); // we pop because we are only issuer aware if we are annotated
             MessageChannel channel = null;
             if (argument.startsWith("<#")) {
                 String id = argument.substring(2, argument.length() - 1);
-                channel = isCrossGuild ? shardManager.getTextChannelById(id) : c.getIssuer().getIssuer().getGuild().getTextChannelById(id);
+                channel = isCrossGuild ? shardManager.getTextChannelById(id) : c.getIssuer().getGuild().getTextChannelById(id);
             } else {
                 List<TextChannel> channelList = isCrossGuild ? shardManager.getShards().stream().flatMap(jda -> jda.getTextChannelsByName(argument, true).stream()).collect(Collectors.toList()) :
                         c.getIssuer().getEvent().getGuild().getTextChannelsByName(argument, true);
@@ -71,7 +70,7 @@ public class JDACommandContexts extends CommandContexts<JDACommandExecutionConte
         });
         this.registerIssuerAwareContext(User.class, c -> {
             if (c.hasAnnotation(SelfUser.class)) {
-                return c.getIssuer().getIssuer().getJDA().getSelfUser();
+                return c.getIssuer().getJda().getSelfUser();
             }
             String arg = c.getFirstArg();
             if (c.isOptional() && (arg == null || arg.isEmpty())) {
@@ -104,10 +103,10 @@ public class JDACommandContexts extends CommandContexts<JDACommandExecutionConte
             Role role = null;
             if (arg.startsWith("<@&")) {
                 String id = arg.substring(3, arg.length() - 1);
-                role = isCrossGuild ? shardManager.getRoleById(id) : c.getIssuer().getIssuer().getGuild().getRoleById(id);
+                role = isCrossGuild ? shardManager.getRoleById(id) : c.getIssuer().getGuild().getRoleById(id);
             } else {
                 List<Role> roles = isCrossGuild ? shardManager.getRolesByName(arg, true)
-                        : c.getIssuer().getIssuer().getGuild().getRolesByName(arg, true);
+                        : c.getIssuer().getGuild().getRolesByName(arg, true);
                 if (roles.size() > 1) {
                     throw new InvalidCommandArgument("Too many roles were found with the given name. Try with the `@role` syntax.", false);
                 }

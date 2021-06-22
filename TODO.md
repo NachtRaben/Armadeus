@@ -10,7 +10,8 @@ Long Term: Admadeus 2.0
 - Re-Implement Command Cooldowns
 - Group based command modules to be enabled per guild  
 - ~~Command Permissions~~ & Documentation
-- Implement logging groups for moderation/tracking  
+- Implement logging groups for moderation/tracking
+    - break down into guild specific logging channels for types
 - Create Help command
 - ~~Module based extensions~~
     - Audio
@@ -28,4 +29,3 @@ Long Term: Admadeus 2.0
   - ~~register ID in armadeus.instances~~
   - ~~Add guild dev_enabled flag~~
     - ~~If dev-instance is online, normal nodes will ignore all commands from said guild~~
-    - blah

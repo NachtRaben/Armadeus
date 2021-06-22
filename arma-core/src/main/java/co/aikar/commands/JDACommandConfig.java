@@ -1,4 +1,4 @@
-package dev.armadeus.core.command;
+package co.aikar.commands;
 
 import org.jetbrains.annotations.NotNull;
 

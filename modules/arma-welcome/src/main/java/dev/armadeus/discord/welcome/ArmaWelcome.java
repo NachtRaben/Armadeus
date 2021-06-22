@@ -40,7 +40,7 @@ public class ArmaWelcome {
 
     @Subscribe
     public void initializeBuilder(DefaultShardManagerBuilder builder) {
-        logger.info("Registering voice interceptors...");
+        logger.info("Registering event listeners...");
         builder.addEventListeners(new WelcomeListener(core));
     }
 

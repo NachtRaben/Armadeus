@@ -46,6 +46,12 @@ allprojects {
         resolutionStrategy.cacheDynamicVersionsFor 0, 'seconds'
     }
 
+    compileJava {
+        options.compilerArgs += ["-parameters"]
+        options.fork = true
+        options.forkOptions.executable = 'javac'
+    }
+
     compileJava.options.encoding = javadoc.options.encoding = "UTF-8"
 
     repositories {

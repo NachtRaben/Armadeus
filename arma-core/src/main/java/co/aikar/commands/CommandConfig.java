@@ -1,4 +1,4 @@
-package dev.armadeus.core.command;
+package co.aikar.commands;
 
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import org.jetbrains.annotations.NotNull;

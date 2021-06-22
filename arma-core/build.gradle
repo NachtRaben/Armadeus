@@ -60,12 +60,6 @@ shadowJar {
     mergeServiceFiles()
 }
 
-compileJava {
-    options.compilerArgs += ["-parameters"]
-    options.fork = true
-    options.forkOptions.executable = 'javac'
-}
-
 jooq {
     version = '3.14.8'
     edition = nu.studer.gradle.jooq.JooqEdition.OSS

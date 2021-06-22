@@ -94,6 +94,8 @@ public class TrackScheduler extends AudioEventAdapter implements IPlayerEventLis
     public void stop() {
         logger.info("{} => Stopping audio playback", player.getManager().getGuild().getName());
         lock.lock();
+        player.getManager().getListeners().forEach((l, e) -> e.cancel());
+        player.getManager().getListeners().clear();
         try {
             repeatTrack = false;
             repeatQueue = false;

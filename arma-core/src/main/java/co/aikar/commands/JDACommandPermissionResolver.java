@@ -1,4 +1,4 @@
-package dev.armadeus.core.command;
+package co.aikar.commands;
 
 import dev.armadeus.bot.api.config.GuildConfig;
 import dev.armadeus.core.ArmaCoreImpl;
@@ -27,28 +27,28 @@ public class JDACommandPermissionResolver implements CommandPermissionResolver {
     @Override
     public boolean hasPermission(JDACommandManager manager, JDACommandEvent event, String permission) {
         // Explicitly return true if the issuer a developer. They are always allowed.
-        if (ArmaCoreImpl.get().armaConfig().getDeveloperIds().contains(event.getIssuer().getAuthor().getIdLong())) {
+        if (ArmaCoreImpl.get().armaConfig().getDeveloperIds().contains(event.getUser().getIdLong())) {
             return true;
         }
 
         // Return false on webhook messages, as they cannot have permissions defined.
-        if (event.getIssuer().isWebhookMessage()) {
+        if (!event.isSlashEvent() && event.getIssuer().isWebhookMessage()) {
             return false;
         }
 
         // If it's not from a guild
-        if(!event.getIssuer().isFromGuild()) {
+        if(event.getGuild() == null) {
             return true;
         }
 
         // If we don't have member objects
-        if(event.getIssuer().getMember() == null) {
+        if(event.getMember() == null) {
             return false;
         }
 
         // Check vanilla discord perms
         Integer permissionOffset = discordPermissionOffsets.get(permission);
-        if (permissionOffset != null && !event.getIssuer().getMember().hasPermission(Permission.getFromOffset(permissionOffset))) {
+        if (permissionOffset != null && !event.getMember().hasPermission(Permission.getFromOffset(permissionOffset))) {
             return false;
         }
 

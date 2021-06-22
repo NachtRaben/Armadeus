@@ -1,4 +1,4 @@
-package dev.armadeus.core.command;
+package co.aikar.commands;
 
 import co.aikar.commands.MessageFormatter;
 
