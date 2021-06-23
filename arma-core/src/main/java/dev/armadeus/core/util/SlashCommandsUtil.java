@@ -49,12 +49,16 @@ public class SlashCommandsUtil {
             if (annotation != null)
                 aliases.addAll(Arrays.asList(((CommandAlias) annotation).value().split("\\|")));
         }
-        logger.warn("Root: {} {}", rootData.getName(), aliases);
 
         Map<String, SubcommandGroupData> subCommandGroups = new HashMap<>();
         Map<String, SubcommandData> subCommands = new HashMap<>();
         CommandHelp help = root.getCommandHelp(NullCommandIssuer.INSTANCE, new String[0]);
         List<HelpEntry> entries = help.getHelpEntries();
+        if(entries.isEmpty()) {
+            commandMap.remove(rootData.getName());
+            return;
+        }
+        logger.warn("Root: {} {}", rootData.getName(), aliases);
         for (HelpEntry entry : entries) {
             // Do this so we don't map aliases of root commands
             if (aliases.contains(entry.getCommand())) {
@@ -71,7 +75,6 @@ public class SlashCommandsUtil {
                 }
                 continue;
             }
-
             List<String> tokens = new ArrayList<>(Arrays.asList(entry.getCommand().split("\\s+")));
             tokens.removeIf(aliases::contains);
             logger.error(tokens);

@@ -3,6 +3,7 @@ package dev.armadeus.core.command;
 import co.aikar.commands.annotation.CommandAlias;
 import co.aikar.commands.annotation.Conditions;
 import co.aikar.commands.annotation.Private;
+import co.aikar.commands.annotation.Subcommand;
 import dev.armadeus.bot.api.command.DiscordCommand;
 import dev.armadeus.bot.api.command.DiscordCommandIssuer;
 import dev.armadeus.core.ArmaCoreImpl;
@@ -24,6 +25,23 @@ import java.util.List;
 @CommandAlias("slash")
 public class SlashCommands extends DiscordCommand {
 
+    @Subcommand("destroy")
+    public void destroySlasyCommands(DiscordCommandIssuer user) {
+        JDA shard = user.getJda();
+        Guild guild = shard.getGuildById(317784247949590528L);
+        if (guild == null)
+            return;
+        user.sendMessage("Destroying commands...");
+        guild.retrieveCommands().queue(c -> {
+            c.forEach(cc -> {
+                guild.deleteCommandById(cc.getIdLong()).queue();
+            });
+        });
+        shard.retrieveCommands().queue(c -> {
+            c.forEach(cc -> shard.deleteCommandById(cc.getIdLong()).queue());
+        });
+    }
+
     @CommandAlias("publish")
     public void importSlashCommands(DiscordCommandIssuer user) {
         JDA shard = user.getJda();
@@ -33,7 +51,7 @@ public class SlashCommands extends DiscordCommand {
         user.sendMessage("Publishing commands...");
         SlashCommandsUtil util = new SlashCommandsUtil(ArmaCoreImpl.get());
         Collection<CommandData> generated = util.generateCommandData();
-        CommandListUpdateAction commandsUpdate = guild.updateCommands();
+        CommandListUpdateAction commandsUpdate = shard.updateCommands();
         commandsUpdate.addCommands(generated).queue(success -> user.sendMessage("Published %s commands", (Object)generated.size()));
     }
 

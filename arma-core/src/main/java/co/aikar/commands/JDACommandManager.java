@@ -14,6 +14,7 @@ import net.dv8tion.jda.api.events.Event;
 import net.dv8tion.jda.api.events.guild.GenericGuildEvent;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.sharding.ShardManager;
 import org.jetbrains.annotations.NotNull;
@@ -259,9 +260,7 @@ public class JDACommandManager extends CommandManager<
         sb.append("\nSubName: ").append(event.getSubcommandName());
         sb.append("\nSubGroup: ").append(event.getSubcommandGroup());
         sb.append("\nPath: ").append(event.getCommandPath());
-        System.out.println(sb);
-
-        event.getCommandPath().replace("/", " ").split("\\s+");
+        logger.warning(sb.toString());
 
         List<String> largs = new ArrayList<>(List.of(event.getCommandPath().split("/")));
         for(OptionMapping option : event.getOptions()) {
@@ -269,7 +268,6 @@ public class JDACommandManager extends CommandManager<
         }
 
         String[] args = largs.toArray(new String[0]);
-        System.out.println(args);
 
         String cmd = args[0].toLowerCase(Locale.ENGLISH);
         JDARootCommand rootCommand = this.commands.get(cmd);
@@ -331,7 +329,10 @@ public class JDACommandManager extends CommandManager<
 
     private boolean devCheck(Event e) {
         if (core.instanceManager() != null && core.instanceManager().isDevActive()) {
-            Guild guild = e instanceof GenericGuildEvent ? ((GenericGuildEvent) e).getGuild() : ((SlashCommandEvent) e).getGuild();
+            Guild guild = e instanceof MessageReceivedEvent ? ((MessageReceivedEvent) e).getGuild() : ((SlashCommandEvent) e).getGuild();
+            if(guild == null) {
+                return true;
+            }
             GuildConfig gc = core.guildManager().getConfigFor(guild);
             if (gc.isDevGuild() && !core.armaConfig().isDevMode()) {
                 // Prod Bot
