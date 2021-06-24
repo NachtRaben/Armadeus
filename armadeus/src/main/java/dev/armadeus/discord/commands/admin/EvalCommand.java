@@ -3,6 +3,7 @@ package dev.armadeus.discord.commands.admin;
 import co.aikar.commands.annotation.CommandAlias;
 import co.aikar.commands.annotation.Conditions;
 import co.aikar.commands.annotation.Default;
+import co.aikar.commands.annotation.Private;
 import dev.armadeus.bot.api.command.DiscordCommand;
 import dev.armadeus.bot.api.command.DiscordCommandIssuer;
 import dev.armadeus.discord.util.eval.Eval;
@@ -14,6 +15,7 @@ import java.io.StringWriter;
 
 public class EvalCommand extends DiscordCommand {
 
+    @Private
     @Conditions("developeronly")
     @CommandAlias("eval")
     public void eval(DiscordCommandIssuer user, @Default String script) {

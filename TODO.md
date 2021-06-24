@@ -12,13 +12,13 @@ Long Term: Admadeus 2.0
 - ~~Command Permissions~~ & Documentation
 - Implement logging groups for moderation/tracking
     - break down into guild specific logging channels for types
-- Create Help command
+~~- Create Help command~~
 - ~~Module based extensions~~
     - Audio
         - ~~Create Module~~
         - Only query songs once they are next to play, save on requests
         - ~~Write new Radio system~~
-        - Song history COmmand 
+        - Song history Command 
       - ImagesBoards
         - Create Module
         - Caching on a key to prevent duplicates, potentially expiring
