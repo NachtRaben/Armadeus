@@ -7,6 +7,7 @@ import dev.armadeus.core.ArmaCoreImpl;
 import dev.armadeus.core.command.NullCommandIssuer;
 import net.dv8tion.jda.api.AccountType;
 import net.dv8tion.jda.api.MessageBuilder;
+import net.dv8tion.jda.api.entities.ApplicationInfo;
 import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
@@ -19,16 +20,10 @@ import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.sharding.ShardManager;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class JDACommandManager extends CommandManager<
@@ -50,7 +45,7 @@ public class JDACommandManager extends CommandManager<
     private CommandConfig defaultConfig;
     private CommandConfigProvider configProvider;
     private CommandPermissionResolver permissionResolver;
-    private long botOwner = 0L;
+    private Set<Long> botOwner = new HashSet<>();
 
     public JDACommandManager(ArmaCoreImpl core) {
         this.core = core;
@@ -70,7 +65,7 @@ public class JDACommandManager extends CommandManager<
 
         getCommandConditions().addCondition("owneronly", context -> {
             JDACommandEvent jce = context.getIssuer();
-            if (jce.getUser().getIdLong() != getBotOwnerId()) {
+            if (getBotOwnerId().contains(jce.getUser().getIdLong())) {
                 throw new ConditionFailedException("Only the bot owner can use this command."); // TODO: MessageKey
             }
         });
@@ -100,16 +95,22 @@ public class JDACommandManager extends CommandManager<
     }
 
     void initializeBotOwner() {
-        if (botOwner == 0L) {
+        if (botOwner.isEmpty()) {
             if (shardManager.getShards().get(0).getAccountType() == AccountType.BOT) {
-                botOwner = shardManager.retrieveApplicationInfo().complete().getOwner().getIdLong();
+                ApplicationInfo app = shardManager.retrieveApplicationInfo().complete();
+                if(app.getTeam() != null) {
+                    botOwner.add(app.getTeam().getOwnerIdLong());
+                    botOwner.addAll(app.getTeam().getMembers().stream().map(m -> m.getUser().getIdLong()).collect(Collectors.toList()));
+                } else {
+                    botOwner.add(shardManager.retrieveApplicationInfo().complete().getOwner().getIdLong());
+                }
             } else {
-                botOwner = shardManager.getShards().get(0).getSelfUser().getIdLong();
+                botOwner.add(shardManager.getShards().get(0).getSelfUser().getIdLong());
             }
         }
     }
 
-    public long getBotOwnerId() {
+    public Set<Long> getBotOwnerId() {
         // Just in case initialization on ReadyEvent fails.
         initializeBotOwner();
         return botOwner;
