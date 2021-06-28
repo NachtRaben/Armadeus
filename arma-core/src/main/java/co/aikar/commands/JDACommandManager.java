@@ -313,7 +313,7 @@ public class JDACommandManager extends CommandManager<
 
         // Hacky way to allow newlines right next to the command
         if (ACFPatterns.NEWLINE.matcher(args[0]).find()) {
-            args = Stream.concat(Arrays.stream(ACFPatterns.NEWLINE.split(args[0])), Arrays.stream(Arrays.copyOfRange(args, 1, args.length))).toArray(String[]::new);
+            args = Stream.concat(Arrays.stream(ACFPatterns.NEWLINE.split(args[0], 1)), Arrays.stream(Arrays.copyOfRange(args, 1, args.length))).toArray(String[]::new);
         }
 
         String cmd = args[0].toLowerCase(Locale.ENGLISH);

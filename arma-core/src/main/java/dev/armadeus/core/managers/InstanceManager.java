@@ -27,7 +27,7 @@ public class InstanceManager {
     private Connection dbConnection;
     private ScheduledTask task;
     @Getter
-     private boolean devActive;
+    private boolean devActive;
 
     public InstanceManager(ArmaCore core) {
         logger.info("Starting database managed instance manager");
@@ -37,6 +37,7 @@ public class InstanceManager {
     }
 
     private void run() {
+        logger.info("Tick");
         DSLContext context = DSL.using(dbConnection, SQLDialect.POSTGRES);
         InstancesRecord record = new InstancesRecord(core.armaConfig().getUuid(), core.armaConfig().isDevMode(), System.currentTimeMillis());
         context.insertInto(INSTANCES)
@@ -47,6 +48,7 @@ public class InstanceManager {
                 .where(INSTANCES.DEV_MODE.eq(true))
                 .fetch().stream()
                 .filter(r -> System.currentTimeMillis() - r.getUpdated() < 3000).collect(Collectors.toList());
+        logger.info(result);
         if(devActive && result.isEmpty()) {
             devActive = false;
             if(!core.armaConfig().isDevMode())
