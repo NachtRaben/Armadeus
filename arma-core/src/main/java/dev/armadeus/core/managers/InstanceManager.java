@@ -37,7 +37,6 @@ public class InstanceManager {
     }
 
     private void run() {
-        logger.info("Tick");
         DSLContext context = DSL.using(dbConnection, SQLDialect.POSTGRES);
         InstancesRecord record = new InstancesRecord(core.armaConfig().getUuid(), core.armaConfig().isDevMode(), System.currentTimeMillis());
         context.insertInto(INSTANCES)
