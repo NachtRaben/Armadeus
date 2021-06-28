@@ -65,7 +65,7 @@ public class JDACommandManager extends CommandManager<
 
         getCommandConditions().addCondition("owneronly", context -> {
             JDACommandEvent jce = context.getIssuer();
-            if (getBotOwnerId().contains(jce.getUser().getIdLong())) {
+            if (!getBotOwnerId().contains(jce.getUser().getIdLong())) {
                 throw new ConditionFailedException("Only the bot owner can use this command."); // TODO: MessageKey
             }
         });
