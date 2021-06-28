@@ -48,7 +48,7 @@ public class InstanceManager {
                 .where(INSTANCES.DEV_MODE.eq(true))
                 .fetch();
         logger.info("Before:\n{}", result);
-        result = result.stream().filter(r -> System.currentTimeMillis() - r.getUpdated() < 3000).collect(Collectors.toList());
+        result = result.stream().filter(r -> System.currentTimeMillis() - r.getUpdated() < 10000).collect(Collectors.toList());
         logger.info("After:\n{}", result);
         if(devActive && result.isEmpty()) {
             devActive = false;
