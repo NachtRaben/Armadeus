@@ -46,9 +46,10 @@ public class InstanceManager {
                 .set(record).execute();
         List<InstancesRecord> result = context.selectFrom(INSTANCES)
                 .where(INSTANCES.DEV_MODE.eq(true))
-                .fetch().stream()
-                .filter(r -> System.currentTimeMillis() - r.getUpdated() < 3000).collect(Collectors.toList());
-        logger.info(result);
+                .fetch();
+        logger.info("Before:\n{}", result);
+        result = result.stream().filter(r -> System.currentTimeMillis() - r.getUpdated() < 3000).collect(Collectors.toList());
+        logger.info("After:\n{}", result);
         if(devActive && result.isEmpty()) {
             devActive = false;
             if(!core.armaConfig().isDevMode())
