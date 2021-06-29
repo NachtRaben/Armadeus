@@ -46,7 +46,7 @@ public class CommandSenderImpl extends JDACommandEvent implements DiscordCommand
         super(manager, event);
         this.core = core;
         if (event.isFromGuild()) {
-            if (getGuildConfig().deleteCommandMessages() && getGuildConfig().getPurgeDelay() != -1) {
+            if (getGuildConfig().deleteCommandMessages()) {
                 purge(event.getMessage(), 0);
             }
         }

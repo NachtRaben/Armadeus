@@ -3,8 +3,6 @@ package dev.armadeus.bot.api.config;
 import com.electronwill.nightconfig.core.CommentedConfig;
 import net.dv8tion.jda.api.entities.Guild;
 
-import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -12,11 +10,11 @@ import java.util.function.Consumer;
 public interface GuildConfig {
 
     // Command Cooldown
-    long getCommandCooldown();
-    GuildConfig setCommandCooldown(long cooldown);
+    int getCommandCooldown();
+    GuildConfig setCommandCooldown(int cooldown);
 
-    long getPurgeDelay();
-    GuildConfig setPurgeDelay(long delay);
+    int getPurgeDelay();
+    GuildConfig setPurgeDelay(int delay);
 
     boolean isDevGuild();
     GuildConfig setDevGuild(boolean enabled);

@@ -8,8 +8,6 @@ import net.dv8tion.jda.api.entities.Guild;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -30,23 +28,23 @@ public class GuildConfigImpl implements GuildConfig {
     }
 
     @Override
-    public long getCommandCooldown() {
+    public int getCommandCooldown() {
         return config.getOrElse("commandCooldown", -1);
     }
 
     @Override
-    public GuildConfig setCommandCooldown(long cooldown) {
+    public GuildConfig setCommandCooldown(int cooldown) {
         config.set("commandCooldown", cooldown);
         return this;
     }
 
     @Override
-    public long getPurgeDelay() {
+    public int getPurgeDelay() {
         return config.getOrElse("purgeDelay", 120);
     }
 
     @Override
-    public GuildConfig setPurgeDelay(long delay) {
+    public GuildConfig setPurgeDelay(int delay) {
         config.set("purgeDelay", delay);
         return this;
     }
