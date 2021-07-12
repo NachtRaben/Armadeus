@@ -54,7 +54,7 @@ public class GuildManagerImpl implements GuildManager {
         logger.info("Loading guild configuration {}", guildId);
         TomlFormat format = TomlFormat.instance();
         TomlParser parser = format.createParser();
-        DSLContext context = DSL.using(conn, SQLDialect.POSTGRES);
+        DSLContext context = DSL.using(conn);
         GuildsRecord result = context.selectFrom(Tables.GUILDS).where(Tables.GUILDS.ID.eq(guildId)).fetchOne();
         return result != null ? parser.parse(result.getConfig()) : format.createConfig();
     };

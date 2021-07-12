@@ -82,7 +82,7 @@ public class ArmaAudio {
         if (core.armaConfig().isDatabaseEnabled()) {
             Connection conn = core().armaConfig().createDatabaseConnection();
             logger.warn("Searching database for lavalink nodes...");
-            DSLContext context = DSL.using(conn, SQLDialect.POSTGRES);
+            DSLContext context = DSL.using(conn);
             List<LavalinkRecord> records = context.select(DSL.asterisk()).from(Tables.LAVALINK).fetchInto(LavalinkRecord.class);
             for (LavalinkRecord record : records) {
                 registerNode(record.getId(), record.getUri(), record.getPassword());

@@ -8,12 +8,11 @@ def importProject(name) {
     project.setProjectDir(new File("$name"))
 }
 
-importProject("armadeus")
-
 importProject("arma-api")
 importProject("arma-core")
 importProject("modules/arma-audio")
 importProject("modules/arma-welcome")
+importProject("modules/armadeus")
 //importProject("modules/frontend")
 //importProject("modules/audio");
 

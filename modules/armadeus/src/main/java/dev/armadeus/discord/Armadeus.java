@@ -1,7 +1,6 @@
 package dev.armadeus.discord;
 
 import co.aikar.commands.CommandManager;
-import co.aikar.commands.RootCommand;
 import com.google.inject.Inject;
 import com.velocitypowered.api.Velocity;
 import com.velocitypowered.api.event.Subscribe;
@@ -10,10 +9,6 @@ import com.velocitypowered.api.plugin.Plugin;
 import dev.armadeus.bot.api.ArmaCore;
 import dev.armadeus.bot.api.command.DiscordCommand;
 import lombok.Getter;
-import net.dv8tion.jda.api.interactions.commands.Command;
-import net.dv8tion.jda.api.interactions.commands.build.CommandData;
-import net.dv8tion.jda.api.requests.restaction.CommandListUpdateAction;
-import net.dv8tion.jda.api.sharding.ShardManager;
 import org.reflections.Reflections;
 import org.reflections.scanners.SubTypesScanner;
 import org.reflections.util.ClasspathHelper;
@@ -24,8 +19,6 @@ import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
-import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;

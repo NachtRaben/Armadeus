@@ -37,7 +37,7 @@ public class InstanceManager {
     }
 
     private void run() {
-        DSLContext context = DSL.using(dbConnection, SQLDialect.POSTGRES);
+        DSLContext context = DSL.using(dbConnection);
         InstancesRecord record = new InstancesRecord(core.armaConfig().getUuid(), core.armaConfig().isDevMode(), System.currentTimeMillis());
         context.insertInto(INSTANCES)
                 .set(record)
@@ -60,7 +60,7 @@ public class InstanceManager {
     public void shutdown() {
         task.cancel();
         if(core.armaConfig().isDevMode()) {
-            DSLContext context = DSL.using(dbConnection, SQLDialect.POSTGRES);
+            DSLContext context = DSL.using(dbConnection);
             InstancesRecord record = new InstancesRecord(core.armaConfig().getUuid(), false, System.currentTimeMillis());
             context.insertInto(INSTANCES)
                     .set(record)
