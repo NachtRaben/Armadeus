@@ -21,7 +21,11 @@ dependencies {
     // For Commands
     implementation group: 'com.github.NachtRaben', name: 'imageboard-api', version: 'master-SNAPSHOT' // ImageBoard API
     implementation group: 'org.codehaus.groovy', name: 'groovy-all', version: groovyVersion
+    implementation group: 'org.reflections', name: 'reflections', version: '0.9.12'
+}
 
+shadowJar {
+    relocate 'org.reflections', 'dev.armadeus.discord.libraries.reflections'
 }
 
 compileJava {

@@ -15,6 +15,12 @@ dependencies {
     annotationProcessor group: 'org.projectlombok', name: 'lombok', version: lombokVersion
 
     implementation group: 'dev.armadeus', name: 'LL-Client', version: 'master', changing: true // Lavalink
+    implementation group: 'org.reflections', name: 'reflections', version: '0.9.12'
+
+}
+
+shadowJar {
+    relocate 'org.reflections', 'dev.armadeus.discord.audio.libraries.reflections'
 }
 
 task copyPluginJar(type: Copy) {
