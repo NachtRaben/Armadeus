@@ -1,6 +1,8 @@
 plugins {
     id 'idea'
     id 'java-library'
+    id 'maven-publish'
+    id 'com.github.johnrengelman.shadow'
     id 'nu.studer.jooq' version '5.2.1'
 }
 
@@ -13,6 +15,8 @@ sourceSets {
 jar {
     from sourceSets.ap.output
 }
+
+shadowJar.classifier = ''
 
 dependencies {
     // Database Drivers
@@ -78,3 +82,31 @@ jooq {
         }
     }
 }
+
+publishing {
+    repositories {
+        repositories {
+            maven {
+                credentials {
+                    username "$nexusUser"
+                    password "$nexusPass"
+                }
+                if (!project.version.endsWith('-SNAPSHOT')) {
+                    url "https://nachtraben.com/nexus/repository/maven-releases"
+                } else {
+                    url "https://nachtraben.com/nexus/repository/maven-snapshots"
+                }
+            }
+        }
+    }
+    publications {
+        maven(MavenPublication) {
+            groupId = rootProject.group
+            artifactId = 'arma-api'
+            version = version
+            artifact shadowJar
+            artifact sourcesJar
+        }
+    }
+}
+
