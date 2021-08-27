@@ -30,7 +30,6 @@ allprojects {
         slf4jVersion = '1.7.30'
         log4jVersion = '2.14.1'
         guavaVersion = '30.1.1-jre'
-        configurateVersion = '4.0.0'
         jdaVersion = '4.3.0_280'
         jdaDevVersion = 'feature~slash-commands-SNAPSHOT'
         lavaplayerVersion = '1.3.76'
