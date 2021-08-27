@@ -58,6 +58,7 @@ dependencies {
 
 shadowJar {
     mergeServiceFiles()
+    relocate 'org.objectweb.asm', 'dev.armadeus.libraries.asm'
 }
 
 jooq {
