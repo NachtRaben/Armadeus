@@ -85,10 +85,10 @@ public class ConfCommands extends DiscordCommand {
     public void blacklistPerm(DiscordCommandIssuer issuer, String permission, @Optional Role role) {
         if (role != null) {
             issuer.getGuildConfig().addDisabledCommandsForRole(role.getIdLong(), permission);
-            issuer.sendMessage("Disabled command `%s` for `%s`".formatted(permission, role.getName()));
+            issuer.sendMessage(String.format("Disabled command `%s` for `%s`", permission, role.getName()));
         } else {
             issuer.getGuildConfig().addDisabledCommand(permission);
-            issuer.sendMessage("Disabled command `%s` for `@everyone`".formatted(permission));
+            issuer.sendMessage(String.format("Disabled command `%s` for `@everyone`", permission));
         }
     }
 
@@ -96,10 +96,10 @@ public class ConfCommands extends DiscordCommand {
     public void whitelistPerm(DiscordCommandIssuer issuer, String permission, @Optional Role role) {
         if (role != null) {
             issuer.getGuildConfig().removeDisabledCommandsForRole(role.getIdLong(), permission);
-            issuer.sendMessage("Enabled command `%s` for `%s`".formatted(permission, role.getName()));
+            issuer.sendMessage(String.format("Enabled command `%s` for `%s`", permission, role.getName()));
         } else {
             issuer.getGuildConfig().removeDisabledCommand(permission);
-            issuer.sendMessage("Enabled command `%s` for `@everyone`".formatted(permission));
+            issuer.sendMessage(String.format("Enabled command `%s` for `@everyone`", permission));
         }
     }
 }
