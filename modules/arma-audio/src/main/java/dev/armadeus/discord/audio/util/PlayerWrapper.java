@@ -57,6 +57,7 @@ public class PlayerWrapper {
     public void setVolume(float vol) {
         vol = (float)Math.min(Math.max(vol, 0.0), 1.0);
         internalPlayer.setVolume((int) (vol * 100.0f));
+        internalPlayer.getFilters().setVolume(vol).commit();
         manager.getAudioConfig().set("volume", String.format("%.2f", vol));
     }
 
