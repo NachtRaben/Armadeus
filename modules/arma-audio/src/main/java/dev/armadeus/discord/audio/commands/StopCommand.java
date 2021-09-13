@@ -15,7 +15,7 @@ public class StopCommand extends AudioCommand {
         AudioManager manager = getAudioManager(user);
         if (manager.getPlayer().getLink().getChannelId() != -1) {
             manager.getScheduler().stop();
-            manager.getPlayer().getLink().destroy();
+//            manager.getPlayer().getLink().destroy();
         }
     }
 }
