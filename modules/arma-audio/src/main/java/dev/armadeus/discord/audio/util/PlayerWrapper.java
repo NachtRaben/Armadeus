@@ -40,6 +40,7 @@ public class PlayerWrapper {
     }
 
     public synchronized void playTrack(AudioTrack track) {
+        init(); // TODO: This is very fucking bad
         internalPlayer.playTrack(track);
     }
 
@@ -50,9 +51,7 @@ public class PlayerWrapper {
     }
 
     public JdaLink getLink() {
-        JdaLink link = ArmaAudio.get().getLavalink().getLink(manager.getGuild());
-        init();
-        return link;
+        return ArmaAudio.get().getLavalink().getLink(manager.getGuild());
     }
 
     public Filters getFilters() {
