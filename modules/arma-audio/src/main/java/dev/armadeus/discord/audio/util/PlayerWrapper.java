@@ -37,7 +37,7 @@ public class PlayerWrapper {
     }
 
     public JdaLink getLink() {
-        return ArmaAudio.get().getLavalink().getLink(manager.getGuild());
+        return (JdaLink) internalPlayer.getLink();
     }
 
     public Filters getFilters() {
