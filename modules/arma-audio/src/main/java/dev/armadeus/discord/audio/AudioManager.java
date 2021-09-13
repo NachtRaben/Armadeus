@@ -53,7 +53,7 @@ public class AudioManager {
 
     public float getVolume() {
         // We parse as string for better config formatting
-        return (float) Math.max(Math.min(Float.parseFloat(audioConfig.get("volume")), 0.0), 5.0);
+        return (float) Math.min(Math.max(Float.parseFloat(audioConfig.get("volume")), 0.0), 5.0);
     }
 
     public TrackScheduler getScheduler() {
