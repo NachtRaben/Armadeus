@@ -63,7 +63,7 @@ public class AudioManager {
     public void setVolume(float vol) {
         vol = (float)Math.min(Math.max(vol, 0.0), 5.0);
         player.setVolume((int) (vol * 100.0f));
-        audioConfig.set("volume", Float.toString(vol));
+        audioConfig.set("volume", String.format("%.2f", vol));
     }
 
     public static class TrackLoader {
