@@ -62,7 +62,7 @@ public class PlayerWrapper {
 
     public void setVolume(int volume) {
         internalPlayer.setVolume(volume);
-        internalPlayer.getFilters().setVolume(Math.max(Math.min(volume / 100.0f, 0.0f), 5.0f)).commit();
+        internalPlayer.getFilters().setVolume(volume / 100.0f).commit();
     }
 
     public float getVolume() {
