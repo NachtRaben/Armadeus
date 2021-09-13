@@ -34,7 +34,6 @@ public class AudioManager {
     private final CommentedConfig audioConfig;
     @Getter
     public Map<Long, ScheduledTask> listeners = new HashMap<>();
-    float[] bands = new float[]{ 0.075f, 0.0375f, 0.03f, 0.022499999f, 0.0f, -0.015f, -0.022499999f, -0.0375f, -0.022499999f, -0.015f, 0.0f, 0.022499999f, 0.03f, 0.0375f, 0.075f };
     @Getter
     private PlayerWrapper player;
 
@@ -46,15 +45,11 @@ public class AudioManager {
         // Initialize Player
         this.player = new PlayerWrapper(this, ArmaAudio.get().getLavalink().getLink(guild).getPlayer());
         player.getLink().getNode(true);
-        // Initialize Volume and Equalizer
-        player.setVolume((int) (getVolume() * 100.0f)); // Bug in lavalink, this sets initial volume state since filters don't take effect initially
-        Filters filters = player.getFilters();
-        filters = filters.setVolume(getVolume());
-        for (int i = 0; i < this.bands.length; i++) {
-            filters = filters.setBand(i, this.bands[i] * 1.5f);
-        }
-        filters.commit();
-        logger.info("Setting initial volume for {} to {}", guild.getName(), audioConfig.get("volume"));
+        this.player.init();
+    }
+
+    public CommentedConfig getAudioConfig() {
+        return audioConfig;
     }
 
     private float getVolume() {

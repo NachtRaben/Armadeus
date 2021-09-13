@@ -107,6 +107,7 @@ public class ArmaAudio {
         }
     }
 
+
     @SuppressWarnings("rawtypes")
     @Subscribe
     public void registerCommands(CommandManager manager) {
