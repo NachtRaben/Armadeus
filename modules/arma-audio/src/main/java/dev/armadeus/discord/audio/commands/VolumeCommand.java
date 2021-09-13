@@ -22,6 +22,6 @@ public class VolumeCommand extends AudioCommand {
         if (volume != null) {
             manager.setVolume(volume.floatValue() / 100.0f);
         }
-        user.sendMessage("The volume is currently `" + manager.getPlayer().getFilters().getVolume() * 100.0f + "`%");
+        user.sendMessage(String.format("The volume is currently `%.2f`%%", manager.getPlayer().getFilters().getVolume() * 100.0f));
     }
 }
