@@ -4,12 +4,9 @@ import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import dev.armadeus.discord.audio.ArmaAudio;
 import dev.armadeus.discord.audio.AudioManager;
 import dev.armadeus.discord.audio.TrackScheduler;
-import lavalink.client.io.Link;
 import lavalink.client.io.filters.Filters;
 import lavalink.client.io.jda.JdaLink;
 import lavalink.client.player.LavalinkPlayer;
-import lavalink.client.player.event.IPlayerEventListener;
-import lavalink.client.player.event.PlayerEvent;
 import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,8 +28,8 @@ public class PlayerWrapper {
     }
 
     public void init() {
+        manager.setVolume(getVolume());
         Filters filters = internalPlayer.getFilters();
-        filters = filters.setVolume(getVolume());
         for (int i = 0; i < this.bands.length; i++) {
             filters = filters.setBand(i, this.bands[i] * 1.5f);
         }
@@ -64,11 +61,12 @@ public class PlayerWrapper {
     }
 
     public void setVolume(int volume) {
-        internalPlayer.getFilters().setVolume(Math.max(Math.min(volume / 100.0f, 0.0f), 1.0f)).commit();
+        internalPlayer.setVolume(volume);
+        internalPlayer.getFilters().setVolume(Math.max(Math.min(volume / 100.0f, 0.0f), 5.0f)).commit();
     }
 
-    public int getVolume() {
-        return internalPlayer.getVolume();
+    public float getVolume() {
+        return manager.getVolume();
     }
 
     public void setPaused(boolean paused) {

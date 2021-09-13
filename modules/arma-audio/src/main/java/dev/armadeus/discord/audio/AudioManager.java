@@ -42,7 +42,7 @@ public class AudioManager {
         // Load configurations
         GuildConfig config = ArmaAudio.core().guildManager().getConfigFor(guild);
         this.audioConfig = config.getMetadataOrInitialize("arma-audio", conf -> conf.set("volume", Float.toString(0.4f)));
-        // Initialize Player
+        setVolume(getVolume());
         this.player = new PlayerWrapper(this, ArmaAudio.get().getLavalink().getLink(guild).getPlayer());
         player.getLink().getNode(true);
         this.player.init();
@@ -52,9 +52,9 @@ public class AudioManager {
         return audioConfig;
     }
 
-    private float getVolume() {
+    public float getVolume() {
         // We parse as string for better config formatting
-        return Float.parseFloat(audioConfig.get("volume"));
+        return (float) Math.max(Math.min(Float.parseFloat(audioConfig.get("volume")), 0.0), 5.0);
     }
 
     public TrackScheduler getScheduler() {
@@ -62,9 +62,9 @@ public class AudioManager {
     }
 
     public void setVolume(float vol) {
-        vol = (float)Math.min(Math.max(vol, 0.0), 1.0);
+        vol = (float)Math.min(Math.max(vol, 0.0), 5.0);
+        player.setVolume((int) (vol * 100.0f));
         audioConfig.set("volume", Float.toString(vol));
-        getPlayer().getFilters().setVolume(vol).commit();
     }
 
     public static class TrackLoader {
