@@ -279,6 +279,7 @@ public class TrackScheduler extends AudioEventAdapter implements IPlayerEventLis
 
     @Override
     public void onEvent(PlayerEvent event) {
+        logger.warn(event.getClass().getSimpleName());
         if (event instanceof TrackStartEvent) {
             onTrackStart((TrackStartEvent) event);
         } else if (event instanceof TrackEndEvent) {
