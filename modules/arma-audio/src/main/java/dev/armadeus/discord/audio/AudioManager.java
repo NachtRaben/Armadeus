@@ -42,7 +42,6 @@ public class AudioManager {
         // Load configurations
         GuildConfig config = ArmaAudio.core().guildManager().getConfigFor(guild);
         this.audioConfig = config.getMetadataOrInitialize("arma-audio", conf -> conf.set("volume", Float.toString(0.4f)));
-        setVolume(getVolume());
         this.player = new PlayerWrapper(this, ArmaAudio.get().getLavalink().getLink(guild).getPlayer());
         player.getLink().getNode(true);
         this.player.init();
