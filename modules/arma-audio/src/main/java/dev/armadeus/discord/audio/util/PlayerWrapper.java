@@ -4,6 +4,7 @@ import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import dev.armadeus.discord.audio.ArmaAudio;
 import dev.armadeus.discord.audio.AudioManager;
 import dev.armadeus.discord.audio.TrackScheduler;
+import lavalink.client.io.Link;
 import lavalink.client.io.filters.Filters;
 import lavalink.client.io.jda.JdaLink;
 import lavalink.client.player.LavalinkPlayer;
@@ -36,7 +37,6 @@ public class PlayerWrapper {
             filters = filters.setBand(i, this.bands[i] * 1.5f);
         }
         filters.commit();
-        logger.info("Setting initial volume for {} to {}", manager.getGuild().getName(), getVolume());
     }
 
     public synchronized void playTrack(AudioTrack track) {
@@ -50,12 +50,8 @@ public class PlayerWrapper {
     }
 
     public JdaLink getLink() {
-        JdaLink link = ArmaAudio.get().getLavalink().getExistingLink(manager.getGuild());
-        if(link == null) {
-            logger.warn("Creating new link for {}", manager.getGuild().getName());
-            link = ArmaAudio.get().getLavalink().getLink(manager.getGuild());
-            init();
-        }
+        JdaLink link = ArmaAudio.get().getLavalink().getLink(manager.getGuild());
+        init();
         return link;
     }
 
