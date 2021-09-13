@@ -31,11 +31,12 @@ public class AudioManager {
 
     @Getter
     private final Guild guild;
+    @Getter
     private final CommentedConfig audioConfig;
     @Getter
     public Map<Long, ScheduledTask> listeners = new HashMap<>();
-    @Getter
     private PlayerWrapper player;
+    float[] bands = new float[]{ 0.075f, 0.0375f, 0.03f, 0.022499999f, 0.0f, -0.015f, -0.022499999f, -0.0375f, -0.022499999f, -0.015f, 0.0f, 0.022499999f, 0.03f, 0.0375f, 0.075f };
 
     public AudioManager(Guild guild) {
         this.guild = guild;
@@ -43,12 +44,6 @@ public class AudioManager {
         GuildConfig config = ArmaAudio.core().guildManager().getConfigFor(guild);
         this.audioConfig = config.getMetadataOrInitialize("arma-audio", conf -> conf.set("volume", Float.toString(0.4f)));
         this.player = new PlayerWrapper(this, ArmaAudio.get().getLavalink().getLink(guild).getPlayer());
-        player.getLink().getNode(true);
-        this.player.init();
-    }
-
-    public CommentedConfig getAudioConfig() {
-        return audioConfig;
     }
 
     public float getVolume() {
@@ -60,10 +55,19 @@ public class AudioManager {
         return player.getScheduler();
     }
 
-    public void setVolume(float vol) {
-        vol = (float)Math.min(Math.max(vol, 0.0), 5.0);
-        player.setVolume((int) (vol * 100.0f));
-        audioConfig.set("volume", String.format("%.2f", vol));
+    public PlayerWrapper getPlayer() {
+        if(player == null || player.getLink().getState().equals(Link.State.DESTROYED)) {
+            logger.warn("Creating new player for {}", getGuild().getName());
+            this.player = new PlayerWrapper(this, ArmaAudio.get().getLavalink().getLink(guild).getPlayer());
+            player.getLink().getNode(true);
+            player.setVolume(getVolume());
+            Filters filters = player.getFilters();
+            for (int i = 0; i < this.bands.length; i++) {
+                filters = filters.setBand(i, this.bands[i] * 1.5f);
+            }
+            filters.commit();
+        }
+        return player;
     }
 
     public static class TrackLoader {

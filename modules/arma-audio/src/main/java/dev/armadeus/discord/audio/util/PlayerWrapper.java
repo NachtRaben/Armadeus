@@ -17,7 +17,6 @@ public class PlayerWrapper {
     private final AudioManager manager;
     private final LavalinkPlayer internalPlayer;
     private TrackScheduler scheduler;
-    float[] bands = new float[]{ 0.075f, 0.0375f, 0.03f, 0.022499999f, 0.0f, -0.015f, -0.022499999f, -0.0375f, -0.022499999f, -0.015f, 0.0f, 0.022499999f, 0.03f, 0.0375f, 0.075f };
 
 
     public PlayerWrapper(AudioManager manager, LavalinkPlayer internalPlayer) {
@@ -27,17 +26,7 @@ public class PlayerWrapper {
         internalPlayer.addListener(scheduler);
     }
 
-    public void init() {
-        manager.setVolume(getVolume());
-        Filters filters = internalPlayer.getFilters();
-        for (int i = 0; i < this.bands.length; i++) {
-            filters = filters.setBand(i, this.bands[i] * 1.5f);
-        }
-        filters.commit();
-    }
-
     public synchronized void playTrack(AudioTrack track) {
-        init(); // TODO: This is very fucking bad
         internalPlayer.playTrack(track);
     }
 
@@ -62,7 +51,13 @@ public class PlayerWrapper {
 
     public void setVolume(int volume) {
         internalPlayer.setVolume(volume);
-        internalPlayer.getFilters().setVolume(volume / 100.0f).commit();
+        setVolume(volume / 100.0f);
+    }
+
+    public void setVolume(float vol) {
+        vol = (float)Math.min(Math.max(vol, 0.0), 1.0);
+        internalPlayer.setVolume((int) (vol * 100.0f));
+        manager.getAudioConfig().set("volume", String.format("%.2f", vol));
     }
 
     public float getVolume() {
