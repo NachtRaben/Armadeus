@@ -1,7 +1,9 @@
 package co.aikar.commands;
 
 import dev.armadeus.bot.api.config.GuildConfig;
+import dev.armadeus.bot.api.events.PermissionCheckEvent;
 import dev.armadeus.core.ArmaCoreImpl;
+import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.ISnowflake;
 
@@ -11,8 +13,10 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
+@Slf4j
 public class JDACommandPermissionResolver implements CommandPermissionResolver {
 
     private Map<String, Integer> discordPermissionOffsets;
@@ -26,7 +30,7 @@ public class JDACommandPermissionResolver implements CommandPermissionResolver {
 
     @Override
     public boolean hasPermission(JDACommandManager manager, JDACommandEvent event, String permission) {
-        // Explicitly return true if the issuer a developer. They are always allowed.
+        // Explicitly return true if the issuer is a developer. They are always allowed.
         if (ArmaCoreImpl.get().armaConfig().getDeveloperIds().contains(event.getUser().getIdLong())) {
             return true;
         }
@@ -37,12 +41,12 @@ public class JDACommandPermissionResolver implements CommandPermissionResolver {
         }
 
         // If it's not from a guild
-        if(event.getGuild() == null) {
+        if (event.getGuild() == null) {
             return true;
         }
 
         // If we don't have member objects
-        if(event.getMember() == null) {
+        if (event.getMember() == null) {
             return false;
         }
 
@@ -56,15 +60,21 @@ public class JDACommandPermissionResolver implements CommandPermissionResolver {
         GuildConfig config = ArmaCoreImpl.get().guildManager().getConfigFor(event.getIssuer().getGuild());
         List<Long> roles = event.getIssuer().getMember().getRoles().stream().map(ISnowflake::getIdLong).collect(Collectors.toList());
         Set<String> blocked = new HashSet<>(config.getDisabledCommands());
-        for(Long role : roles) {
+        for (Long role : roles) {
             blocked.addAll(config.getDisabledCommandsForRole(role));
         }
-        for(String b : blocked) {
-            if(permission.matches(b)) {
+        for (String b : blocked) {
+            if (permission.matches(b)) {
                 event.sendMessage("You were blocked due to matching rule " + b);
                 return false;
             }
         }
-        return true;
+
+        try {
+            return ArmaCoreImpl.get().eventManager().fire(new PermissionCheckEvent(event.getUser())).get().isAllowed();
+        } catch (InterruptedException | ExecutionException e) {
+            log.error("Exception encountered in permissions check event", e);
+            return false;
+        }
     }
 }

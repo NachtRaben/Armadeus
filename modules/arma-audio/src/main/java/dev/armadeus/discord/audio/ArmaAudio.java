@@ -12,9 +12,11 @@ import com.velocitypowered.api.event.Subscribe;
 import com.velocitypowered.api.plugin.Plugin;
 import dev.armadeus.bot.api.ArmaCore;
 import dev.armadeus.bot.api.command.DiscordCommand;
+import dev.armadeus.bot.api.events.ShutdownEvent;
 import dev.armadeus.discord.audio.database.Tables;
 import dev.armadeus.discord.audio.database.tables.records.LavalinkRecord;
 import lavalink.client.io.LavalinkLoadBalancer;
+import lavalink.client.io.Link;
 import lavalink.client.io.jda.JdaLavalink;
 import lombok.Getter;
 import lombok.experimental.Accessors;
@@ -96,6 +98,12 @@ public class ArmaAudio {
                 registerNode(s.getKey(), tokens[0], tokens[1]);
             }
         }
+    }
+
+    @Subscribe
+    public void onShutdown(ShutdownEvent event) {
+        lavalink.getLinks().forEach(Link::destroy);
+        lavalink.shutdown();
     }
 
     private void registerNode(String name, String uri, String password) {

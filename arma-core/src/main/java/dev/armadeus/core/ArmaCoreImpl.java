@@ -13,6 +13,7 @@ import com.velocitypowered.proxy.plugin.VelocityPluginManager;
 import com.velocitypowered.proxy.scheduler.VelocityScheduler;
 import dev.armadeus.bot.api.ArmaCore;
 import dev.armadeus.bot.api.config.GuildConfig;
+import dev.armadeus.bot.api.events.ShutdownEvent;
 import dev.armadeus.bot.api.util.DiscordReference;
 import dev.armadeus.core.command.HelpCommand;
 import dev.armadeus.core.command.SlashCommands;
@@ -229,9 +230,12 @@ public class ArmaCoreImpl extends VelocityManager implements ArmaCore {
 
     @SneakyThrows
     private void shutdown(boolean explicitExit) {
-        // TODO: Shutdown event
+        // Shutdown Event
+        eventManager.fire(new ShutdownEvent()).get();
+        // Shutdown Dev Instance Manager
         if (instanceManager != null)
             instanceManager.shutdown();
+        // Delete pending messages
         Iterator<Map.Entry<DiscordReference<Message>, CompletableFuture<?>>> it = CommandSenderImpl.getPendingDeletions().entrySet().iterator();
         while (it.hasNext()) {
             Map.Entry<DiscordReference<Message>, CompletableFuture<?>> entry = it.next();
@@ -244,6 +248,7 @@ public class ArmaCoreImpl extends VelocityManager implements ArmaCore {
             }
             it.remove();
         }
+        // Shutdown Guild Manager
         guildManager.shutdown();
         eventManager.shutdown();
         scheduler.shutdown();
