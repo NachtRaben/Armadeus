@@ -13,6 +13,7 @@ import java.util.regex.Pattern;
 public class PlayCommand extends AudioCommand {
 
     private static final Pattern LIMIT_MATCH = Pattern.compile("-{1,2}limit[\\s=](\\d+)");
+    private static final Pattern PLAYLIST_MATCH = Pattern.compile("-{1,2}p(laylist)?");
 
     @Conditions("guildonly")
     @CommandAlias("play")
@@ -22,7 +23,7 @@ public class PlayCommand extends AudioCommand {
         if (cannotQueueMusic(user))
             return;
 
-        int limit = 1;
+        int limit = PLAYLIST_MATCH.matcher(identifier).find() ? 10 : 1;
         Matcher matcher = LIMIT_MATCH.matcher(identifier);
         if (matcher.find()) {
             limit = Integer.parseInt(matcher.group(1));
