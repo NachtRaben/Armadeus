@@ -138,6 +138,7 @@ public class AudioManager {
                 }
                 track.setUserData(user);
                 ArmaAudio.getManagerFor(user.getGuild()).getPlayer().getScheduler().queue(track);
+                user.sendMessage(String.format("Added `%s` to the queue!", track.getInfo().title));
             }
         }
     }

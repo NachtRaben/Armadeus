@@ -16,7 +16,7 @@ import java.util.Map;
 public class RadioCommand extends AudioCommand {
 
 
-    @CommandAlias("play")
+    @CommandAlias("station")
     @CommandPermission("armadeus.radio")
     @Description("Loads a live broadcast from predefined stations")
     public void radio(DiscordCommandIssuer user, String station) {
