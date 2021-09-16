@@ -9,8 +9,11 @@ import co.aikar.commands.annotation.Subcommand;
 import dev.armadeus.bot.api.command.DiscordCommand;
 import dev.armadeus.bot.api.command.DiscordCommandIssuer;
 import dev.armadeus.bot.api.config.GuildConfig;
+import dev.armadeus.discord.util.EmbedUtils;
+import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Role;
 
+import java.awt.*;
 import java.util.Collections;
 import java.util.Set;
 
@@ -101,5 +104,17 @@ public class ConfCommands extends DiscordCommand {
             issuer.getGuildConfig().removeDisabledCommand(permission);
             issuer.sendMessage(String.format("Enabled command `%s` for `@everyone`", permission));
         }
+    }
+    @Subcommand("commands list")
+    public void commandPerm(DiscordCommandIssuer issuer) {
+        EmbedBuilder builder = EmbedUtils.newBuilder(issuer).setColor(Color.PINK)
+                .setTitle("Blacklisted Commands");
+        Set<String> disabledCommands = issuer.getGuildConfig().getDisabledCommands();
+        if (disabledCommands != null) {
+            for (String c : disabledCommands) {
+                builder.appendDescription(c + "\n");
+            }
+            issuer.sendMessage(builder.build());
+        } else issuer.sendMessage("No Blacklisted Commands.");
     }
 }
