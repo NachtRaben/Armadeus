@@ -3,6 +3,7 @@ package dev.armadeus.discord.commands.general;
 import co.aikar.commands.annotation.CommandAlias;
 import co.aikar.commands.annotation.CommandPermission;
 import co.aikar.commands.annotation.Default;
+import co.aikar.commands.annotation.Description;
 import dev.armadeus.bot.api.command.DiscordCommand;
 import dev.armadeus.bot.api.command.DiscordCommandIssuer;
 import dev.armadeus.discord.util.EmbedUtils;
@@ -15,7 +16,7 @@ public class AboutCommand extends DiscordCommand {
     @Default
     @CommandAlias("about")
     @CommandPermission("armadeus.about")
-    @Description("Shows some info about Armadeus.")
+    @Description("Shows some info about Armadeus")
     public void about(DiscordCommandIssuer user) {
         EmbedBuilder builder = EmbedUtils.newBuilder(user);
         ApplicationInfo info = user.getJda().retrieveApplicationInfo().complete();

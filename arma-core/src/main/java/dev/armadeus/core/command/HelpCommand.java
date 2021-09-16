@@ -4,6 +4,7 @@ import co.aikar.commands.CommandHelp;
 import co.aikar.commands.JDARootCommand;
 import co.aikar.commands.annotation.CommandAlias;
 import co.aikar.commands.annotation.Default;
+import co.aikar.commands.annotation.Description;
 import dev.armadeus.bot.api.command.DiscordCommand;
 import dev.armadeus.bot.api.command.DiscordCommandIssuer;
 
@@ -19,6 +20,7 @@ public class HelpCommand extends DiscordCommand {
 //    }
 
     @CommandAlias("help")
+    @Description("Shows help and usage information for the specified command")
     public void showHelp(DiscordCommandIssuer user, String command, @Default String[] args) {
         JDARootCommand rootCommand = (JDARootCommand) core.commandManager().getRootCommand(command);
         if (rootCommand == null) {

@@ -3,6 +3,7 @@ package dev.armadeus.discord.audio.commands;
 import co.aikar.commands.annotation.CommandAlias;
 import co.aikar.commands.annotation.CommandPermission;
 import co.aikar.commands.annotation.Conditions;
+import co.aikar.commands.annotation.Description;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import dev.armadeus.bot.api.command.DiscordCommandIssuer;
 import dev.armadeus.bot.api.util.TimeUtil;
@@ -21,6 +22,7 @@ public class QueueCommand extends AudioCommand {
     @Conditions("guildonly")
     @CommandAlias("queue")
     @CommandPermission("armadeus.queue")
+    @Description("Queues a song for playback in your current channel")
     public void queue(DiscordCommandIssuer user) {
         AudioManager manager = getAudioManager(user);
         if (isNotPlaying(user))

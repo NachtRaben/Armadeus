@@ -3,6 +3,7 @@ package dev.armadeus.discord.audio.commands;
 import co.aikar.commands.annotation.CommandAlias;
 import co.aikar.commands.annotation.Conditions;
 import co.aikar.commands.annotation.Default;
+import co.aikar.commands.annotation.Description;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import com.velocitypowered.api.scheduler.ScheduledTask;
 import dev.armadeus.bot.api.ArmaCore;
@@ -25,6 +26,7 @@ public class ListenCommand extends AudioCommand {
 
     @Conditions("developeronly|guildonly")
     @CommandAlias("listen")
+    @Description("Developer command to allow the bot to listen to the users spotify activity")
     public void listen(DiscordCommandIssuer user, @Default(value = "true") boolean listen) {
         if (cannotQueueMusic(user))
             return;

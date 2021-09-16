@@ -4,6 +4,7 @@ import co.aikar.commands.annotation.CommandAlias;
 import co.aikar.commands.annotation.CommandPermission;
 import co.aikar.commands.annotation.Conditions;
 import co.aikar.commands.annotation.Default;
+import co.aikar.commands.annotation.Description;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import dev.armadeus.bot.api.command.DiscordCommandIssuer;
 import dev.armadeus.bot.api.util.TimeUtil;
@@ -18,6 +19,7 @@ public class RadioCommand extends AudioCommand {
     @Conditions("guildonly")
     @CommandAlias("radio")
     @CommandPermission("armadeus.radio")
+    @Description("Loads a live broadcast from predefined stations")
     public void radio(DiscordCommandIssuer user, String station) {
         if (cannotQueueMusic(user))
             return;

@@ -3,6 +3,7 @@ package dev.armadeus.discord.commands.general;
 import co.aikar.commands.annotation.CommandAlias;
 import co.aikar.commands.annotation.CommandPermission;
 import co.aikar.commands.annotation.Default;
+import co.aikar.commands.annotation.Description;
 import dev.armadeus.bot.api.command.DiscordCommand;
 import dev.armadeus.bot.api.command.DiscordCommandIssuer;
 import dev.armadeus.discord.util.EmbedUtils;
@@ -48,6 +49,7 @@ public class StatsCommand extends DiscordCommand {
     @Default
     @CommandAlias("stats")
     @CommandPermission("armadeus.stats")
+    @Description("Show some live stats about the bots performance")
     public void stats(DiscordCommandIssuer user) {
         Runtime rt = Runtime.getRuntime();
         JDA.ShardInfo info = user.getJda().getShardInfo();

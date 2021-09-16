@@ -4,6 +4,7 @@ import co.aikar.commands.annotation.CommandAlias;
 import co.aikar.commands.annotation.CommandPermission;
 import co.aikar.commands.annotation.Conditions;
 import co.aikar.commands.annotation.Default;
+import co.aikar.commands.annotation.Description;
 import co.aikar.commands.annotation.Optional;
 import co.aikar.commands.annotation.Subcommand;
 import dev.armadeus.bot.api.command.DiscordCommand;
@@ -20,6 +21,7 @@ import java.util.Set;
 public class ConfCommands extends DiscordCommand {
 
     @Subcommand("set prefixes")
+    @Description("Set prefixes the bot will respond too in your guild")
     public void setPrefixes(DiscordCommandIssuer user, @Default() String[] prefixes) {
         GuildConfig config = user.getGuildConfig();
         if (prefixes.length != 0) {
@@ -32,6 +34,7 @@ public class ConfCommands extends DiscordCommand {
     }
 
     @Subcommand("set cooldown")
+    @Description("UNIMPLEMENTED, Set the command cooldown for your guild")
     public void setCommandCooldown(DiscordCommandIssuer user, int cooldown) {
         cooldown = Math.max(-1, cooldown);
         GuildConfig config = user.getGuildConfig();
@@ -43,6 +46,7 @@ public class ConfCommands extends DiscordCommand {
     }
 
     @Subcommand("set purgedelay")
+    @Description("Set how many seconds bot messages will linger in your guild")
     public void setPurgeDelay(DiscordCommandIssuer user, int delay) {
         delay = Math.max(-1, delay);
         GuildConfig config = user.getGuildConfig();
@@ -58,6 +62,7 @@ public class ConfCommands extends DiscordCommand {
     }
 
     @Subcommand("delete commands")
+    @Description("Set if the bot will delete command messages as they are processed")
     public void deleteUserCommands(DiscordCommandIssuer user, boolean delete) {
         GuildConfig config = user.getGuildConfig();
         config.deleteCommandMessages(delete);
@@ -68,6 +73,7 @@ public class ConfCommands extends DiscordCommand {
     }
 
     @Subcommand("add prefix")
+    @Description("Add a prefix the bot will respond to in your guild")
     public void addPrefix(DiscordCommandIssuer user, String prefix) {
         GuildConfig config = user.getGuildConfig();
         config.addPrefixes(prefix);
@@ -75,6 +81,7 @@ public class ConfCommands extends DiscordCommand {
     }
 
     @Subcommand("remove prefix")
+    @Description("Remove a prefix that the bot will respond to in your guild")
     public void removePrefix(DiscordCommandIssuer user, String prefix) {
         GuildConfig config = user.getGuildConfig();
         config.removePrefixes(prefix);
@@ -82,6 +89,7 @@ public class ConfCommands extends DiscordCommand {
     }
 
     @Subcommand("command blacklist")
+    @Description("Blacklist a command from execution in your guild")
     public void blacklistPerm(DiscordCommandIssuer issuer, String permission, @Optional Role role) {
         if (role != null) {
             issuer.getGuildConfig().addDisabledCommandsForRole(role.getIdLong(), permission);
@@ -93,6 +101,7 @@ public class ConfCommands extends DiscordCommand {
     }
 
     @Subcommand("commands whitelist")
+    @Description("Whitelist a command for execution in your guild")
     public void whitelistPerm(DiscordCommandIssuer issuer, String permission, @Optional Role role) {
         if (role != null) {
             issuer.getGuildConfig().removeDisabledCommandsForRole(role.getIdLong(), permission);

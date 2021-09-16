@@ -3,6 +3,7 @@ package dev.armadeus.discord.audio.commands;
 import co.aikar.commands.annotation.CommandAlias;
 import co.aikar.commands.annotation.CommandPermission;
 import co.aikar.commands.annotation.Conditions;
+import co.aikar.commands.annotation.Description;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import dev.armadeus.bot.api.command.DiscordCommandIssuer;
 import dev.armadeus.bot.api.util.TimeUtil;
@@ -13,6 +14,7 @@ public class SeekCommand extends AudioCommand {
     @Conditions("guildonly")
     @CommandAlias("seek|buffer")
     @CommandPermission("armadeus.seek")
+    @Description("Seek to a position in the currently playing track")
     public void seek(DiscordCommandIssuer user, String time) {
         if (cannotQueueMusic(user))
             return;

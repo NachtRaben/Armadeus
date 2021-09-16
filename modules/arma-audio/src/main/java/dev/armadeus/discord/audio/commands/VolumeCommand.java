@@ -4,6 +4,7 @@ import co.aikar.commands.annotation.CommandAlias;
 import co.aikar.commands.annotation.CommandPermission;
 import co.aikar.commands.annotation.Conditions;
 import co.aikar.commands.annotation.Default;
+import co.aikar.commands.annotation.Description;
 import co.aikar.commands.annotation.Optional;
 import dev.armadeus.bot.api.command.DiscordCommandIssuer;
 import dev.armadeus.discord.audio.AudioManager;
@@ -14,6 +15,7 @@ public class VolumeCommand extends AudioCommand {
     @Conditions("guildonly")
     @CommandAlias("volume|vol")
     @CommandPermission("armadeus.volume")
+    @Description("Adjusts the volume of audio playback")
     public void volume(DiscordCommandIssuer user, @Optional Integer volume) {
         if (volume != null && cannotQueueMusic(user))
             return;

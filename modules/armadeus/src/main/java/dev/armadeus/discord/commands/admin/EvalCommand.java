@@ -3,6 +3,7 @@ package dev.armadeus.discord.commands.admin;
 import co.aikar.commands.annotation.CommandAlias;
 import co.aikar.commands.annotation.Conditions;
 import co.aikar.commands.annotation.Default;
+import co.aikar.commands.annotation.Description;
 import co.aikar.commands.annotation.Private;
 import dev.armadeus.bot.api.command.DiscordCommand;
 import dev.armadeus.bot.api.command.DiscordCommandIssuer;
@@ -18,6 +19,7 @@ public class EvalCommand extends DiscordCommand {
     @Private
     @Conditions("developeronly")
     @CommandAlias("eval")
+    @Description("Developer command used to run realtime evaluations")
     public void eval(DiscordCommandIssuer user, @Default String script) {
         // This fuckery is because some newlines get consumed inside the code-block
         String raw = user.getMessage().getContentRaw();

@@ -4,6 +4,7 @@ import co.aikar.commands.annotation.CommandAlias;
 import co.aikar.commands.annotation.CommandPermission;
 import co.aikar.commands.annotation.Conditions;
 import co.aikar.commands.annotation.Default;
+import co.aikar.commands.annotation.Description;
 import co.aikar.commands.annotation.Subcommand;
 import dev.armadeus.bot.api.command.DiscordCommandIssuer;
 import dev.armadeus.discord.audio.AudioManager;
@@ -14,6 +15,7 @@ import dev.armadeus.discord.audio.AudioManager;
 public class RepeatCommand extends AudioCommand {
 
     @Subcommand("track")
+    @Description("Repeat the currently playing audio track")
     public void repeatTrack(DiscordCommandIssuer user, @Default(value = "true") boolean repeat) {
         if (cannotQueueMusic(user))
             return;
@@ -32,6 +34,7 @@ public class RepeatCommand extends AudioCommand {
     }
 
     @Subcommand("queue")
+    @Description("Repeats the currently playing audio queue")
     public void repeatQueue(DiscordCommandIssuer user, @Default(value = "true") boolean repeat) {
         if (cannotQueueMusic(user))
             return;

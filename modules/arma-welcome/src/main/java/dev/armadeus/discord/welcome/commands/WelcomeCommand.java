@@ -4,6 +4,7 @@ import co.aikar.commands.BaseCommand;
 import co.aikar.commands.annotation.CommandAlias;
 import co.aikar.commands.annotation.CommandPermission;
 import co.aikar.commands.annotation.Conditions;
+import co.aikar.commands.annotation.Description;
 import co.aikar.commands.annotation.Subcommand;
 import com.electronwill.nightconfig.core.CommentedConfig;
 import dev.armadeus.bot.api.command.DiscordCommand;
@@ -20,6 +21,7 @@ public class WelcomeCommand extends DiscordCommand {
     public class WelcomeSetters extends BaseCommand {
 
         @Subcommand("enabled")
+        @Description("Enables/Disables the welcome feature")
         public void setEnabled(DiscordCommandIssuer issuer, boolean enabled) {
             CommentedConfig config = ArmaWelcome.get().getConfig(issuer.getGuild());
             config.set("enabled", enabled);
@@ -27,6 +29,7 @@ public class WelcomeCommand extends DiscordCommand {
         }
 
         @Subcommand("dm")
+        @Description("Set the welcome feature to DM the user on join")
         public void setDm(DiscordCommandIssuer issuer, boolean dm) {
             CommentedConfig config = ArmaWelcome.get().getConfig(issuer.getGuild());
             config.set("dm", dm);
@@ -34,6 +37,7 @@ public class WelcomeCommand extends DiscordCommand {
         }
 
         @Subcommand("message")
+        @Description("Set a message to send when a user joins your guild")
         public void setDm(DiscordCommandIssuer issuer, String message) {
             CommentedConfig config = ArmaWelcome.get().getConfig(issuer.getGuild());
             config.set("message", message);

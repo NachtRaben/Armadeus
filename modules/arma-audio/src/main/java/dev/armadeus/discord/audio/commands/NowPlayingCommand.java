@@ -4,6 +4,7 @@ import co.aikar.commands.annotation.CommandAlias;
 import co.aikar.commands.annotation.CommandPermission;
 import co.aikar.commands.annotation.Conditions;
 import co.aikar.commands.annotation.Default;
+import co.aikar.commands.annotation.Description;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import dev.armadeus.bot.api.command.DiscordCommandIssuer;
 import dev.armadeus.bot.api.util.TimeUtil;
@@ -17,6 +18,7 @@ public class NowPlayingCommand extends AudioCommand {
     @Conditions("guildonly")
     @CommandAlias("np|playing")
     @CommandPermission("armadeus.playing")
+    @Description("Shows the currently playing track")
     public void nowPlaying(DiscordCommandIssuer user, @Default(value = "false") boolean extended) {
         if (isNotPlaying(user))
             return;

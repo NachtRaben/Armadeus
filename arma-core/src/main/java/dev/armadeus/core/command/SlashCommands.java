@@ -2,6 +2,7 @@ package dev.armadeus.core.command;
 
 import co.aikar.commands.annotation.CommandAlias;
 import co.aikar.commands.annotation.Conditions;
+import co.aikar.commands.annotation.Description;
 import co.aikar.commands.annotation.Private;
 import co.aikar.commands.annotation.Subcommand;
 import dev.armadeus.bot.api.command.DiscordCommand;
@@ -26,6 +27,7 @@ import java.util.List;
 public class SlashCommands extends DiscordCommand {
 
     @Subcommand("destroy")
+    @Description("Destroys currently published slash commands")
     public void destroySlasyCommands(DiscordCommandIssuer user) {
         JDA shard = user.getJda();
         Guild guild = shard.getGuildById(317784247949590528L);
@@ -43,6 +45,7 @@ public class SlashCommands extends DiscordCommand {
     }
 
     @CommandAlias("publish")
+    @Description("Publishes all commands to discord as slash commands")
     public void importSlashCommands(DiscordCommandIssuer user) {
         JDA shard = user.getJda();
         Guild guild = shard.getGuildById(317784247949590528L);
