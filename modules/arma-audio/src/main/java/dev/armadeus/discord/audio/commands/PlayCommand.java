@@ -29,7 +29,6 @@ public class PlayCommand extends AudioCommand {
             limit = Integer.parseInt(matcher.group(1));
             identifier = identifier.replaceAll(LIMIT_MATCH.pattern(), "").trim();
         }
-        AudioManager manager = getAudioManager(user);
         AudioManager.TrackLoader.loadAndPlay(user, identifier, limit);
     }
 }
