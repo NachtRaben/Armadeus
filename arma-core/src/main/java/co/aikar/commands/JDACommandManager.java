@@ -349,7 +349,7 @@ public class JDACommandManager extends CommandManager<
         return true;
     }
 
-    private CommandConfig getCommandConfig(MessageReceivedEvent event) {
+    public CommandConfig getCommandConfig(MessageReceivedEvent event) {
         CommandConfig config = this.defaultConfig;
         if (this.configProvider != null) {
             CommandConfig provided = this.configProvider.provide(event);

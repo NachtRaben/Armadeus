@@ -14,12 +14,14 @@ import dev.armadeus.discord.util.EmbedUtils;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Role;
 
+import javax.xml.bind.annotation.XmlElementDecl;
 import java.util.Collections;
 import java.util.Set;
 
 @CommandAlias("config|conf")
 @Conditions("guildonly")
 @CommandPermission("administrator")
+@Description("Configuration commands to control bot behavior")
 public class ConfCommands extends DiscordCommand {
 
     @Subcommand("set prefixes")
@@ -102,7 +104,7 @@ public class ConfCommands extends DiscordCommand {
         }
     }
 
-    @Subcommand("commands whitelist")
+    @Subcommand("command whitelist")
     @Description("Whitelist a command for execution in your guild")
     public void whitelistPerm(DiscordCommandIssuer issuer, String permission, @Optional Role role) {
         if (role != null) {

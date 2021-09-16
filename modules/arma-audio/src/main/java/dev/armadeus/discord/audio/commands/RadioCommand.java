@@ -3,21 +3,20 @@ package dev.armadeus.discord.audio.commands;
 import co.aikar.commands.annotation.CommandAlias;
 import co.aikar.commands.annotation.CommandPermission;
 import co.aikar.commands.annotation.Conditions;
-import co.aikar.commands.annotation.Default;
 import co.aikar.commands.annotation.Description;
-import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import dev.armadeus.bot.api.command.DiscordCommandIssuer;
-import dev.armadeus.bot.api.util.TimeUtil;
-import dev.armadeus.discord.audio.AudioManager;
-import dev.armadeus.discord.audio.TrackScheduler;
+import dev.armadeus.bot.api.util.EmbedUtils;
 import dev.armadeus.discord.audio.radio.Radio;
-import dev.armadeus.discord.audio.util.AudioEmbedUtils;
 import net.dv8tion.jda.api.EmbedBuilder;
 
+import java.util.Map;
+
+@Conditions("guildonly")
+@CommandAlias("radio")
 public class RadioCommand extends AudioCommand {
 
-    @Conditions("guildonly")
-    @CommandAlias("radio")
+
+    @CommandAlias("play")
     @CommandPermission("armadeus.radio")
     @Description("Loads a live broadcast from predefined stations")
     public void radio(DiscordCommandIssuer user, String station) {
@@ -31,5 +30,20 @@ public class RadioCommand extends AudioCommand {
         }
 
         radio.play(user);
+    }
+
+    @CommandAlias("list")
+    @CommandPermission("armadeus.radio")
+    @Description("Shows a list of radio stations")
+    public void list(DiscordCommandIssuer user) {
+        if (cannotQueueMusic(user))
+            return;
+
+        EmbedBuilder builder = EmbedUtils.newBuilder(user);
+        builder.setTitle("Radio Stations");
+        for(Map.Entry<String, Radio> station : Radio.getStations().entrySet()) {
+            builder.appendDescription(String.format("`%s` provided by `%s`\n", station.getKey(), station.getValue().getArtist()));
+        }
+        user.sendMessage(builder.build());
     }
 }

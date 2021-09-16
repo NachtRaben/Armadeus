@@ -1,6 +1,7 @@
 package dev.armadeus.discord.commands.admin;
 
 import co.aikar.commands.annotation.CommandAlias;
+import co.aikar.commands.annotation.CommandPermission;
 import co.aikar.commands.annotation.Conditions;
 import co.aikar.commands.annotation.Default;
 import co.aikar.commands.annotation.Description;
@@ -18,6 +19,7 @@ public class EvalCommand extends DiscordCommand {
 
     @Private
     @Conditions("developeronly")
+    @CommandPermission("dev.eval")
     @CommandAlias("eval")
     @Description("Developer command used to run realtime evaluations")
     public void eval(DiscordCommandIssuer user, @Default String script) {

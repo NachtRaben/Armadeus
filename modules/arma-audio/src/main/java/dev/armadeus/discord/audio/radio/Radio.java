@@ -21,7 +21,8 @@ import java.util.concurrent.TimeUnit;
 @Getter
 public abstract class Radio {
 
-    private static final Map<String, Radio> STATIONS = new HashMap<>();
+    @Getter
+    private static Map<String, Radio> stations = new HashMap<>();
     private static final Hive365 HIVE_365 = new Hive365();
     protected static final OkHttpClient CLIENT = new OkHttpClient.Builder().callTimeout(5, TimeUnit.SECONDS).build();
 
@@ -35,11 +36,11 @@ public abstract class Radio {
         this.title = title;
         this.artist = artist;
         this.url = url;
-        STATIONS.put(identifier.toLowerCase(Locale.ROOT), this);
+        stations.put(identifier.toLowerCase(Locale.ROOT), this);
     }
 
     public static Radio getStation(String station) {
-        return STATIONS.get(station.toLowerCase(Locale.ROOT));
+        return stations.get(station.toLowerCase(Locale.ROOT));
     }
 
     public MessageEmbed getNowPlayingEmbed(DiscordCommandIssuer issuer) { return null; }

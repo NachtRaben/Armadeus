@@ -65,7 +65,6 @@ public class JDACommandPermissionResolver implements CommandPermissionResolver {
         }
         for (String b : blocked) {
             if (permission.matches(b)) {
-                event.sendMessage("You were blocked due to matching rule " + b);
                 return false;
             }
         }

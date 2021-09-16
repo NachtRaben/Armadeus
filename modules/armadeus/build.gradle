@@ -36,5 +36,5 @@ compileJava {
 
 task copyPluginJar(type: Copy) {
     from shadowJar
-    into '../run/plugins/'
+    into '../../run/plugins/'
 }
