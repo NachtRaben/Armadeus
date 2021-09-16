@@ -17,7 +17,7 @@ public class PlayCommand extends AudioCommand {
 
     @Conditions("guildonly")
     @CommandAlias("play")
-    @Description("Request the specified track")
+    @Description("Request the specified track, use -p to load a playlist")
     @CommandPermission("armadeus.play")
     public void play(DiscordCommandIssuer user, String identifier) {
         if (cannotQueueMusic(user))
