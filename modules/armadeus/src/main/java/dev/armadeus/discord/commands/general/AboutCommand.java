@@ -15,6 +15,7 @@ public class AboutCommand extends DiscordCommand {
     @Default
     @CommandAlias("about")
     @CommandPermission("armadeus.about")
+    @Description("Shows some info about Armadeus.")
     public void about(DiscordCommandIssuer user) {
         EmbedBuilder builder = EmbedUtils.newBuilder(user);
         ApplicationInfo info = user.getJda().retrieveApplicationInfo().complete();
