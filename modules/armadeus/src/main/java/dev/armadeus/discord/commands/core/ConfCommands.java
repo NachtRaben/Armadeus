@@ -14,7 +14,6 @@ import dev.armadeus.discord.util.EmbedUtils;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Role;
 
-import java.awt.*;
 import java.util.Collections;
 import java.util.Set;
 
@@ -114,16 +113,22 @@ public class ConfCommands extends DiscordCommand {
             issuer.sendMessage(String.format("Enabled command `%s` for `@everyone`", permission));
         }
     }
-    @Subcommand("commands list")
-    public void commandPerm(DiscordCommandIssuer issuer) {
-        EmbedBuilder builder = EmbedUtils.newBuilder(issuer).setColor(Color.PINK)
-                .setTitle("Blacklisted Commands");
-        Set<String> disabledCommands = issuer.getGuildConfig().getDisabledCommands();
-        if (disabledCommands != null) {
-            for (String c : disabledCommands) {
-                builder.appendDescription(c + "\n");
-            }
-            issuer.sendMessage(builder.build());
-        } else issuer.sendMessage("No Blacklisted Commands.");
+
+    @Subcommand("show blacklist")
+    @Description("Show disabled commands for your guild")
+    public void showBlacklist(DiscordCommandIssuer issuer, @Optional Role role) {
+        Set<String> disabledCommands = role != null ? issuer.getGuildConfig().getDisabledCommandsForRole(role.getIdLong()) : issuer.getGuildConfig().getDisabledCommands();
+
+        if (disabledCommands == null || disabledCommands.isEmpty()) {
+            issuer.sendMessage("There are no disabled commands available!");
+            return;
+        }
+
+        EmbedBuilder builder = EmbedUtils.newBuilder(issuer).setTitle("Blacklisted Commands" + (role != null ? (" for " + role.getAsMention()) : ""));
+        for (String c : disabledCommands) {
+            builder.appendDescription(c + "\n");
+        }
+        issuer.sendMessage(builder.build());
     }
 }
+
