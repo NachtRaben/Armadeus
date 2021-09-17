@@ -125,7 +125,7 @@ public class AudioManager {
         private static void trackLoaded(DiscordCommandIssuer user, AudioTrack track) {
             track.setUserData(user);
             ArmaAudio.getManagerFor(user.getGuild()).getPlayer().getScheduler().queue(track);
-            user.sendMessage(String.format("Added `%s` to the queue!", track.getInfo().title));
+            user.sendMessage(String.format("Added `%s` by `%s` to the queue!", track.getInfo().title, track.getInfo().author), 5);
         }
 
         public static void playlistLoaded(DiscordCommandIssuer user, AudioPlaylist playlist, int limit) {
@@ -139,8 +139,8 @@ public class AudioManager {
                 }
                 track.setUserData(user);
                 ArmaAudio.getManagerFor(user.getGuild()).getPlayer().getScheduler().queue(track);
-                user.sendMessage(String.format("Added `%s` to the queue!", track.getInfo().title));
             }
+            user.sendMessage(String.format("Added `%s` songs to the queue!", (end - start)), 5);
         }
     }
 
