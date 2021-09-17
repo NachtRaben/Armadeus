@@ -125,6 +125,7 @@ public class AudioManager {
         private static void trackLoaded(DiscordCommandIssuer user, AudioTrack track) {
             track.setUserData(user);
             ArmaAudio.getManagerFor(user.getGuild()).getPlayer().getScheduler().queue(track);
+            user.sendMessage(String.format("Added `%s` to the queue!", track.getInfo().title));
         }
 
         public static void playlistLoaded(DiscordCommandIssuer user, AudioPlaylist playlist, int limit) {
