@@ -8,6 +8,8 @@ import dev.armadeus.bot.api.command.DiscordCommandIssuer;
 import dev.armadeus.discord.audio.ArmaAudio;
 import dev.armadeus.discord.audio.AudioManager;
 import dev.armadeus.discord.audio.radio.stations.Hive365;
+import dev.armadeus.discord.audio.radio.stations.ListenMoe;
+import dev.armadeus.discord.audio.radio.stations.NoLife;
 import dev.armadeus.discord.audio.util.AudioInfoModifier;
 import lombok.Getter;
 import net.dv8tion.jda.api.entities.MessageEmbed;
@@ -24,6 +26,8 @@ public abstract class Radio {
     @Getter
     private static Map<String, Radio> stations = new HashMap<>();
     private static final Hive365 HIVE_365 = new Hive365();
+    private static final NoLife NO_LIFE = new NoLife();
+    private static final ListenMoe LISTEN_MOE = new ListenMoe();
     protected static final OkHttpClient CLIENT = new OkHttpClient.Builder().callTimeout(5, TimeUnit.SECONDS).build();
 
     protected final String identifier;

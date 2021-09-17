@@ -14,5 +14,4 @@ public final class Arma {
     public static ArmaCore getCore() {
         return core;
     }
-
 }
