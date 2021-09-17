@@ -23,7 +23,11 @@ public class PlayCommand extends AudioCommand {
         if (cannotQueueMusic(user))
             return;
 
-        int limit = PLAYLIST_MATCH.matcher(identifier).find() ? 10 : 1;
+        int limit = 1;
+        if(PLAYLIST_MATCH.matcher(identifier).find()) {
+            limit = 10;
+            identifier = identifier.replaceAll(PLAYLIST_MATCH.pattern(), "");
+        }
         Matcher matcher = LIMIT_MATCH.matcher(identifier);
         if (matcher.find()) {
             limit = Integer.parseInt(matcher.group(1));
