@@ -26,7 +26,7 @@ public class PlayCommand extends AudioCommand {
         int limit = 1;
         if(PLAYLIST_MATCH.matcher(identifier).find()) {
             limit = 10;
-            identifier = identifier.replaceAll(PLAYLIST_MATCH.pattern(), "");
+            identifier = identifier.replaceAll(PLAYLIST_MATCH.pattern(), "").trim();
         }
         Matcher matcher = LIMIT_MATCH.matcher(identifier);
         if (matcher.find()) {
