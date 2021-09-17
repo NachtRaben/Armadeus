@@ -69,4 +69,23 @@ public class JDARootCommand implements RootCommand {
     public void setRegistered(boolean registered) {
         isRegistered = registered;
     }
+
+    public RegisteredCommand<JDACommandExecutionContext> findSubCommand(String commandLabel, String[] args) {
+        CommandRouter router = getManager().getRouter();
+        CommandRouter.RouteSearch search = router.routeCommand(this, commandLabel, args, false);
+        RegisteredCommand<JDACommandExecutionContext> defCommand = null;
+        if (search != null) {
+            CommandRouter.CommandRouteResult result = router.matchCommand(search, false);
+            if (result != null) {
+                return result.cmd;
+            }
+
+            RegisteredCommand firstElement = ACFUtil.getFirstElement(search.commands);
+            if (firstElement != null) {
+                defCommand = firstElement;
+            }
+        }
+        return defCommand;
+    }
+
 }

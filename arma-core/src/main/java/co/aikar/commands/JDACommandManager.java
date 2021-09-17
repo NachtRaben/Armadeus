@@ -1,32 +1,33 @@
 package co.aikar.commands;
 
 import co.aikar.commands.apachecommonslang.ApacheCommonsExceptionUtil;
+import com.google.common.base.Preconditions;
 import com.velocitypowered.proxy.plugin.util.DummyPluginContainer;
+import dev.armadeus.bot.api.command.DiscordCommand;
 import dev.armadeus.bot.api.config.GuildConfig;
 import dev.armadeus.core.ArmaCoreImpl;
 import dev.armadeus.core.command.NullCommandIssuer;
 import net.dv8tion.jda.api.AccountType;
-import net.dv8tion.jda.api.MessageBuilder;
 import net.dv8tion.jda.api.entities.ApplicationInfo;
 import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.events.Event;
-import net.dv8tion.jda.api.events.guild.GenericGuildEvent;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
-import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.sharding.ShardManager;
 import org.jetbrains.annotations.NotNull;
 
+import java.lang.annotation.Annotation;
+import java.lang.reflect.AnnotatedElement;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class JDACommandManager extends CommandManager<
+public class JDACommandManager extends ArmaCommandManager<
         MessageReceivedEvent,
         JDACommandEvent,
         String,
@@ -167,6 +168,7 @@ public class JDACommandManager extends CommandManager<
 
     @Override
     public void registerCommand(BaseCommand command) {
+        Preconditions.checkArgument(DiscordCommand.class.isAssignableFrom(command.getClass()), "All commands must implement DiscordCommand.class");
         command.onRegister(this);
         for (Map.Entry<String, RootCommand> entry : command.getRegisteredCommandsMap().entrySet()) {
             String commandName = entry.getKey().toLowerCase(Locale.ENGLISH);
@@ -326,6 +328,11 @@ public class JDACommandManager extends CommandManager<
         if (!devCheck(event))
             return;
         rootCommand.execute(this.getCommandIssuer(event), cmd, args);
+    }
+
+    public List<String> getAnnotationValues(AnnotatedElement object, Class<? extends Annotation> annoClass, int options) {
+        String[] values = getAnnotations().getAnnotationValues(object, annoClass, ACFPatterns.PIPE, options);
+        return values == null ? Collections.emptyList() : List.of(values);
     }
 
     private boolean devCheck(Event e) {
