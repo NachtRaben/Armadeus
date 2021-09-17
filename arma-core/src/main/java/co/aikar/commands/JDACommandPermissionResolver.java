@@ -57,8 +57,8 @@ public class JDACommandPermissionResolver implements CommandPermissionResolver {
         }
 
         // If it isn't a discord perm, check guild configuration
-        GuildConfig config = ArmaCoreImpl.get().guildManager().getConfigFor(event.getIssuer().getGuild());
-        List<Long> roles = event.getIssuer().getMember().getRoles().stream().map(ISnowflake::getIdLong).collect(Collectors.toList());
+        GuildConfig config = ArmaCoreImpl.get().guildManager().getConfigFor(event.getGuild());
+        List<Long> roles = event.getMember().getRoles().stream().map(ISnowflake::getIdLong).collect(Collectors.toList());
         Set<String> blocked = new HashSet<>(config.getDisabledCommands());
         for (Long role : roles) {
             blocked.addAll(config.getDisabledCommandsForRole(role));

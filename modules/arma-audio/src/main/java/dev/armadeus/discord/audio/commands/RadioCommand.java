@@ -4,6 +4,7 @@ import co.aikar.commands.annotation.CommandAlias;
 import co.aikar.commands.annotation.CommandPermission;
 import co.aikar.commands.annotation.Conditions;
 import co.aikar.commands.annotation.Description;
+import co.aikar.commands.annotation.Subcommand;
 import dev.armadeus.bot.api.command.DiscordCommandIssuer;
 import dev.armadeus.bot.api.util.EmbedUtils;
 import dev.armadeus.discord.audio.radio.Radio;
@@ -16,7 +17,7 @@ import java.util.Map;
 public class RadioCommand extends AudioCommand {
 
 
-    @CommandAlias("station")
+    @Subcommand("play|listen")
     @CommandPermission("armadeus.radio")
     @Description("Loads a live broadcast from predefined stations")
     public void radio(DiscordCommandIssuer user, String station) {
@@ -32,7 +33,7 @@ public class RadioCommand extends AudioCommand {
         radio.play(user);
     }
 
-    @CommandAlias("list")
+    @Subcommand("list")
     @CommandPermission("armadeus.radio")
     @Description("Shows a list of radio stations")
     public void list(DiscordCommandIssuer user) {

@@ -14,6 +14,8 @@ import dev.armadeus.discord.audio.util.AudioInfoModifier;
 import lombok.Getter;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import okhttp3.OkHttpClient;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.Locale;
@@ -30,6 +32,7 @@ public abstract class Radio {
     private static final ListenMoe LISTEN_MOE = new ListenMoe();
     protected static final OkHttpClient CLIENT = new OkHttpClient.Builder().callTimeout(5, TimeUnit.SECONDS).build();
 
+    protected final Logger log = LoggerFactory.getLogger(getClass());
     protected final String identifier;
     protected final String title;
     protected final String artist;
@@ -50,6 +53,7 @@ public abstract class Radio {
     public MessageEmbed getNowPlayingEmbed(DiscordCommandIssuer issuer) { return null; }
 
     public void play(DiscordCommandIssuer user) {
+        log.warn("Playing radio");
         AudioManager manager = ArmaAudio.getManagerFor(user.getGuild());
         manager.getPlayer().getLink().getRestClient().loadItem(url, new AudioLoadResultHandler() {
 
@@ -75,6 +79,7 @@ public abstract class Radio {
             @Override
             public void loadFailed(FriendlyException exception) {
                 user.sendMessage("Failed to play `" +  identifier + " Radio`, is it offline?");
+                exception.printStackTrace();
             }
         });
     }
