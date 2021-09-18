@@ -1,0 +1,4 @@
+@Amadeus#1526 eval
+```
+for(m in user.getChannel().getIterableHistory()) m.delete().queue()
+```

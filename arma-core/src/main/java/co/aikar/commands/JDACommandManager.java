@@ -256,15 +256,6 @@ public class JDACommandManager extends ArmaCommandManager<
     }
 
     void dispatchSlash(SlashCommandEvent event) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("SlashEvent:");
-        sb.append("\nName: ").append(event.getName());
-        sb.append("\nOptions: ").append(event.getOptions());
-        sb.append("\nSubName: ").append(event.getSubcommandName());
-        sb.append("\nSubGroup: ").append(event.getSubcommandGroup());
-        sb.append("\nPath: ").append(event.getCommandPath());
-        logger.warning(sb.toString());
-
         List<String> largs = new ArrayList<>(List.of(event.getCommandPath().split("/")));
         for(OptionMapping option : event.getOptions()) {
             largs.add(option.getAsString());
@@ -286,8 +277,12 @@ public class JDACommandManager extends ArmaCommandManager<
         args = args.length > 1 ? Arrays.copyOfRange(args, 1, args.length) : new String[0];
         if (!devCheck(event))
             return;
-        event.deferReply().queue(c -> c.deleteOriginal().queue());
-        rootCommand.execute(this.getCommandIssuer(event), cmd, args);
+        event.deferReply().setEphemeral(true).complete();
+        CommandSenderImpl sender = (CommandSenderImpl) this.getCommandIssuer(event);
+        rootCommand.execute(sender, cmd, args);
+        if(!sender.isSlashAcked()) {
+            event.getHook().sendMessage("Success :heavy_check_mark:").queue();
+        }
     }
 
     void dispatchEvent(MessageReceivedEvent event) {

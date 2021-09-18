@@ -11,6 +11,7 @@ import dev.armadeus.discord.audio.AudioManager;
 
 @Conditions("guildonly")
 @CommandAlias("repeat")
+@Description("Used to trigger repeating effects on the audio queue")
 @CommandPermission("armadeus.repeat")
 public class RepeatCommand extends AudioCommand {
 

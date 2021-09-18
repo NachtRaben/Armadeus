@@ -22,7 +22,7 @@ public class QueueCommand extends AudioCommand {
     @Conditions("guildonly")
     @CommandAlias("queue")
     @CommandPermission("armadeus.queue")
-    @Description("Queues a song for playback in your current channel")
+    @Description("Shows all songs currently in queue")
     public void queue(DiscordCommandIssuer user) {
         AudioManager manager = getAudioManager(user);
         if (isNotPlaying(user))

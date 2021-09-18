@@ -14,6 +14,7 @@ import dev.armadeus.discord.welcome.ArmaWelcome;
 @CommandAlias("welcome")
 @Conditions("guildonly")
 @CommandPermission("administrator")
+@Description("Used to configure the Arma-Welcomer for new guild members")
 public class WelcomeCommand extends DiscordCommand {
 
     @Subcommand("set")

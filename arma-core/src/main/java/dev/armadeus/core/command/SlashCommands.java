@@ -28,34 +28,39 @@ public class SlashCommands extends DiscordCommand {
 
     @Subcommand("destroy")
     @Description("Destroys currently published slash commands")
-    public void destroySlasyCommands(DiscordCommandIssuer user) {
+    public void destroySlashCommands(DiscordCommandIssuer user) {
         JDA shard = user.getJda();
         Guild guild = shard.getGuildById(317784247949590528L);
         if (guild == null)
             return;
         user.sendMessage("Destroying commands...");
-        guild.retrieveCommands().queue(c -> {
-            c.forEach(cc -> {
-                guild.deleteCommandById(cc.getIdLong()).queue();
-            });
-        });
-        shard.retrieveCommands().queue(c -> {
-            c.forEach(cc -> shard.deleteCommandById(cc.getIdLong()).queue());
-        });
+//        guild.retrieveCommands().queue(c -> {
+//            c.forEach(cc -> {
+//                guild.deleteCommandById(cc.getIdLong()).queue();
+//            });
+//        });
+        guild.updateCommands().queue();
+//        shard.retrieveCommands().queue(c -> {
+//            c.forEach(cc -> shard.deleteCommandById(cc.getIdLong()).queue());
+//        });
     }
 
-    @CommandAlias("publish")
+    @Subcommand("publish")
     @Description("Publishes all commands to discord as slash commands")
     public void importSlashCommands(DiscordCommandIssuer user) {
         JDA shard = user.getJda();
         Guild guild = shard.getGuildById(317784247949590528L);
         if (guild == null)
             return;
-        user.sendMessage("Publishing commands...");
-        SlashCommandsUtil util = new SlashCommandsUtil(ArmaCoreImpl.get());
+        user.sendMessage("Generating command metadata...");
+        SlashCommandsUtil util = new SlashCommandsUtil((ArmaCoreImpl) core);
         Collection<CommandData> generated = util.generateCommandData();
-        CommandListUpdateAction commandsUpdate = shard.updateCommands();
-        commandsUpdate.addCommands(generated).queue(success -> user.sendMessage("Published %s commands", (Object)generated.size()));
+        guild.updateCommands().addCommands(generated).queue(
+                s -> user.sendMessage("Generated metadata for %s commands", String.valueOf(generated.size())),
+                f -> {
+                    user.sendMessage("Failed to publish command data, %s", f.getMessage());
+                    logger.error("Failed to update guild commands", f);
+                });
     }
 
 }

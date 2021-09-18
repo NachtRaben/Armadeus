@@ -16,6 +16,7 @@ import lavalink.client.io.filters.Filters;
 import lavalink.client.io.jda.JdaLink;
 import lombok.Getter;
 import lombok.experimental.Accessors;
+import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.api.entities.Guild;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,10 +25,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 
+@Slf4j
 public class AudioManager {
-
-    private static final Logger logger = LoggerFactory.getLogger(AudioManager.class);
 
     @Getter
     private final Guild guild;
@@ -43,6 +44,13 @@ public class AudioManager {
         // Load configurations
         GuildConfig config = ArmaAudio.core().guildManager().getConfigFor(guild);
         this.audioConfig = config.getMetadataOrInitialize("arma-audio", conf -> conf.set("volume", Float.toString(0.4f)));
+        ArmaAudio.core().scheduler().buildTask(ArmaAudio.get(), () -> {
+            if(!getScheduler().isPlaying() && getPlayer().getLink().getChannelId() != -1) {
+                log.warn("{} => Disconnecting due to inactivity", guild.getName());
+                getScheduler().stop();
+                getPlayer().getLink().destroy();
+            }
+        }).repeat(5, TimeUnit.MINUTES);
     }
 
     public float getVolume() {
@@ -56,7 +64,7 @@ public class AudioManager {
 
     public PlayerWrapper getPlayer() {
         if(player == null || player.getLink().getState().equals(Link.State.DESTROYED)) {
-            logger.warn("Creating new player for {}", getGuild().getName());
+            log.warn("Creating new player for {}", getGuild().getName());
             this.player = new PlayerWrapper(this, ArmaAudio.get().getLavalink().getLink(guild).getPlayer());
             player.getLink().getNode(true);
             player.setVolume(getVolume());
@@ -96,7 +104,7 @@ public class AudioManager {
                 @Override
                 public void loadFailed(FriendlyException e) {
                     user.sendMessage(String.format("Failed to load results because of `%s`", e.getMessage()));
-                    logger.warn("Exception encountered during track loading for " + identifier, e);
+                    log.warn("Exception encountered during track loading for " + identifier, e);
                 }
             });
         }

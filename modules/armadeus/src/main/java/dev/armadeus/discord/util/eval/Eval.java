@@ -1,6 +1,7 @@
 package dev.armadeus.discord.util.eval;
 
 import co.aikar.commands.CommandIssuer;
+import dev.armadeus.bot.api.command.DiscordCommandIssuer;
 import groovy.lang.Binding;
 import groovy.lang.GroovyShell;
 import groovy.lang.Tuple3;
@@ -14,7 +15,8 @@ public class Eval {
     private final String script;
     private final Map<String, Object> passedVariables;
 
-    public Eval(CommandIssuer user, String script) {
+    // TODO: Deal with max size limitation
+    public Eval(DiscordCommandIssuer user, String script) {
         this.script = script;
         passedVariables = new HashMap<>(Map.of("user", user));
     }

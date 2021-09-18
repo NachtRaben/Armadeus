@@ -36,6 +36,7 @@ public class CommandSenderImpl extends JDACommandEvent implements DiscordCommand
 
     // Instance settings
     private final ArmaCore core;
+    private boolean slashAcked;
 
     public CommandSenderImpl(ArmaCore core, JDACommandManager manager, SlashCommandEvent event) {
         super(manager, event);
@@ -122,6 +123,12 @@ public class CommandSenderImpl extends JDACommandEvent implements DiscordCommand
     }
 
     private void sendAndPurge(Message message, MessageChannel channel, long purgeAfter) {
+        // TODO: Temporary slash event support, respond to ephemeral
+        if(isSlashEvent()) {
+            getSlash().getHook().sendMessage(message).queue();
+            slashAcked = true;
+            return;
+        }
         if (channel.getType() == ChannelType.TEXT && purgeAfter == 0) {
             long guildMessageTimeout = getGuildConfig().getPurgeDelay();
             purgeAfter = guildMessageTimeout != 0 ? guildMessageTimeout : defaultPurgeDelay;

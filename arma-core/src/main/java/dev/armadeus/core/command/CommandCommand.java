@@ -7,6 +7,8 @@ import co.aikar.commands.RegisteredCommand;
 import co.aikar.commands.annotation.CommandAlias;
 import co.aikar.commands.annotation.CommandPermission;
 import co.aikar.commands.annotation.Conditions;
+import co.aikar.commands.annotation.Description;
+import co.aikar.commands.annotation.Subcommand;
 import dev.armadeus.bot.api.command.DiscordCommand;
 import dev.armadeus.bot.api.command.DiscordCommandIssuer;
 import dev.armadeus.bot.api.util.EmbedUtils;
@@ -18,9 +20,11 @@ import java.util.Locale;
 
 @CommandPermission("administrator")
 @CommandAlias("command|cmd")
+@Description("Used to gather information on commands")
 public class CommandCommand extends DiscordCommand {
 
-    @CommandAlias("lookup")
+    @Subcommand("lookup")
+    @Description("Looks up aliases and permissions for a provided command")
     public void lookup(DiscordCommandIssuer user, String[] args) {
         String cmd = args[0].toLowerCase(Locale.ENGLISH);
         JDARootCommand root = (JDARootCommand) ArmaCoreImpl.get().commandManager().getRootCommand(args[0]);
