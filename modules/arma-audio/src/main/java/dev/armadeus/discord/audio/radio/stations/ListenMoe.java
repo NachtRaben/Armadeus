@@ -73,7 +73,6 @@ public class ListenMoe extends Radio {
                     break;
                 case 1:
                     MoeUpdate update = gson.fromJson(msg.d, MoeUpdate.class);
-                    ListenMoe.this.log.warn(msg.d.toString());
                     ListenMoe.current = update.song;
                     break;
             }
