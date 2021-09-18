@@ -29,37 +29,21 @@ public class SlashCommands extends DiscordCommand {
     @Subcommand("destroy")
     @Description("Destroys currently published slash commands")
     public void destroySlashCommands(DiscordCommandIssuer user) {
-        JDA shard = user.getJda();
-        Guild guild = shard.getGuildById(317784247949590528L);
-        if (guild == null)
-            return;
         user.sendMessage("Destroying commands...");
-//        guild.retrieveCommands().queue(c -> {
-//            c.forEach(cc -> {
-//                guild.deleteCommandById(cc.getIdLong()).queue();
-//            });
-//        });
-        guild.updateCommands().queue();
-//        shard.retrieveCommands().queue(c -> {
-//            c.forEach(cc -> shard.deleteCommandById(cc.getIdLong()).queue());
-//        });
+        user.getJda().updateCommands().queue(s -> user.sendMessage("Purged all Global commands"));
+        user.getGuild().updateCommands().queue(s -> user.sendMessage("Purged all Guild commands"));
     }
 
     @Subcommand("publish")
     @Description("Publishes all commands to discord as slash commands")
     public void importSlashCommands(DiscordCommandIssuer user) {
-        JDA shard = user.getJda();
-        Guild guild = shard.getGuildById(317784247949590528L);
-        if (guild == null)
-            return;
-        user.sendMessage("Generating command metadata...");
         SlashCommandsUtil util = new SlashCommandsUtil((ArmaCoreImpl) core);
         Collection<CommandData> generated = util.generateCommandData();
-        guild.updateCommands().addCommands(generated).queue(
-                s -> user.sendMessage("Generated metadata for %s commands", String.valueOf(generated.size())),
+        user.getJda().updateCommands().addCommands(generated).queue(
+                s -> user.sendMessage("Published %s commands globally", String.valueOf(generated.size())),
                 f -> {
-                    user.sendMessage("Failed to publish command data, %s", f.getMessage());
-                    logger.error("Failed to update guild commands", f);
+                    user.sendMessage("Failed to publish CommandData, %s", f.getMessage());
+                    logger.error("Failed to publish CommandData", f);
                 });
     }
 
