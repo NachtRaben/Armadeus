@@ -50,7 +50,7 @@ public class AudioManager {
                 getScheduler().stop();
                 getPlayer().getLink().destroy();
             }
-        }).repeat(5, TimeUnit.MINUTES);
+        }).repeat(5, TimeUnit.MINUTES).schedule();
     }
 
     public float getVolume() {
