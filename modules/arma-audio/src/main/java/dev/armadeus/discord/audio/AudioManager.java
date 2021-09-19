@@ -125,8 +125,12 @@ public class AudioManager {
                     user.sendMessage("No results found for `" + search.substring(search.indexOf(':') + 1) + "`");
                     return;
                 }
-                AudioPlaylist playlist = new BasicAudioPlaylist("Search Results for " + search.substring(search.indexOf(':') + 1), tracks, tracks.get(0), true);
-                TrackLoader.playlistLoaded(user, playlist, limit);
+                if(limit > 1) {
+                    AudioPlaylist playlist = new BasicAudioPlaylist("Search Results for " + search.substring(search.indexOf(':') + 1), tracks, tracks.get(0), true);
+                    TrackLoader.playlistLoaded(user, playlist, limit);
+                } else {
+                    TrackLoader.trackLoaded(user, tracks.get(0));
+                }
             });
         }
 
