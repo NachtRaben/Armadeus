@@ -1,6 +1,6 @@
 package dev.armadeus.discord.welcome.listeners;
 
-import com.electronwill.nightconfig.core.CommentedConfig;
+import com.electronwill.nightconfig.core.Config;
 import dev.armadeus.bot.api.ArmaCore;
 import dev.armadeus.discord.welcome.ArmaWelcome;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberJoinEvent;
@@ -16,7 +16,7 @@ public class WelcomeListener extends ListenerAdapter {
 
     @Override
     public void onGuildMemberJoin(GuildMemberJoinEvent e) {
-        CommentedConfig wConf = ArmaWelcome.get().getConfig(e.getGuild());
+        Config wConf = ArmaWelcome.get().getConfig(e.getGuild());
         if(wConf == null)
             return;
 

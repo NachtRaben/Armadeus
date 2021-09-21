@@ -1,6 +1,6 @@
 package dev.armadeus.core.config;
 
-import com.electronwill.nightconfig.core.CommentedConfig;
+import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.UnmodifiableConfig;
 import dev.armadeus.bot.api.config.GuildConfig;
 import dev.armadeus.core.ArmaCoreImpl;
@@ -20,9 +20,9 @@ import static java.util.Arrays.asList;
 public class GuildConfigImpl implements GuildConfig {
 
     private transient long guildId;
-    private transient CommentedConfig config;
+    private transient Config config;
 
-    public GuildConfigImpl(long guildId, CommentedConfig config) {
+    public GuildConfigImpl(long guildId, Config config) {
         this.guildId = guildId;
         this.config = config;
     }
@@ -157,17 +157,17 @@ public class GuildConfigImpl implements GuildConfig {
     }
 
     @Override
-    public Map<String, CommentedConfig> getMetadata() {
-        return config.getOrElse("metadata", CommentedConfig.inMemory()).entrySet().stream().collect(Collectors.toMap(UnmodifiableConfig.Entry::getKey, UnmodifiableConfig.Entry::getValue));
+    public Map<String, Config> getMetadata() {
+        return config.getOrElse("metadata", Config.inMemory()).entrySet().stream().collect(Collectors.toMap(UnmodifiableConfig.Entry::getKey, UnmodifiableConfig.Entry::getValue));
     }
 
     @Override
-    public CommentedConfig getMetadata(String key) {
+    public Config getMetadata(String key) {
         return config.get(asList("metadata", key));
     }
 
-    public CommentedConfig getMetadataOrInitialize(String key, Consumer<CommentedConfig> initializer) {
-        CommentedConfig metaConf = getMetadata(key);
+    public Config getMetadataOrInitialize(String key, Consumer<Config> initializer) {
+        Config metaConf = getMetadata(key);
         if(initializer != null && metaConf == null) {
             metaConf = config.createSubConfig();
             initializer.accept(metaConf);
@@ -180,12 +180,12 @@ public class GuildConfigImpl implements GuildConfig {
     }
 
     @Override
-    public GuildConfig setMetadata(String key, CommentedConfig config) {
+    public GuildConfig setMetadata(String key, Config config) {
         this.config.set(asList("metadata", key), config);
         return this;
     }
 
-    public CommentedConfig getConfig() {
+    public Config getConfig() {
         return config;
     }
 

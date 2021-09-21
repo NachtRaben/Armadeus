@@ -1,11 +1,7 @@
 package dev.armadeus.discord.audio;
 
-import co.aikar.commands.CommandExecutionContext;
-import co.aikar.commands.CommandIssuer;
 import co.aikar.commands.CommandManager;
-import co.aikar.commands.ConditionContext;
-import co.aikar.commands.MessageFormatter;
-import com.electronwill.nightconfig.core.CommentedConfig;
+import com.electronwill.nightconfig.core.Config;
 import com.google.inject.Inject;
 import com.velocitypowered.api.Velocity;
 import com.velocitypowered.api.event.Subscribe;
@@ -90,8 +86,8 @@ public class ArmaAudio {
                 registerNode(record.getId(), record.getUri(), record.getPassword());
             }
         } else {
-            CommentedConfig config = core().armaConfig().getMetadataOrInitialize("lavalink", c -> c.add("localhost", "ws://localhost:2333;fluffy"));
-            for (CommentedConfig.Entry s : config.entrySet()) {
+            Config config = core().armaConfig().getMetadataOrInitialize("lavalink", c -> c.add("localhost", "ws://localhost:2333;fluffy"));
+            for (Config.Entry s : config.entrySet()) {
                 String[] tokens = s.<String>getValue().split(";");
                 if (tokens.length != 2)
                     continue;

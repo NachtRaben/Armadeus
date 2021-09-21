@@ -1,8 +1,7 @@
 package dev.armadeus.discord.welcome;
 
 import co.aikar.commands.CommandManager;
-import co.aikar.commands.annotation.Subcommand;
-import com.electronwill.nightconfig.core.CommentedConfig;
+import com.electronwill.nightconfig.core.Config;
 import com.google.inject.Inject;
 import com.velocitypowered.api.Velocity;
 import com.velocitypowered.api.event.Subscribe;
@@ -50,7 +49,7 @@ public class ArmaWelcome {
         manager.registerCommand(new WelcomeCommand());
     }
 
-    public CommentedConfig getConfig(Guild guild) {
+    public Config getConfig(Guild guild) {
         GuildConfig config = core.guildManager().getConfigFor(guild);
         return config.getMetadataOrInitialize("arma-welcome", c -> {
             c.set("enabled", false);

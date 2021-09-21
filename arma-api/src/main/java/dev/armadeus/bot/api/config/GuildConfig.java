@@ -1,6 +1,6 @@
 package dev.armadeus.bot.api.config;
 
-import com.electronwill.nightconfig.core.CommentedConfig;
+import com.electronwill.nightconfig.core.Config;
 import net.dv8tion.jda.api.entities.Guild;
 
 import java.util.Map;
@@ -41,10 +41,10 @@ public interface GuildConfig {
     GuildConfig addDisabledCommandsForRole(long roleId, String... permissions);
     GuildConfig removeDisabledCommandsForRole(long roleId, String... permissions);
 
-    Map<String, CommentedConfig> getMetadata();
-    CommentedConfig getMetadata(String key);
-    CommentedConfig getMetadataOrInitialize(String key, Consumer<CommentedConfig> config);
-    GuildConfig setMetadata(String key, CommentedConfig config);
+    Map<String, Config> getMetadata();
+   Config getMetadata(String key);
+   Config getMetadataOrInitialize(String key, Consumer<Config> config);
+    GuildConfig setMetadata(String key, Config config);
 
     Guild getGuild();
 }

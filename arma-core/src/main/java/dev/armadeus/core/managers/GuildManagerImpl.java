@@ -1,10 +1,10 @@
 package dev.armadeus.core.managers;
 
-import com.electronwill.nightconfig.core.CommentedConfig;
-import com.electronwill.nightconfig.core.file.CommentedFileConfig;
+import com.electronwill.nightconfig.core.Config;
+import com.electronwill.nightconfig.core.file.FileConfig;
+import com.electronwill.nightconfig.json.JsonFormat;
+import com.electronwill.nightconfig.json.MinimalJsonWriter;
 import com.electronwill.nightconfig.toml.TomlFormat;
-import com.electronwill.nightconfig.toml.TomlParser;
-import com.electronwill.nightconfig.toml.TomlWriter;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.velocitypowered.api.scheduler.ScheduledTask;
@@ -15,8 +15,8 @@ import dev.armadeus.bot.api.guild.GuildManager;
 import dev.armadeus.bot.database.Tables;
 import dev.armadeus.bot.database.tables.records.GuildsRecord;
 import dev.armadeus.core.config.ArmaConfigImpl;
-import dev.armadeus.core.config.NestedCommentedConfig;
 import dev.armadeus.core.config.GuildConfigImpl;
+import dev.armadeus.core.config.NestedConfig;
 import dev.armadeus.core.util.ConfigUtil;
 import net.dv8tion.jda.api.entities.Guild;
 import org.jooq.DSLContext;
@@ -28,6 +28,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.net.URL;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -44,25 +45,26 @@ public class GuildManagerImpl implements GuildManager {
 
     private static final Logger logger = LoggerFactory.getLogger(GuildManager.class);
 
-    private dev.armadeus.bot.api.ArmaCore core;
+    private ArmaCore core;
     private Path guildDir;
     private Cache<Long, GuildConfig> cache;
     private Connection conn;
     private ScheduledTask saveFuture;
 
-    private Function<Long, CommentedConfig> loadDatabaseConfig = guildId -> {
+    private final Function<Long, Config> loadDatabaseConfig = guildId -> {
         logger.info("Loading guild configuration {}", guildId);
-        TomlFormat format = TomlFormat.instance();
-        TomlParser parser = format.createParser();
         DSLContext context = DSL.using(conn);
         GuildsRecord result = context.selectFrom(Tables.GUILDS).where(Tables.GUILDS.ID.eq(guildId)).fetchOne();
-        return result != null ? parser.parse(result.getConfig()) : format.createConfig();
+        if(result != null) {
+            JsonFormat<MinimalJsonWriter> format = JsonFormat.minimalInstance();
+            return format.createParser().parse(result.getConfig());
+        }
+        return JsonFormat.minimalInstance().createConfig();
     };
 
-    private Function<Long, CommentedConfig> loadFileConfig = guildId -> {
-        // Creates a toml file config with default values
+    private final Function<Long, Config> loadFileConfig = guildId -> {
         Path path = guildDir.resolve(guildId + ".toml");
-        CommentedFileConfig config = CommentedFileConfig.builder(path)
+        FileConfig config = FileConfig.builder(Files.exists(path) ? path : guildDir.resolve(guildId + ".json"))
                 .preserveInsertionOrder()
                 .sync()
                 .concurrent()
@@ -94,15 +96,15 @@ public class GuildManagerImpl implements GuildManager {
     }
 
     private void saveGuilds() {
-        TomlWriter tomlWriter = TomlFormat.instance().createWriter();
+        MinimalJsonWriter jsonWriter = JsonFormat.minimalInstance().createWriter();
         for (Map.Entry<Long, GuildConfig> entry : cache.asMap().entrySet()) {
             long guildId = entry.getKey();
-            NestedCommentedConfig config = (NestedCommentedConfig) ((GuildConfigImpl) entry.getValue()).getConfig();
+            NestedConfig config = (NestedConfig) ((GuildConfigImpl) entry.getValue()).getConfig();
             AtomicBoolean needsSaved = config.needsSaved();
             if (needsSaved.get()) {
                 logger.info("Saving guild configuration for {}", guildId);
                 try (StringWriter writer = new StringWriter()) {
-                    tomlWriter.write(config, writer);
+                    jsonWriter.write(config, writer);
                     DSLContext c2 = DSL.using(conn, SQLDialect.POSTGRES);
                     c2.insertInto(Tables.GUILDS)
                             .set(Tables.GUILDS.ID, guildId)
@@ -130,12 +132,12 @@ public class GuildManagerImpl implements GuildManager {
                 URL defaultGuildConfigLocation = GuildManagerImpl.class.getClassLoader().getResource("configs/guild-config.toml");
                 assert defaultGuildConfigLocation != null;
                 checkNotNull(defaultGuildConfigLocation, "Default guild configuration does not exist");
-                CommentedConfig defaults = TomlFormat.instance().createParser().parse(defaultGuildConfigLocation);
-                CommentedConfig config;
+                Config defaults = TomlFormat.instance().createParser().parse(defaultGuildConfigLocation);
+                Config config;
                 if (core.armaConfig().isDatabaseEnabled()) {
-                    config = new NestedCommentedConfig(guildId, loadDatabaseConfig.apply(guildId));
+                    config = new NestedConfig(guildId, loadDatabaseConfig.apply(guildId));
                 } else  {
-                    config = new NestedCommentedConfig(guildId, loadFileConfig.apply(guildId));
+                    config = new NestedConfig(guildId, loadFileConfig.apply(guildId));
                 }
                 // Merges defaults into the config, saving if necessary
                 ConfigUtil.merge(defaults, config);

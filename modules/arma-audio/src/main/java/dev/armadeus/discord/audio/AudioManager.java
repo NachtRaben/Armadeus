@@ -1,13 +1,12 @@
 package dev.armadeus.discord.audio;
 
-import com.electronwill.nightconfig.core.CommentedConfig;
+import com.electronwill.nightconfig.core.Config;
 import com.sedmelluq.discord.lavaplayer.player.AudioLoadResultHandler;
 import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
 import com.sedmelluq.discord.lavaplayer.track.AudioPlaylist;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.BasicAudioPlaylist;
 import com.velocitypowered.api.scheduler.ScheduledTask;
-import dev.armadeus.bot.api.ArmaCore;
 import dev.armadeus.bot.api.command.DiscordCommandIssuer;
 import dev.armadeus.bot.api.config.GuildConfig;
 import dev.armadeus.discord.audio.util.PlayerWrapper;
@@ -15,11 +14,8 @@ import lavalink.client.io.Link;
 import lavalink.client.io.filters.Filters;
 import lavalink.client.io.jda.JdaLink;
 import lombok.Getter;
-import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.api.entities.Guild;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.List;
@@ -33,7 +29,7 @@ public class AudioManager {
     @Getter
     private final Guild guild;
     @Getter
-    private final CommentedConfig audioConfig;
+    private final Config audioConfig;
     @Getter
     public Map<Long, ScheduledTask> listeners = new HashMap<>();
     private PlayerWrapper player;

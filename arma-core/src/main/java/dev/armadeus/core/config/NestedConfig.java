@@ -1,8 +1,8 @@
 package dev.armadeus.core.config;
 
-import com.electronwill.nightconfig.core.CommentedConfig;
+import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.file.FileConfig;
-import com.electronwill.nightconfig.core.utils.CommentedConfigWrapper;
+import com.electronwill.nightconfig.core.utils.ConfigWrapper;
 import com.electronwill.nightconfig.core.utils.ObservedMap;
 import lombok.Getter;
 
@@ -10,21 +10,21 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class NestedCommentedConfig extends CommentedConfigWrapper<CommentedConfig> {
+public class NestedConfig extends ConfigWrapper<Config> {
 
     @Getter
     private final long guildId;
     private final AtomicBoolean needsSaved = new AtomicBoolean(false);
 
     // Children
-    private NestedCommentedConfig parent;
+    private NestedConfig parent;
 
-    public NestedCommentedConfig(long guildId, CommentedConfig internal) {
+    public NestedConfig(long guildId, Config internal) {
         super(internal);
         this.guildId = guildId;
     }
 
-    private NestedCommentedConfig(NestedCommentedConfig parent, CommentedConfig config) {
+    private NestedConfig(NestedConfig parent, Config config) {
         super(config);
         this.parent = parent;
         this.guildId = parent.guildId;
@@ -33,9 +33,9 @@ public class NestedCommentedConfig extends CommentedConfigWrapper<CommentedConfi
     @Override
     public <T> T get(String path) {
         T result = super.get(path);
-        if(result instanceof CommentedConfig) {
+        if(result instanceof Config) {
             //noinspection unchecked
-            result = (T) new NestedCommentedConfig(this, (CommentedConfig)result);
+            result = (T) new NestedConfig(this, (Config)result);
         }
         return result;
     }
@@ -43,9 +43,9 @@ public class NestedCommentedConfig extends CommentedConfigWrapper<CommentedConfi
     @Override
     public <T> T get(List<String> path) {
         T result = super.get(path);
-        if(result instanceof CommentedConfig) {
+        if(result instanceof Config) {
             //noinspection unchecked
-            result = (T) new NestedCommentedConfig(this, (CommentedConfig)result);
+            result = (T) new NestedConfig(this, (Config)result);
         }
         return result;
     }
@@ -72,27 +72,8 @@ public class NestedCommentedConfig extends CommentedConfigWrapper<CommentedConfi
     }
 
     @Override
-    public String setComment(List<String> path, String comment) {
-        String result = super.setComment(path, comment);
-        save();
-        return result;
-    }
-
-    @Override
-    public String removeComment(List<String> path) {
-        String result = super.removeComment(path);
-        save();
-        return result;
-    }
-
-    @Override
     public Map<String, Object> valueMap() {
         return new ObservedMap<>(super.valueMap(), this::save);
-    }
-
-    @Override
-    public Map<String, String> commentMap() {
-        return new ObservedMap<>(super.commentMap(), this::save);
     }
 
     public void save() {
@@ -112,8 +93,8 @@ public class NestedCommentedConfig extends CommentedConfigWrapper<CommentedConfi
         return needsSaved;
     }
 
-    public NestedCommentedConfig createSubConfig() {
-        return new NestedCommentedConfig(this, super.createSubConfig());
+    public NestedConfig createSubConfig() {
+        return new NestedConfig(this, super.createSubConfig());
     }
 
 }
