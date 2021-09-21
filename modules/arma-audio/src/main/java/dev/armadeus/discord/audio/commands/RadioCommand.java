@@ -14,6 +14,7 @@ import java.util.Map;
 
 @Conditions("guildonly")
 @CommandAlias("radio")
+@Description("Loads a live broadcast from predefined stations")
 public class RadioCommand extends AudioCommand {
 
 
