@@ -41,7 +41,7 @@ public class AudioManager {
         GuildConfig config = ArmaAudio.core().guildManager().getConfigFor(guild);
         this.audioConfig = config.getMetadataOrInitialize("arma-audio", conf -> conf.set("volume", Float.toString(0.4f)));
         ArmaAudio.core().scheduler().buildTask(ArmaAudio.get(), () -> {
-            if(!getScheduler().isPlaying() && getPlayer().getLink().getChannelId() != -1) {
+            if(!getPlayer().isPlaying() && getPlayer().getLink().getChannelId() != -1) {
                 log.warn("{} => Disconnecting due to inactivity", guild.getName());
                 getScheduler().stop();
                 getPlayer().getLink().destroy();
