@@ -20,13 +20,13 @@ import dev.armadeus.core.config.NestedConfig;
 import dev.armadeus.core.util.ConfigUtil;
 import net.dv8tion.jda.api.entities.Guild;
 import org.jooq.DSLContext;
+import org.jooq.JSON;
 import org.jooq.SQLDialect;
 import org.jooq.impl.DSL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.io.StringWriter;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -55,9 +55,9 @@ public class GuildManagerImpl implements GuildManager {
         logger.info("Loading guild configuration {}", guildId);
         DSLContext context = DSL.using(conn);
         GuildsRecord result = context.selectFrom(Tables.GUILDS).where(Tables.GUILDS.ID.eq(guildId)).fetchOne();
-        if(result != null) {
+        if (result != null) {
             JsonFormat<MinimalJsonWriter> format = JsonFormat.minimalInstance();
-            return format.createParser().parse(result.getConfig());
+            return format.createParser().parse(result.getConfig().data());
         }
         return JsonFormat.minimalInstance().createConfig();
     };
@@ -102,20 +102,16 @@ public class GuildManagerImpl implements GuildManager {
             NestedConfig config = (NestedConfig) ((GuildConfigImpl) entry.getValue()).getConfig();
             AtomicBoolean needsSaved = config.needsSaved();
             if (needsSaved.get()) {
+                JSON json = JSON.json(jsonWriter.writeToString(config));
                 logger.info("Saving guild configuration for {}", guildId);
-                try (StringWriter writer = new StringWriter()) {
-                    jsonWriter.write(config, writer);
-                    DSLContext c2 = DSL.using(conn, SQLDialect.POSTGRES);
-                    c2.insertInto(Tables.GUILDS)
-                            .set(Tables.GUILDS.ID, guildId)
-                            .set(Tables.GUILDS.CONFIG, writer.toString())
-                            .onDuplicateKeyUpdate()
-                            .set(Tables.GUILDS.CONFIG, writer.toString())
-                            .execute();
-                    needsSaved.set(false);
-                } catch (IOException e) {
-                    logger.error("Failed to save guild configuration for " + guildId, e);
-                }
+                DSLContext c2 = DSL.using(conn, SQLDialect.POSTGRES);
+                c2.insertInto(Tables.GUILDS)
+                        .set(Tables.GUILDS.ID, guildId)
+                        .set(Tables.GUILDS.CONFIG, json)
+                        .onDuplicateKeyUpdate()
+                        .set(Tables.GUILDS.CONFIG, json)
+                        .execute();
+                needsSaved.set(false);
             }
         }
     }
@@ -136,7 +132,7 @@ public class GuildManagerImpl implements GuildManager {
                 Config config;
                 if (core.armaConfig().isDatabaseEnabled()) {
                     config = new NestedConfig(guildId, loadDatabaseConfig.apply(guildId));
-                } else  {
+                } else {
                     config = new NestedConfig(guildId, loadFileConfig.apply(guildId));
                 }
                 // Merges defaults into the config, saving if necessary

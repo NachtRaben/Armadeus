@@ -13,6 +13,7 @@ import java.util.List;
 
 import org.jooq.Field;
 import org.jooq.ForeignKey;
+import org.jooq.JSON;
 import org.jooq.Name;
 import org.jooq.Record;
 import org.jooq.Row2;
@@ -55,7 +56,7 @@ public class Guilds extends TableImpl<GuildsRecord> {
     /**
      * The column <code>public.guilds.config</code>.
      */
-    public final TableField<GuildsRecord, String> CONFIG = createField(DSL.name("config"), SQLDataType.CLOB.nullable(false), this, "");
+    public final TableField<GuildsRecord, JSON> CONFIG = createField(DSL.name("config"), SQLDataType.JSON.nullable(false), this, "");
 
     private Guilds(Name alias, Table<GuildsRecord> aliased) {
         this(alias, aliased, null);
@@ -136,7 +137,7 @@ public class Guilds extends TableImpl<GuildsRecord> {
     // -------------------------------------------------------------------------
 
     @Override
-    public Row2<Long, String> fieldsRow() {
+    public Row2<Long, JSON> fieldsRow() {
         return (Row2) super.fieldsRow();
     }
 }
