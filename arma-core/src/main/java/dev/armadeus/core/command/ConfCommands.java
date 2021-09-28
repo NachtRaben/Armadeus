@@ -1,4 +1,4 @@
-package dev.armadeus.discord.commands.core;
+package dev.armadeus.core.command;
 
 import co.aikar.commands.annotation.CommandAlias;
 import co.aikar.commands.annotation.CommandPermission;
@@ -10,11 +10,10 @@ import co.aikar.commands.annotation.Subcommand;
 import dev.armadeus.bot.api.command.DiscordCommand;
 import dev.armadeus.bot.api.command.DiscordCommandIssuer;
 import dev.armadeus.bot.api.config.GuildConfig;
-import dev.armadeus.discord.util.EmbedUtils;
+import dev.armadeus.bot.api.util.EmbedUtils;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Role;
 
-import javax.xml.bind.annotation.XmlElementDecl;
 import java.util.Collections;
 import java.util.Set;
 

@@ -1,4 +1,4 @@
-package dev.armadeus.discord.commands.admin;
+package dev.armadeus.core.command;
 
 import co.aikar.commands.annotation.CommandAlias;
 import co.aikar.commands.annotation.Conditions;

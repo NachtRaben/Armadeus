@@ -17,7 +17,11 @@ import dev.armadeus.bot.api.events.ShutdownEvent;
 import dev.armadeus.bot.api.util.DiscordReference;
 import dev.armadeus.core.command.CommandCommand;
 import dev.armadeus.core.command.HelpCommand;
+import dev.armadeus.core.command.PingCommand;
+import dev.armadeus.core.command.PrefixesCommand;
+import dev.armadeus.core.command.ShutdownCommand;
 import dev.armadeus.core.command.SlashCommands;
+import dev.armadeus.core.command.UptimeCommand;
 import dev.armadeus.core.config.ArmaConfigImpl;
 import dev.armadeus.core.managers.ExecutorServiceEventManager;
 import dev.armadeus.core.managers.GuildManagerImpl;
@@ -223,6 +227,11 @@ public class ArmaCoreImpl extends VelocityManager implements ArmaCore {
         commandManager.registerCommand(new HelpCommand());
         commandManager.registerCommand(new SlashCommands());
         commandManager.registerCommand(new CommandCommand());
+        commandManager.registerCommand(new HelpCommand());
+        commandManager.registerCommand(new PingCommand());
+        commandManager.registerCommand(new PrefixesCommand());
+        commandManager.registerCommand(new ShutdownCommand());
+        commandManager.registerCommand(new UptimeCommand());
         eventManager.fireAndForget(commandManager);
     }
 

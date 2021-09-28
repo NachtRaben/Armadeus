@@ -6,7 +6,7 @@ import co.aikar.commands.annotation.Default;
 import co.aikar.commands.annotation.Description;
 import dev.armadeus.bot.api.command.DiscordCommand;
 import dev.armadeus.bot.api.command.DiscordCommandIssuer;
-import dev.armadeus.discord.util.EmbedUtils;
+import dev.armadeus.bot.api.util.EmbedUtils;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.ApplicationInfo;
 import net.dv8tion.jda.api.entities.SelfUser;

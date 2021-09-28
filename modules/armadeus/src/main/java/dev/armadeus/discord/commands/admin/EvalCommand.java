@@ -9,11 +9,14 @@ import co.aikar.commands.annotation.Private;
 import dev.armadeus.bot.api.command.DiscordCommand;
 import dev.armadeus.bot.api.command.DiscordCommandIssuer;
 import dev.armadeus.discord.util.eval.Eval;
+import dev.armadeus.discord.util.eval.EvalResult;
 import groovy.lang.Tuple3;
 import net.dv8tion.jda.api.MessageBuilder;
+import net.dv8tion.jda.api.entities.Message;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.nio.charset.StandardCharsets;
 
 public class EvalCommand extends DiscordCommand {
 
@@ -36,22 +39,28 @@ public class EvalCommand extends DiscordCommand {
         script = raw.substring(startIndex, endIndex);
 
         Eval eval = new Eval(user, script);
-        Tuple3<Object, String, Throwable> result = eval.run();
+        EvalResult<Object, String, Throwable> result = eval.run();
         MessageBuilder builder = new MessageBuilder();
-        if (result.getV2() != null && !result.getV2().isBlank()) {
-            builder.append("**Output:**");
-            builder.appendCodeBlock(result.getV2(), "groovy");
+        if (result.getMiddle() != null && !result.getMiddle().isBlank()) {
+            if(result.getMiddle().length() < 1000) {
+                builder.append("**Output:**");
+                builder.appendCodeBlock(result.getMiddle(), "groovy");
+            }
         }
-        if (result.getV1() != null) {
+        if (result.getLeft() != null) {
             builder.append("**Result:**");
-            builder.appendCodeBlock(String.valueOf(result.getV1()), null);
+            builder.appendCodeBlock(String.valueOf(result.getLeft()), null);
         }
-        if (result.getV3() != null) {
+        if (result.getRight() != null) {
             builder.append("**Error:**");
             StringWriter writer = new StringWriter();
-            result.getV3().printStackTrace(new PrintWriter(writer));
+            result.getRight().printStackTrace(new PrintWriter(writer));
             builder.appendCodeBlock(String.valueOf(writer.toString()), "java");
         }
-        user.sendMessage(builder.build());
+        if(builder.length() > Message.MAX_CONTENT_LENGTH) {
+            user.getChannel().sendFile(builder.getStringBuilder().toString().getBytes(StandardCharsets.UTF_8), "eval.txt").queue();
+        } else {
+            user.sendMessage(builder.build());
+        }
     }
 }

@@ -1,4 +1,4 @@
-package dev.armadeus.discord.commands.general;
+package dev.armadeus.core.command;
 
 import co.aikar.commands.annotation.CommandAlias;
 import co.aikar.commands.annotation.CommandPermission;
@@ -6,7 +6,7 @@ import co.aikar.commands.annotation.Default;
 import co.aikar.commands.annotation.Description;
 import dev.armadeus.bot.api.command.DiscordCommand;
 import dev.armadeus.bot.api.command.DiscordCommandIssuer;
-import dev.armadeus.discord.util.EmbedUtils;
+import dev.armadeus.bot.api.util.EmbedUtils;
 import net.dv8tion.jda.api.EmbedBuilder;
 
 public class PingCommand extends DiscordCommand {
