@@ -127,7 +127,7 @@ public class CommandSenderImpl extends JDACommandEvent implements DiscordCommand
 
     private void sendAndPurge(Message message, MessageChannel channel, long purgeAfter) {
         // TODO: Temporary slash event support, respond to ephemeral
-        if(isSlashEvent() && !OffsetDateTime.now().isBefore(getSlash().getTimeCreated().plus(14, ChronoUnit.MINUTES))) {
+        if(isSlashEvent() && !getSlash().getHook().isExpired()) {
             getSlash().getHook().sendMessage(message).queue();
             slashAcked = true;
             return;
