@@ -19,6 +19,9 @@ import net.dv8tion.jda.internal.interactions.InteractionImpl;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.time.OffsetDateTime;
+import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
@@ -124,7 +127,7 @@ public class CommandSenderImpl extends JDACommandEvent implements DiscordCommand
 
     private void sendAndPurge(Message message, MessageChannel channel, long purgeAfter) {
         // TODO: Temporary slash event support, respond to ephemeral
-        if(isSlashEvent()) {
+        if(isSlashEvent() && !OffsetDateTime.now().isBefore(getSlash().getTimeCreated().plus(14, ChronoUnit.MINUTES))) {
             getSlash().getHook().sendMessage(message).queue();
             slashAcked = true;
             return;
