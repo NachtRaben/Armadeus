@@ -3,15 +3,14 @@ package co.aikar.commands;
 import co.aikar.commands.apachecommonslang.ApacheCommonsExceptionUtil;
 import com.google.common.base.Preconditions;
 import com.velocitypowered.proxy.plugin.util.DummyPluginContainer;
+import dev.armadeus.bot.api.annotations.DiscordPermission;
 import dev.armadeus.bot.api.command.DiscordCommand;
 import dev.armadeus.bot.api.config.GuildConfig;
 import dev.armadeus.core.ArmaCoreImpl;
 import dev.armadeus.core.command.NullCommandIssuer;
 import net.dv8tion.jda.api.AccountType;
-import net.dv8tion.jda.api.entities.ApplicationInfo;
-import net.dv8tion.jda.api.entities.ChannelType;
-import net.dv8tion.jda.api.entities.Guild;
-import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.events.Event;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
@@ -275,6 +274,7 @@ public class JDACommandManager extends ArmaCommandManager<
         }
 
         args = args.length > 1 ? Arrays.copyOfRange(args, 1, args.length) : new String[0];
+        if (!checkDiscordPermission(event, rootCommand)) return;
         if (!devCheck(event))
             return;
         event.deferReply().setEphemeral(true).complete();
@@ -320,14 +320,30 @@ public class JDACommandManager extends ArmaCommandManager<
             return;
         }
         args = args.length > 1 ? Arrays.copyOfRange(args, 1, args.length) : new String[0];
-        if (!devCheck(event))
-            return;
+        if (!checkDiscordPermission(event, rootCommand)) return;
+        if (!devCheck(event)) return;
         rootCommand.execute(this.getCommandIssuer(event), cmd, args);
     }
 
     public List<String> getAnnotationValues(AnnotatedElement object, Class<? extends Annotation> annoClass, int options) {
         String[] values = getAnnotations().getAnnotationValues(object, annoClass, ACFPatterns.PIPE, options);
         return values == null ? Collections.emptyList() : List.of(values);
+    }
+
+    private boolean checkDiscordPermission(Event e, RootCommand rootCommand) {
+        RegisteredCommand<?> rCmd = rootCommand.getDefaultRegisteredCommand();
+        DiscordPermission discordPermission = rCmd.getAnnotation( DiscordPermission.class );
+        DiscordPermission discordPermissionClass = rCmd.scope.getClass().getAnnotation( DiscordPermission.class );
+        Member member = e instanceof MessageReceivedEvent ? ((MessageReceivedEvent) e).getMember() : ((SlashCommandEvent) e).getMember();
+        if ( member != null ) {
+            if ( discordPermission != null ) {
+                if ( !member.hasPermission( discordPermission.value() ) ) return false;
+            }
+            if ( discordPermissionClass != null ) {
+                return member.hasPermission( discordPermissionClass.value() );
+            }
+        }
+        return true;
     }
 
     private boolean devCheck(Event e) {
