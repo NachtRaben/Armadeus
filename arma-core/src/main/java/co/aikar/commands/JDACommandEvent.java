@@ -114,6 +114,8 @@ public class JDACommandEvent implements CommandIssuer {
         return !isSlashEvent() ? getEvent().isFromGuild() : getSlash().isFromGuild();
     }
 
+    public boolean isSlash() { return isSlashEvent(); }
+
     public TextChannel getTextChannel() {
         MessageChannel ch = getEvent().getChannel();
         return ch.getType() == ChannelType.TEXT ? (TextChannel) ch : null;
