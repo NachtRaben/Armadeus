@@ -103,20 +103,20 @@ public class CommandSenderImpl extends JDACommandEvent implements DiscordCommand
     public void sendPrivateMessage(String message) {
         checkArgument(message != null && !message.isBlank(), "Empty Message");
         MessageBuilder builder = new MessageBuilder(message);
-        sendAndPurge(builder.build(), getChannel(), -1);
+        sendAndPurge(builder.build(), getUser().openPrivateChannel().complete(), -1);
     }
 
     public void sendPrivateMessage(String format, Object... args) {
         String message = String.format(format, args);
         checkArgument(message != null && !message.isBlank(), "Empty Message");
         MessageBuilder builder = new MessageBuilder(message);
-        sendAndPurge(builder.build(), getChannel(), -1);
+        sendAndPurge(builder.build(), getUser().openPrivateChannel().complete(), -1);
     }
 
     public void sendPrivateMessage(MessageEmbed embed) {
         checkArgument(embed != null && embed.isSendable(), "Empty Message");
         MessageBuilder builder = new MessageBuilder(embed);
-        sendAndPurge(builder.build(), getChannel(), -1);
+        sendAndPurge(builder.build(), getUser().openPrivateChannel().complete(), -1);
     }
 
     public void sendPrivateMessage(Message message) {
