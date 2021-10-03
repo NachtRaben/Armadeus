@@ -4,7 +4,9 @@ import co.aikar.commands.apachecommonslang.ApacheCommonsExceptionUtil;
 import com.google.common.base.Preconditions;
 import com.velocitypowered.proxy.plugin.util.DummyPluginContainer;
 import dev.armadeus.bot.api.command.DiscordCommand;
+import dev.armadeus.bot.api.command.DiscordCommandIssuer;
 import dev.armadeus.bot.api.config.GuildConfig;
+import dev.armadeus.bot.api.events.CommandPreExecuteEvent;
 import dev.armadeus.core.ArmaCoreImpl;
 import dev.armadeus.core.command.NullCommandIssuer;
 import net.dv8tion.jda.api.AccountType;
@@ -22,6 +24,7 @@ import org.jetbrains.annotations.NotNull;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
 import java.util.*;
+import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -279,9 +282,16 @@ public class JDACommandManager extends ArmaCommandManager<
             return;
         event.deferReply().setEphemeral(true).complete();
         CommandSenderImpl sender = (CommandSenderImpl) this.getCommandIssuer(event);
-        rootCommand.execute(sender, cmd, args);
-        if(!sender.isSlashAcked()) {
-            event.getHook().sendMessage("Success :heavy_check_mark:").queue();
+        DiscordCommandIssuer issuer = (DiscordCommandIssuer) this.getCommandIssuer(event);
+        try {
+            if(core.eventManager().fire(new CommandPreExecuteEvent(issuer, rootCommand)).get().isAllowed()) {
+                rootCommand.execute(sender, cmd, args);
+                if(!sender.isSlashAcked()) {
+                    event.getHook().sendMessage("Success :heavy_check_mark:").queue();
+                }
+            }
+        } catch (InterruptedException | ExecutionException e) {
+            e.printStackTrace();
         }
     }
 
@@ -322,7 +332,15 @@ public class JDACommandManager extends ArmaCommandManager<
         args = args.length > 1 ? Arrays.copyOfRange(args, 1, args.length) : new String[0];
         if (!devCheck(event))
             return;
-        rootCommand.execute(this.getCommandIssuer(event), cmd, args);
+
+        DiscordCommandIssuer issuer = (DiscordCommandIssuer) this.getCommandIssuer(event);
+        try {
+            if(core.eventManager().fire(new CommandPreExecuteEvent(issuer, rootCommand)).get().isAllowed()) {
+                rootCommand.execute(issuer, cmd, args);
+            }
+        } catch (InterruptedException | ExecutionException e) {
+            e.printStackTrace();
+        }
     }
 
     public List<String> getAnnotationValues(AnnotatedElement object, Class<? extends Annotation> annoClass, int options) {
