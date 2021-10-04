@@ -1,5 +1,6 @@
 package co.aikar.commands;
 
+import co.aikar.commands.annotation.DiscordPermission;
 import co.aikar.commands.apachecommonslang.ApacheCommonsExceptionUtil;
 import com.google.common.base.Preconditions;
 import com.velocitypowered.proxy.plugin.util.DummyPluginContainer;
@@ -23,6 +24,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
+import java.lang.reflect.Method;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
@@ -66,7 +68,6 @@ public class JDACommandManager extends ArmaCommandManager<
         this.defaultFormatter = new JDAMessageFormatter();
         this.completions = new JDACommandCompletions(this);
         this.logger = Logger.getLogger(this.getClass().getSimpleName());
-
         getCommandConditions().addCondition("owneronly", context -> {
             JDACommandEvent jce = context.getIssuer();
             if (!getBotOwnerId().contains(jce.getUser().getIdLong())) {
@@ -173,6 +174,26 @@ public class JDACommandManager extends ArmaCommandManager<
     public void registerCommand(BaseCommand command) {
         Preconditions.checkArgument(DiscordCommand.class.isAssignableFrom(command.getClass()), "All commands must implement DiscordCommand.class");
         command.onRegister(this);
+        // Custom Annotation Processing
+        Annotations annotations = getAnnotations();
+        Class<? extends BaseCommand> self = command.getClass();
+        if(annotations.hasAnnotation(self, DiscordPermission.class)) {
+            DiscordPermission anno = annotations.getAnnotationFromClass(self, DiscordPermission.class);
+            String additional = Arrays.stream(anno.value()).map(p -> p.name().toLowerCase(Locale.ENGLISH).replaceAll("_", "-")).collect(Collectors.joining(", "));
+            if(command.permission == null || command.permission.isEmpty()) {
+                command.permission = additional;
+            } else {
+                command.permission = command.permission + "," + additional;
+            }
+            try {
+                Method m = self.getDeclaredMethod("computePermissions");
+                m.setAccessible(true);
+                m.invoke(self);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
         for (Map.Entry<String, RootCommand> entry : command.getRegisteredCommandsMap().entrySet()) {
             String commandName = entry.getKey().toLowerCase(Locale.ENGLISH);
             JDARootCommand cmd = (JDARootCommand) entry.getValue();

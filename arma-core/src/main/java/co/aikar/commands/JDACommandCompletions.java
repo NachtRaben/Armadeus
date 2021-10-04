@@ -1,10 +1,5 @@
 package co.aikar.commands;
 
-import co.aikar.commands.CommandCompletionContext;
-import co.aikar.commands.CommandCompletions;
-import co.aikar.commands.CommandIssuer;
-import co.aikar.commands.CommandManager;
-import co.aikar.commands.RegisteredCommand;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;

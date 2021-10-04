@@ -30,6 +30,11 @@ public abstract class DiscordCommand extends BaseCommand {
     @Dependency
     protected ArmaCore core;
 
+    @Override
+    public void onRegister(CommandManager manager) {
+        super.onRegister(manager);
+    }
+
     public List<String> getConditions() {
         return super.conditions == null ? Collections.emptyList() : List.of(super.conditions.split(ACFPatterns.PIPE.pattern()));
     }

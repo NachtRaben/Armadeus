@@ -5,6 +5,7 @@ import co.aikar.commands.annotation.CommandPermission;
 import co.aikar.commands.annotation.Conditions;
 import co.aikar.commands.annotation.Default;
 import co.aikar.commands.annotation.Description;
+import co.aikar.commands.annotation.DiscordPermission;
 import co.aikar.commands.annotation.Private;
 import dev.armadeus.bot.api.command.DiscordCommand;
 import dev.armadeus.bot.api.command.DiscordCommandIssuer;
@@ -12,6 +13,7 @@ import dev.armadeus.discord.util.eval.Eval;
 import dev.armadeus.discord.util.eval.EvalResult;
 import groovy.lang.Tuple3;
 import net.dv8tion.jda.api.MessageBuilder;
+import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Message;
 
 import java.io.PrintWriter;
