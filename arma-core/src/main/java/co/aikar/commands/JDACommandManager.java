@@ -175,29 +175,24 @@ public class JDACommandManager extends ArmaCommandManager<
     @Override
     public void registerCommand(BaseCommand command) {
         Preconditions.checkArgument(DiscordCommand.class.isAssignableFrom(command.getClass()), "All commands must implement DiscordCommand.class");
-        command.onRegister(this);
-        // Custom Annotation Processing
+
+        // Process annotations first
         Annotations annotations = getAnnotations();
         Class<? extends BaseCommand> self = command.getClass();
         if(annotations.hasAnnotation(self, DiscordPermission.class)) {
             DiscordPermission anno = annotations.getAnnotationFromClass(self, DiscordPermission.class);
             String additional = Arrays.stream(anno.value()).map(p -> p.name().toLowerCase(Locale.ENGLISH).replaceAll("_", "-")).collect(Collectors.joining(", "));
             log.warn("Found DiscordPermission annotation on {} with values {}", command.getClass().getSimpleName(), additional);
-            log.warn("Initial {} <> {}", command.permission, command.getRequiredPermissions());
-            if(command.permission == null || command.permission.isEmpty()) {
+            log.warn("Initial {}", command.permission);
+            if (command.permission == null || command.permission.isEmpty()) {
                 command.permission = additional;
             } else {
                 command.permission = command.permission + "," + additional;
             }
-            try {
-                Method m = self.getDeclaredMethod("computePermissions");
-                m.setAccessible(true);
-                m.invoke(self);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-            log.warn("Modified {} <> {}", command.permission, command.getRequiredPermissions());
+            log.warn("Modified {}", command.permission);
         }
+
+        command.onRegister(this);
 
         for (Map.Entry<String, RootCommand> entry : command.getRegisteredCommandsMap().entrySet()) {
             String commandName = entry.getKey().toLowerCase(Locale.ENGLISH);
@@ -207,6 +202,24 @@ public class JDACommandManager extends ArmaCommandManager<
                 commands.put(commandName, cmd);
             }
         }
+    }
+
+    @Override
+    public RegisteredCommand createRegisteredCommand(BaseCommand command, String cmdName, Method method, String prefSubCommand) {
+        RegisteredCommand cmd = new RegisteredCommand(command, cmdName, method, prefSubCommand);
+        DiscordPermission anno = cmd.getAnnotation(DiscordPermission.class) != null ? (DiscordPermission) cmd.getAnnotation(DiscordPermission.class) : null;
+        if(anno != null) {
+            String additional = Arrays.stream(anno.value()).map(p -> p.name().toLowerCase(Locale.ENGLISH).replaceAll("_", "-")).collect(Collectors.joining(", "));
+            log.warn("Found DiscordPermission annotation on {} with values {}", cmd.command, additional);
+            log.warn("Initial {}", cmd.permission);
+            if (cmd.permission == null || cmd.permission.isEmpty()) {
+                cmd.permission = additional;
+            } else {
+                cmd.permission = cmd.permission + "," + additional;
+            }
+            log.warn("Modified {}", cmd.permission);
+        }
+        return cmd;
     }
 
     public void unregisterCommand(BaseCommand command) {
