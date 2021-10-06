@@ -218,6 +218,7 @@ public class JDACommandManager extends ArmaCommandManager<
                 cmd.permission = cmd.permission + "," + additional;
             }
             log.warn("Modified {}", cmd.permission);
+            cmd.computePermissions();
         }
         return cmd;
     }
