@@ -10,6 +10,7 @@ import dev.armadeus.bot.api.config.GuildConfig;
 import dev.armadeus.bot.api.events.CommandPreExecuteEvent;
 import dev.armadeus.core.ArmaCoreImpl;
 import dev.armadeus.core.command.NullCommandIssuer;
+import lombok.extern.log4j.Log4j2;
 import net.dv8tion.jda.api.AccountType;
 import net.dv8tion.jda.api.entities.ApplicationInfo;
 import net.dv8tion.jda.api.entities.ChannelType;
@@ -32,6 +33,7 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+@Log4j2
 public class JDACommandManager extends ArmaCommandManager<
         MessageReceivedEvent,
         JDACommandEvent,
@@ -180,6 +182,8 @@ public class JDACommandManager extends ArmaCommandManager<
         if(annotations.hasAnnotation(self, DiscordPermission.class)) {
             DiscordPermission anno = annotations.getAnnotationFromClass(self, DiscordPermission.class);
             String additional = Arrays.stream(anno.value()).map(p -> p.name().toLowerCase(Locale.ENGLISH).replaceAll("_", "-")).collect(Collectors.joining(", "));
+            log.warn("Found DiscordPermission annotation on {} with values {}", command.getClass().getSimpleName(), additional);
+            log.warn("Initial {} <> {}", command.permission, command.getRequiredPermissions());
             if(command.permission == null || command.permission.isEmpty()) {
                 command.permission = additional;
             } else {
@@ -192,6 +196,7 @@ public class JDACommandManager extends ArmaCommandManager<
             } catch (Exception e) {
                 e.printStackTrace();
             }
+            log.warn("Modified {} <> {}", command.permission, command.getRequiredPermissions());
         }
 
         for (Map.Entry<String, RootCommand> entry : command.getRegisteredCommandsMap().entrySet()) {
