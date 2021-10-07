@@ -28,6 +28,7 @@ import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Method;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ForkJoinPool;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -105,7 +106,7 @@ public class JDACommandManager extends ArmaCommandManager<
         if (botOwner.isEmpty()) {
             if (shardManager.getShards().get(0).getAccountType() == AccountType.BOT) {
                 ApplicationInfo app = shardManager.retrieveApplicationInfo().complete();
-                if(app.getTeam() != null) {
+                if (app.getTeam() != null) {
                     botOwner.add(app.getTeam().getOwnerIdLong());
                     botOwner.addAll(app.getTeam().getMembers().stream().map(m -> m.getUser().getIdLong()).collect(Collectors.toList()));
                 } else {
@@ -179,7 +180,7 @@ public class JDACommandManager extends ArmaCommandManager<
         // Process annotations first
         Annotations annotations = getAnnotations();
         Class<? extends BaseCommand> self = command.getClass();
-        if(annotations.hasAnnotation(self, DiscordPermission.class)) {
+        if (annotations.hasAnnotation(self, DiscordPermission.class)) {
             DiscordPermission anno = annotations.getAnnotationFromClass(self, DiscordPermission.class);
             String additional = Arrays.stream(anno.value()).map(p -> p.name().toLowerCase(Locale.ENGLISH).replaceAll("_", "-")).collect(Collectors.joining(", "));
             log.warn("Found DiscordPermission annotation on {} with values {}", command.getClass().getSimpleName(), additional);
@@ -208,7 +209,7 @@ public class JDACommandManager extends ArmaCommandManager<
     public RegisteredCommand createRegisteredCommand(BaseCommand command, String cmdName, Method method, String prefSubCommand) {
         RegisteredCommand cmd = new RegisteredCommand(command, cmdName, method, prefSubCommand);
         DiscordPermission anno = cmd.getAnnotation(DiscordPermission.class) != null ? (DiscordPermission) cmd.getAnnotation(DiscordPermission.class) : null;
-        if(anno != null) {
+        if (anno != null) {
             String additional = Arrays.stream(anno.value()).map(p -> p.name().toLowerCase(Locale.ENGLISH).replaceAll("_", "-")).collect(Collectors.joining(", "));
             log.warn("Found DiscordPermission annotation on {} with values {}", cmd.command, additional);
             log.warn("Initial {}", cmd.permission);
@@ -300,7 +301,7 @@ public class JDACommandManager extends ArmaCommandManager<
 
     void dispatchSlash(SlashCommandEvent event) {
         List<String> largs = new ArrayList<>(List.of(event.getCommandPath().split("/")));
-        for(OptionMapping option : event.getOptions()) {
+        for (OptionMapping option : event.getOptions()) {
             largs.add(option.getAsString());
         }
 
@@ -324,11 +325,14 @@ public class JDACommandManager extends ArmaCommandManager<
         CommandSenderImpl sender = (CommandSenderImpl) this.getCommandIssuer(event);
         DiscordCommandIssuer issuer = (DiscordCommandIssuer) this.getCommandIssuer(event);
         try {
-            if(core.eventManager().fire(new CommandPreExecuteEvent(issuer, rootCommand)).get().isAllowed()) {
-                rootCommand.execute(sender, cmd, args);
-                if(!sender.isSlashAcked()) {
-                    event.getHook().sendMessage("Success :heavy_check_mark:").queue();
-                }
+            if (core.eventManager().fire(new CommandPreExecuteEvent(issuer, rootCommand)).get().isAllowed()) {
+                String[] finalArgs = args;
+                ForkJoinPool.commonPool().execute(() -> {
+                    rootCommand.execute(sender, cmd, finalArgs);
+                    if (!sender.isSlashAcked()) {
+                        event.getHook().sendMessage("Success :heavy_check_mark:").queue();
+                    }
+                });
             }
         } catch (InterruptedException | ExecutionException e) {
             e.printStackTrace();
@@ -374,13 +378,16 @@ public class JDACommandManager extends ArmaCommandManager<
             return;
 
         DiscordCommandIssuer issuer = (DiscordCommandIssuer) this.getCommandIssuer(event);
-        try {
-            if(core.eventManager().fire(new CommandPreExecuteEvent(issuer, rootCommand)).get().isAllowed()) {
-                rootCommand.execute(issuer, cmd, args);
+        String[] finalArgs = args;
+        ForkJoinPool.commonPool().execute(() -> {
+            try {
+                if (core.eventManager().fire(new CommandPreExecuteEvent(issuer, rootCommand)).get().isAllowed()) {
+                    rootCommand.execute(issuer, cmd, finalArgs);
+                }
+            } catch (InterruptedException | ExecutionException e) {
+                log.error(e);
             }
-        } catch (InterruptedException | ExecutionException e) {
-            e.printStackTrace();
-        }
+        });
     }
 
     public List<String> getAnnotationValues(AnnotatedElement object, Class<? extends Annotation> annoClass, int options) {
@@ -391,7 +398,7 @@ public class JDACommandManager extends ArmaCommandManager<
     private boolean devCheck(Event e) {
         if (core.instanceManager() != null && core.instanceManager().isDevActive()) {
             Guild guild = e instanceof MessageReceivedEvent ? ((MessageReceivedEvent) e).getGuild() : ((SlashCommandEvent) e).getGuild();
-            if(guild == null) {
+            if (guild == null) {
                 return true;
             }
             GuildConfig gc = core.guildManager().getConfigFor(guild);

@@ -40,6 +40,8 @@ public class EvalCommand extends DiscordCommand {
 
         script = raw.substring(startIndex, endIndex);
 
+        Message m = user.getChannel().sendMessage("Processing... " + core.shardManager().getGuildById(317784247949590528L).getEmoteById(895763555893256242L).getAsMention()).complete();
+
         Eval eval = new Eval(user, script);
         EvalResult<Object, String, Throwable> result = eval.run();
         MessageBuilder builder = new MessageBuilder();
@@ -62,7 +64,7 @@ public class EvalCommand extends DiscordCommand {
         if(builder.length() > Message.MAX_CONTENT_LENGTH) {
             user.getChannel().sendFile(builder.getStringBuilder().toString().getBytes(StandardCharsets.UTF_8), "eval.txt").queue();
         } else {
-            user.sendMessage(builder.build());
+            m.editMessage(builder.build()).queue();
         }
     }
 }
