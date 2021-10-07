@@ -6,6 +6,7 @@ import groovy.lang.Binding;
 import groovy.lang.GroovyShell;
 import groovy.lang.Tuple3;
 
+import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.HashMap;
 import java.util.Map;
@@ -23,7 +24,7 @@ public class Eval {
     public EvalResult<Object, String, Throwable> run() {
         Binding binding = new Binding(passedVariables);
         StringWriter writer = new StringWriter();
-        binding.setProperty("out", writer);
+        binding.setProperty("out", new PrintWriter(writer));
         GroovyShell shell = new GroovyShell(binding);
         EvalResult<Object, String, Throwable> result;
         try {
