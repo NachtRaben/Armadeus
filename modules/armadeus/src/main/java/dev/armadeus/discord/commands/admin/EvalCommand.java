@@ -27,18 +27,19 @@ public class EvalCommand extends DiscordCommand {
     @CommandPermission("dev.eval")
     @CommandAlias("eval")
     @Description("Developer command used to run realtime evaluations")
-    public void eval(DiscordCommandIssuer user, @Default String script) {
+    @Default
+    public void eval(DiscordCommandIssuer user) {
         // This fuckery is because some newlines get consumed inside the code-block
         String raw = user.getMessage().getContentRaw();
-        int startIndex = raw.indexOf("\n```\n");
-        int endIndex = raw.lastIndexOf("\n```");
-        if (startIndex == -1 || endIndex == -1) {
+        int startIndex = raw.indexOf("```");
+        int endIndex = raw.lastIndexOf("```");
+        if (startIndex == -1 || endIndex == -1 || startIndex == endIndex) {
             user.sendMessage("Eval commands must be encased in a code block");
             return;
         }
         startIndex += 5;
 
-        script = raw.substring(startIndex, endIndex);
+        String script = raw.substring(startIndex, endIndex);
 
         Message m = user.getChannel().sendMessage("Processing... " + core.shardManager().getGuildById(317784247949590528L).getEmoteById(895763555893256242L).getAsMention()).complete();
 
