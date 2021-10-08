@@ -1,18 +1,6 @@
-rootProject.name = 'Armadeus'
+rootProject.name = 'ArmaProjects'
 
-def importProject(name) {
-    def tokens = name.split("/")
-    def projectName = tokens.length > 1 ? Arrays.copyOfRange(tokens, 1, tokens.length).join("-") : tokens[0]
-    include(projectName)
-    def project = project(":$projectName")
-    project.setProjectDir(new File("$name"))
-}
-
-importProject("arma-api")
-importProject("arma-core")
-importProject("modules/arma-audio")
-importProject("modules/arma-welcome")
-importProject("modules/armadeus")
-//importProject("modules/frontend")
-//importProject("modules/audio");
+include 'armadeus'
+include 'arma-welcome'
+include 'arma-audio'
 
