@@ -359,17 +359,9 @@ public class JDACommandManager extends ArmaCommandManager<
         }
 
         String[] args = msg.substring(prefixFound.length()).split("[\\n\\r\\s]+", -1);
-        log.warn("Before: {}", (Object) args);
         if (args.length == 0) {
             return;
         }
-        if(args.length > 1) {
-            List<String> reprocessed = new ArrayList<>(Collections.singleton(args[0]));
-            reprocessed.addAll(Arrays.stream(ACFPatterns.SPACE.split(msg.substring(prefixFound.length()).replace(args[0], ""), -1)).filter(s -> !s.isEmpty()).collect(Collectors.toList()));
-            log.warn("Processed: {}", reprocessed);
-            args = reprocessed.toArray(new String[0]);
-        }
-        log.warn("After: {}", (Object) args);
 
         String cmd = args[0].toLowerCase(Locale.ENGLISH);
         JDARootCommand rootCommand = this.commands.get(cmd);
