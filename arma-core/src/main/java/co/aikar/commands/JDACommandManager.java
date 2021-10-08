@@ -364,12 +364,10 @@ public class JDACommandManager extends ArmaCommandManager<
             return;
         }
         if(args.length > 1) {
-            String[] process = ACFPatterns.SPACE.split(msg.substring(prefixFound.length()).replace(args[0], ""), -1);
-            log.warn("Processed: {}", (Object)process);
-            List<String> reformatted = new ArrayList<>();
-            reformatted.add(args[0]);
-            Collections.addAll(reformatted, process);
-            args = reformatted.toArray(new String[0]);
+            List<String> reprocessed = new ArrayList<>(Collections.singleton(args[0]));
+            reprocessed.addAll(Arrays.stream(ACFPatterns.SPACE.split(msg.substring(prefixFound.length()).replace(args[0], ""), -1)).filter(s -> !s.isEmpty()).collect(Collectors.toList()));
+            log.warn("Processed: {}", reprocessed);
+            args = reprocessed.toArray(new String[0]);
         }
         log.warn("After: {}", (Object) args);
 
