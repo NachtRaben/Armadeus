@@ -1,10 +1,8 @@
 package dev.armadeus.discord.util.eval;
 
-import co.aikar.commands.CommandIssuer;
 import dev.armadeus.bot.api.command.DiscordCommandIssuer;
 import groovy.lang.Binding;
 import groovy.lang.GroovyShell;
-import groovy.lang.Tuple3;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;

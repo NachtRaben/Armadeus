@@ -358,14 +358,14 @@ public class JDACommandManager extends ArmaCommandManager<
             return;
         }
 
-        String[] args = ACFPatterns.SPACE.split(msg.substring(prefixFound.length()), -1);
+        String[] args = msg.substring(prefixFound.length()).split("[\\n\\r\\s]+", -1);
         if (args.length == 0) {
             return;
         }
-
-        // Hacky way to allow newlines right next to the command
-        if (ACFPatterns.NEWLINE.matcher(args[0]).find()) {
-            args = Stream.concat(Arrays.stream(ACFPatterns.NEWLINE.split(args[0], 1)), Arrays.stream(Arrays.copyOfRange(args, 1, args.length))).toArray(String[]::new);
+        if(args.length > 1) {
+            String[] process = ACFPatterns.SPACE.split(msg.substring(prefixFound.length()).replace(args[0], ""), -1);
+            args = Arrays.copyOf(args, process.length + 1);
+            System.arraycopy(process, 0, args, args.length, process.length);
         }
 
         String cmd = args[0].toLowerCase(Locale.ENGLISH);
