@@ -1,0 +1,21 @@
+plugins {
+    id 'idea'
+    id 'java-library'
+    id 'com.github.johnrengelman.shadow'
+}
+
+dependencies {
+    compileOnly group: 'dev.armadeus', name: 'arma-api', version: DEV_ENV, changing: true
+    annotationProcessor group: 'com.velocitypowered', name: 'velocity-utils-annotation-processor', version: '4.0.0-SNAPSHOT', changing: true
+
+    implementation 'com.sparkjava:spark-core:2.9.3'
+
+    // Lombok
+    compileOnly group: 'org.projectlombok', name: 'lombok', version: lombokVersion
+    annotationProcessor group: 'org.projectlombok', name: 'lombok', version: lombokVersion
+}
+
+task copyPluginJar(type: Copy) {
+    from shadowJar
+    into '../../run/plugins/'
+}

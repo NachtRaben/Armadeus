@@ -16,8 +16,12 @@ import net.dv8tion.jda.api.entities.Message;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class EvalCommand extends DiscordCommand {
+
+    private static final Pattern CODEBLOCK = Pattern.compile("`{1,3}(.*?)`{1,3}", Pattern.DOTALL | Pattern.MULTILINE);
 
     @Private
     @Conditions("developeronly")
@@ -28,16 +32,16 @@ public class EvalCommand extends DiscordCommand {
     public void eval(DiscordCommandIssuer user) {
         // This fuckery is because some newlines get consumed inside the code-block
         String raw = user.getMessage().getContentRaw();
-        int startIndex = raw.indexOf("```");
-        int endIndex = raw.lastIndexOf("```");
-        if (startIndex == -1 || endIndex == -1 || startIndex == endIndex) {
-            user.sendMessage("Eval commands must be encased in a code block");
+        logger.warn(raw);
+        Matcher matcher = CODEBLOCK.matcher(raw);
+        logger.warn("{}", matcher.matches());
+        if (!matcher.find()) {
+            user.sendMessage("Scripts must be encased in a codeblock");
             return;
         }
-        startIndex += 5;
+        String script = matcher.group(1).trim();
 
-        String script = raw.substring(startIndex, endIndex);
-
+        logger.warn("Executing Script:\n{}", script);
         Message m = user.getChannel().sendMessage("Processing... " + core.shardManager().getGuildById(317784247949590528L).getEmoteById(895763555893256242L).getAsMention()).complete();
 
         Eval eval = new Eval(user, script);
@@ -62,6 +66,8 @@ public class EvalCommand extends DiscordCommand {
         if(builder.length() > Message.MAX_CONTENT_LENGTH) {
             user.getChannel().sendFile(builder.getStringBuilder().toString().getBytes(StandardCharsets.UTF_8), "eval.txt").queue();
         } else {
+            if (builder.isEmpty())
+                builder.append("Success");
             m.editMessage(builder.build()).queue();
         }
     }
