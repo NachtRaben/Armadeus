@@ -7,6 +7,7 @@ import dev.armadeus.discord.audio.database.Keys;
 import dev.armadeus.discord.audio.database.Public;
 import dev.armadeus.discord.audio.database.tables.records.LavalinkRecord;
 import org.jooq.*;
+import org.jooq.Record;
 import org.jooq.impl.DSL;
 import org.jooq.impl.SQLDataType;
 import org.jooq.impl.TableImpl;
@@ -79,7 +80,7 @@ public class Lavalink extends TableImpl<LavalinkRecord> {
         this(DSL.name("lavalink"), null);
     }
 
-    public <O extends Record> Lavalink(Table<O> child, ForeignKey<O, LavalinkRecord> key) {
+    public <O extends Record> Lavalink( Table<O> child, ForeignKey<O, LavalinkRecord> key) {
         super(child, key, LAVALINK);
     }
 

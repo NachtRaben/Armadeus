@@ -9,7 +9,7 @@ repositories {
 }
 
 dependencies {
-    compileOnly group: 'dev.armadeus', name: 'arma-api', version: DEV_ENV, changing: true
+    compileOnly group: 'dev.armadeus', name: 'arma-api', version: 'master', changing: true
     annotationProcessor group: 'com.velocitypowered', name: 'velocity-utils-annotation-processor', version: '4.0.0-SNAPSHOT', changing: true
 
     compileOnly project(":arma-audio");

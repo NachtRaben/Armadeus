@@ -3,4 +3,5 @@ rootProject.name = 'ArmaProjects'
 include 'armadeus'
 include 'arma-welcome'
 include 'arma-audio'
+include 'nano-moderation'
 
