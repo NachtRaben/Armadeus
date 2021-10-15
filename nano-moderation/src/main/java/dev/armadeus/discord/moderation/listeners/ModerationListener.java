@@ -5,6 +5,7 @@ import dev.armadeus.bot.api.ArmaCore;
 import dev.armadeus.discord.moderation.ArmaModeration;
 import dev.armadeus.discord.moderation.objects.MessageCountData;
 import dev.armadeus.discord.moderation.util.MessageAction;
+import dev.armadeus.discord.moderation.util.SqlManager;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
@@ -21,10 +22,10 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static dev.armadeus.bot.api.config.ArmaConfig.logger;
+import static dev.armadeus.discord.moderation.ArmaModeration.sqlManager;
 
 public class ModerationListener extends ListenerAdapter {
     private final ArmaCore core;
-
     public ModerationListener( ArmaCore core) {
         this.core = core;
     }
@@ -33,13 +34,15 @@ public class ModerationListener extends ListenerAdapter {
 
     @Override
     public void onButtonClick( ButtonClickEvent event ) {
+        // TODO: Add spam prevention & detection.
         Guild guild = event.getGuild();
         if ( guild == null ) return;
 
         Config config = ArmaModeration.get().getConfig(guild);
         if ( config == null ) return;
 
-        Role verifiedRole = guild.getRoleById( config.get("verifiedRoleID") );
+        long verifiedRoleID = config.getLong("verifiedRoleID" );
+        Role verifiedRole = guild.getRoleById( verifiedRoleID );
         if ( verifiedRole == null ) return;
 
         Member clicker = event.getMember();
@@ -48,6 +51,7 @@ public class ModerationListener extends ListenerAdapter {
         switch ( event.getComponentId() ){
             case "ACCEPT_RULES":
                 guild.addRoleToMember( clicker, verifiedRole ).queue( e -> {
+                    sqlManager.getConnection( guild ).insertUserEntry( clicker.getUser() );
                     event.reply( "Welcome to `Mirai.Red`!" ).setEphemeral( true ).queue();
                 });
                 break;
@@ -66,9 +70,10 @@ public class ModerationListener extends ListenerAdapter {
     public void onGuildMessageUpdate( @NotNull GuildMessageUpdateEvent event ) {
         Guild guild = event.getGuild();
         Message msg = event.getMessage();
-
+        if ( msg.getContentDisplay().isEmpty() ) return;
         msgAction.setGuild( guild );
         msgAction.profanityCheckMessage( msg, true );
+        sqlManager.getConnection( guild ).insertLogEntry( event.getAuthor(), msg );
     }
 
     @Override
@@ -86,9 +91,10 @@ public class ModerationListener extends ListenerAdapter {
 
         if ( member.getUser().isBot() || member.getUser().isSystem() ) return;
         if ( msg.getContentDisplay().isEmpty() ) return;
+        if ( msg.getAttachments().stream().anyMatch( Message.Attachment::isImage ) ) return;
 
-        if ( msg.getAttachments().stream().noneMatch( Message.Attachment::isImage ) ) return;
         msgAction.profanityCheckMessage( msg, false );
+        sqlManager.getConnection( guild ).insertLogEntry( member.getUser(), msg );
 
         MessageCountData msgData = memberMessages.getOrDefault( member, new MessageCountData(msg) );
         boolean isSameAsLast = msg.getContentRaw().equals( msgData.getLastMessageRaw() );
@@ -107,8 +113,7 @@ public class ModerationListener extends ListenerAdapter {
         } );
 
         memberMessages.put( member, msgData );
-
-        if ( msgCount <= 1 ) return;
+        if ( msgCount < 1 ) return;
 
         long muteMsgCount = config.getLongOrElse("muteAfterXMessages", 3L );
         long slowmodeA = config.getLongOrElse( "slowmodeA", 7L );

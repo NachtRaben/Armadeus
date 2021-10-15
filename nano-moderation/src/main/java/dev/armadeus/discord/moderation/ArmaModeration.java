@@ -12,7 +12,9 @@ import dev.armadeus.bot.api.config.GuildConfig;
 import dev.armadeus.discord.moderation.commands.ModerationCommands;
 import dev.armadeus.discord.moderation.commands.UserCommands;
 import dev.armadeus.discord.moderation.listeners.ModerationListener;
-import dev.armadeus.discord.moderation.util.NotifyAction;
+import dev.armadeus.discord.moderation.util.CommandAction;
+import dev.armadeus.discord.moderation.util.FindGuildMember;
+import dev.armadeus.discord.moderation.util.SqlManager;
 import lombok.Getter;
 import lombok.experimental.Accessors;
 import net.dv8tion.jda.api.entities.Activity;
@@ -27,8 +29,7 @@ import java.util.ArrayList;
 @Getter
 @Plugin(id = "arma-moderation", name = "Arma-Moderation", version = "0.11", url = "https://armadeus.com", description = "Moderation features.", authors = { "NanoAi" })
 public class ArmaModeration {
-
-    public static final NotifyAction notifyAction = new NotifyAction();
+    public static final SqlManager sqlManager = new SqlManager();
     public static final HttpClient httpClient = HttpClient.newHttpClient();
     private static final Logger logger = LoggerFactory.getLogger( ArmaModeration.class);
 

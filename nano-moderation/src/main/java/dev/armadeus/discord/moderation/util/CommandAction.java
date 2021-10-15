@@ -6,30 +6,27 @@ import net.dv8tion.jda.api.entities.Member;
 
 import java.awt.*;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 import static dev.armadeus.bot.api.config.ArmaConfig.logger;
+import static dev.armadeus.discord.moderation.util.FindGuildMember.multiSearch;
 
-public class NotifyAction {
-    public void send( DiscordCommandIssuer user, String userID, boolean notify, String reason, String actionTitle, BiConsumer<Member, String> consumer ) {
-        HashSet<Member> targets = new HashSet<>();
+public class CommandAction {
+    private static void issue( DiscordCommandIssuer user, ArrayList<Member> targets, boolean notify, String reason, String actionTitle, BiConsumer<Member, String> consumer ) {
         ArrayList<String> errors = new ArrayList<>();
 
-        String[] userIds = userID.split(",");
+        if ( targets == null ) return;
+        if ( reason == null ) reason = "Unknown Reason";
+        if ( actionTitle == null ) actionTitle = "Unknown Action";
 
-        Arrays.stream( userIds ).forEach( uid -> {
-            try {
-                Member target = user.getGuild().getMemberById( uid.trim() );
-                if ( target != null ) targets.add( target );
-            } catch ( NumberFormatException e ){
-                logger.error( e.getMessage() );
-            }
-        } );
+        String nonNullReason = reason;
+        String nonNullActionTitle = actionTitle;
 
         targets.forEach( target -> {
+            if ( target == null ) return;
+
             if ( user.getUser().equals( target.getUser() ) ) {
                 errors.add( String.format( "%s skipped: You can't target yourself.\n", target.getAsMention() ) );
                 return;
@@ -40,13 +37,13 @@ public class NotifyAction {
                 return;
             }
 
-            String finalReason = String.format( reason, target.getEffectiveName() );
+            String finalReason = String.format( nonNullReason, target.getEffectiveName() );
             String guildName = target.getGuild().getName();
 
             if ( notify ) {
                 try {
                     EmbedBuilder embedBuilder = new EmbedBuilder();
-                    embedBuilder.setTitle( String.format( actionTitle, guildName ) );
+                    embedBuilder.setTitle( String.format( nonNullActionTitle, guildName ) );
                     embedBuilder.setAuthor( guildName );
                     embedBuilder.setColor( Color.RED );
                     embedBuilder.appendDescription( finalReason );
@@ -69,9 +66,21 @@ public class NotifyAction {
         embed.setAuthor( user.getGuild().getName() );
         embed.setThumbnail( user.getGuild().getIconUrl() );
         embed.setTitle( "Error Preforming Command." );
-        errors.forEach( ( er ) -> embed.addField( " ", er, false ) );
+        errors.forEach( ( er ) -> embed.addField( er, " ", false ) );
         user.getUser().openPrivateChannel().queue( ch -> {
             ch.sendMessageEmbeds( embed.build() ).queue( msg -> msg.delete().queueAfter( 12L, TimeUnit.SECONDS ) );
         } );
+    }
+    public static void issue( DiscordCommandIssuer user, String searchKey, boolean allowKeywords, boolean notify, String reason, String actionTitle, BiConsumer<Member, String> biConsumer ) {
+        issue(user, multiSearch(user, searchKey, allowKeywords), notify, reason, actionTitle, biConsumer);
+    }
+    public static void issue( DiscordCommandIssuer user, String searchKey, boolean allowKeywords, boolean notify, String reason, String actionTitle, Consumer<Member> consumer ) {
+        issue(user, multiSearch(user, searchKey, allowKeywords), notify, reason, actionTitle, ( m, s ) -> consumer.accept( m ));
+    }
+    public static void issue( DiscordCommandIssuer user, String searchKey, boolean allowKeywords, BiConsumer<Member, String> biConsumer ) {
+        issue( user, FindGuildMember.multiSearch( user, searchKey, true ), false, null, null, biConsumer );
+    }
+    public static void issue( DiscordCommandIssuer user, String searchKey, boolean allowKeywords, Consumer<Member> consumer ) {
+        issue( user, FindGuildMember.multiSearch( user, searchKey, true ), false, null, null, ( m, s ) -> consumer.accept(m) );
     }
 }

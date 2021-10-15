@@ -5,6 +5,7 @@ plugins {
 }
 
 dependencies {
+    implementation 'org.xerial:sqlite-jdbc:3.36.0.2'
     compileOnly group: 'dev.armadeus', name: 'arma-api', version: 'master', changing: true
     annotationProcessor group: 'com.velocitypowered', name: 'velocity-utils-annotation-processor', version: '4.0.0-SNAPSHOT', changing: true
 

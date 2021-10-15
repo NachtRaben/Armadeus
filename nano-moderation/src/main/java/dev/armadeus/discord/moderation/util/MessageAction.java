@@ -33,7 +33,7 @@ public class MessageAction {
     public void profanityCheckMessage( Message msg, boolean edited ) {
         Guild guild = msg.getGuild();
         Member member = msg.getMember();
-        TextChannel textChannel = guild.getTextChannelById( config.get( "msgChannel" ) );
+        TextChannel textChannel = guild.getTextChannelById( config.getLong( "msgChannel" ) );
 
         if ( member == null ) return;
         if ( textChannel == null ) return;
@@ -48,7 +48,10 @@ public class MessageAction {
             int sureness;
 
             HttpResponse<?> re = httpClient.send( request, HttpResponse.BodyHandlers.ofString() );
-            if ( re.statusCode() != 200 ) throw new Exception("Status Code Check Failed");
+            if ( re.statusCode() != 200 ) {
+                logger.error("Couldn't Connect to Python Server! Is it running?");
+                return;
+            }
 
             try {
                 sureness = (int) (Double.parseDouble( re.body().toString() ) * 100);
@@ -88,7 +91,7 @@ public class MessageAction {
         if ( config == null ) return;
         if ( mutedMembers == null ) return;
 
-        Role muteRole = guild.getRoleById( config.get( "muteRoleID" ) );
+        Role muteRole = guild.getRoleById( config.getLong( "muteRoleID" ) );
         if ( muteRole == null ) return;
 
         member.getUser().openPrivateChannel().queue( pc ->

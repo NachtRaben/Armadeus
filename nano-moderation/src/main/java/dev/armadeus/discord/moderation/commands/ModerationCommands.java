@@ -5,6 +5,8 @@ import com.electronwill.nightconfig.core.Config;
 import dev.armadeus.bot.api.command.DiscordCommand;
 import dev.armadeus.bot.api.command.DiscordCommandIssuer;
 import dev.armadeus.discord.moderation.ArmaModeration;
+import dev.armadeus.discord.moderation.util.CommandAction;
+import dev.armadeus.discord.moderation.util.SqlManager;
 import net.dv8tion.jda.api.MessageBuilder;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Emoji;
@@ -13,17 +15,18 @@ import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
 import net.dv8tion.jda.api.interactions.components.Button;
 
-import static dev.armadeus.discord.moderation.ArmaModeration.notifyAction;
+import static dev.armadeus.discord.moderation.ArmaModeration.sqlManager;
+import static dev.armadeus.discord.moderation.util.CommandAction.issue;
 
 @Conditions( "guildonly" )
 @DiscordPermission( Permission.KICK_MEMBERS )
 public class ModerationCommands extends DiscordCommand {
-
     @Private
     @CommandAlias("kick")
+    @DiscordPermission( Permission.KICK_MEMBERS )
     @Description("Kick a user from the server, optionally with a message.")
-    public void kick( DiscordCommandIssuer user, String userID, @Default("false") boolean notify, @Default String reason ) {
-        notifyAction.send(user, userID, notify, reason, "Kicked from %s",
+    public void kick( DiscordCommandIssuer user, String search, @Default("false") boolean notify, @Default String reason ) {
+        issue(user, search, false, notify, reason, "Kicked from %s",
                 ( target, finalReason ) -> target.kick( finalReason ).queue() );
     }
 
@@ -31,8 +34,8 @@ public class ModerationCommands extends DiscordCommand {
     @CommandAlias("ban")
     @DiscordPermission( Permission.BAN_MEMBERS )
     @Description("Ban a user from the server, optionally with a message.")
-    public void ban( DiscordCommandIssuer user, String userID, @Default("0") boolean notify, @Default("1") int days, @Default String reason ) {
-        notifyAction.send(user, userID, notify, reason, "Banned from %s",
+    public void ban( DiscordCommandIssuer user, String search, @Default("0") boolean notify, @Default("1") int days, @Default String reason ) {
+        CommandAction.issue(user, search, false, notify, reason, "Banned from %s",
                 ( target, finalReason ) -> target.ban( days, finalReason ).queue() );
     }
 
@@ -48,7 +51,7 @@ public class ModerationCommands extends DiscordCommand {
         Config config = ArmaModeration.get().getConfig(guild);
         if ( config == null ) return;
 
-        String staffRoleID = config.get("staffRoleID");
+        long staffRoleID = config.get("staffRoleID");
         Role staffRole = guild.getRoleById( staffRoleID );
         if ( staffRole == null ) return;
 
@@ -57,6 +60,15 @@ public class ModerationCommands extends DiscordCommand {
         } else {
             guild.addRoleToMember( user.getMember(), staffRole ).queue();
         }
+    }
+
+    @Private
+    @CommandAlias( "register" )
+    @DiscordPermission( Permission.ADMINISTRATOR )
+    @Description( "Register users in the database." )
+    public void register( DiscordCommandIssuer user, String key ) {
+        SqlManager sql = sqlManager.getConnection( user.getGuild() );
+        CommandAction.issue( user, key, true, ( target ) -> sql.insertUserEntry( target.getUser() ) );
     }
 
     @Private

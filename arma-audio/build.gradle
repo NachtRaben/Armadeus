@@ -6,6 +6,7 @@ plugins {
 }
 
 dependencies {
+    implementation 'org.xerial:sqlite-jdbc:3.36.0.2'
     jooqGenerator group: 'org.postgresql', name: 'postgresql', version: '42.2.19'
     compileOnly group: 'dev.armadeus', name: 'arma-api', version: 'master', changing: true
     annotationProcessor group: 'com.velocitypowered', name: 'velocity-utils-annotation-processor', version: '4.0.0-SNAPSHOT', changing: true
