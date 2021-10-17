@@ -1,6 +1,7 @@
 package dev.armadeus.discord.moderation.util;
 
 import dev.armadeus.bot.api.command.DiscordCommandIssuer;
+import dev.armadeus.discord.moderation.objects.CommandActionData;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.IMentionable;
 import net.dv8tion.jda.api.entities.Member;
@@ -36,8 +37,8 @@ public class FindGuildMember {
             if ( search.equals( "^" ) ) {
                 return new ArrayList<>( List.of( issuer.getMember() ) );
             }
-            if ( search.startsWith( "Rx:" ) ) {
-                String regex = search.substring( 3 ).toLowerCase();
+            if ( search.startsWith( "?" ) ) {
+                String regex = search.substring( 1 ).toLowerCase();
                 Optional<Member> oMember = guild.getMembers().stream()
                         .filter( m -> m.getEffectiveName().toLowerCase().matches( regex ) )
                         .collect( Collectors.toList() ).stream().findFirst();
@@ -79,8 +80,20 @@ public class FindGuildMember {
         return search( issuer, issuer.getGuild(), search, issuer.getMessage(), allowKeywords );
     }
 
+    @Nullable
+    public static ArrayList<Member> search( CommandActionData actionData ) {
+        return search( actionData.getIssuer(), actionData.getIssuer().getGuild(), actionData.getSearch(),
+                actionData.getIssuer().getMessage(), actionData.getKeywordsAllowed() );
+    }
+
     @NotNull
     public static ArrayList<Member> multiSearch( DiscordCommandIssuer issuer, String search, boolean allowKeywords ) {
         return multiSearch( issuer, issuer.getGuild(), search, issuer.getMessage(), allowKeywords );
+    }
+
+    @NotNull
+    public static ArrayList<Member> multiSearch( CommandActionData actionData ) {
+        return multiSearch( actionData.getIssuer(), actionData.getIssuer().getGuild(), actionData.getSearch(),
+                actionData.getIssuer().getMessage(), actionData.getKeywordsAllowed() );
     }
 }

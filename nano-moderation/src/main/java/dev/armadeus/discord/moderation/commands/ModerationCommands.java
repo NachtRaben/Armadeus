@@ -5,7 +5,7 @@ import com.electronwill.nightconfig.core.Config;
 import dev.armadeus.bot.api.command.DiscordCommand;
 import dev.armadeus.bot.api.command.DiscordCommandIssuer;
 import dev.armadeus.discord.moderation.ArmaModeration;
-import dev.armadeus.discord.moderation.util.CommandAction;
+import dev.armadeus.discord.moderation.objects.CommandActionData;
 import dev.armadeus.discord.moderation.util.SqlManager;
 import net.dv8tion.jda.api.MessageBuilder;
 import net.dv8tion.jda.api.Permission;
@@ -26,8 +26,13 @@ public class ModerationCommands extends DiscordCommand {
     @DiscordPermission( Permission.KICK_MEMBERS )
     @Description("Kick a user from the server, optionally with a message.")
     public void kick( DiscordCommandIssuer user, String search, @Default("false") boolean notify, @Default String reason ) {
-        issue(user, search, false, notify, reason, "Kicked from %s",
-                ( target, finalReason ) -> target.kick( finalReason ).queue() );
+        new CommandActionData().setIssuer( user )
+                .setSearch( search )
+                .setAllowKeywords( false )
+                .setNotify( notify )
+                .setReason( reason )
+                .setDescriptor( "Kicked from %s" )
+                .run( data -> issue( data, ( target, finalReason ) -> target.kick( finalReason ).queue() ) );
     }
 
     @Private
@@ -35,8 +40,13 @@ public class ModerationCommands extends DiscordCommand {
     @DiscordPermission( Permission.BAN_MEMBERS )
     @Description("Ban a user from the server, optionally with a message.")
     public void ban( DiscordCommandIssuer user, String search, @Default("0") boolean notify, @Default("1") int days, @Default String reason ) {
-        CommandAction.issue(user, search, false, notify, reason, "Banned from %s",
-                ( target, finalReason ) -> target.ban( days, finalReason ).queue() );
+        new CommandActionData().setIssuer( user )
+                .setSearch( search )
+                .setAllowKeywords( false )
+                .setNotify( notify )
+                .setReason( reason )
+                .setDescriptor( "Banned from %s" )
+                .run( data -> issue( data, ( target, finalReason ) -> target.ban( days, finalReason ).queue() ) );
     }
 
     @Private
@@ -63,12 +73,28 @@ public class ModerationCommands extends DiscordCommand {
     }
 
     @Private
+    @CommandAlias( "test.search" )
+    @DiscordPermission( Permission.BAN_MEMBERS )
+    @Description( "Try a query without effecting the server." )
+    public void testSearch( DiscordCommandIssuer issuer, String key ) {
+        issuer.sendMessage( String.format( "Searching: `%s`;", key ), 31L );
+        CommandActionData data = new CommandActionData().setIssuer( issuer )
+                .setSearch( key )
+                .setCanTargetSelf( true )
+                .setAllowKeywords( true );
+        issue( data, ( target ) -> issuer.sendMessage( String.format( "Result: %s", target.getUser().getAsTag() ), 30L ) );
+    }
+
+    @Private
     @CommandAlias( "register" )
     @DiscordPermission( Permission.ADMINISTRATOR )
     @Description( "Register users in the database." )
     public void register( DiscordCommandIssuer user, String key ) {
         SqlManager sql = sqlManager.getConnection( user.getGuild() );
-        CommandAction.issue( user, key, true, ( target ) -> sql.insertUserEntry( target.getUser() ) );
+        CommandActionData data = new CommandActionData().setIssuer( user )
+                .setSearch( key )
+                .setAllowKeywords( true );
+        issue( data, ( target ) -> sql.insertUserEntry( target.getUser() ) );
     }
 
     @Private

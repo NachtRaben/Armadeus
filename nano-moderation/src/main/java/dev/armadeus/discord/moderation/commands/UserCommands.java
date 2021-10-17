@@ -27,7 +27,7 @@ public class UserCommands extends DiscordCommand {
         if ( config == null ) return;
 
         ArrayList<String> rolesAssignable = new ArrayList<>();
-        ArrayList<String> assignableRoles = config.get( "assignableRoles" );
+        ArrayList<Long> assignableRoles = config.get( "assignableRoles" );
 
         assignableRoles.forEach( roleId -> {
             Role role = user.getGuild().getRoleById( roleId );
@@ -38,7 +38,11 @@ public class UserCommands extends DiscordCommand {
         MessageBuilder messageBuilder = new MessageBuilder();
         Joiner joiner = Joiner.on( ", " ).skipNulls();
         messageBuilder.append( "__**Assignable Roles**__\n" );
-        joiner.appendTo( messageBuilder.getStringBuilder(), rolesAssignable );
+        if ( !rolesAssignable.isEmpty() ) {
+            joiner.appendTo( messageBuilder.getStringBuilder(), rolesAssignable );
+        } else {
+            messageBuilder.append( "No Assignable Roles Found." );
+        }
         messageBuilder.append( "\n------------" );
 
         user.getUser().openPrivateChannel().queue( ch -> ch.sendMessage( messageBuilder.build() ).queue() );
@@ -51,13 +55,13 @@ public class UserCommands extends DiscordCommand {
         Config config = ArmaModeration.get().getConfig(user.getGuild());
         if ( config == null ) return;
 
-        ArrayList<String> assignableRoles = config.get( "assignableRoles" );
+        ArrayList<Long> assignableRoles = config.get( "assignableRoles" );
         Role role = user.getGuild().getRolesByName( roleName, true ).get( 0 );
 
         if ( role == null ) {
             user.sendMessage( "Role not found.", 7000L );
         } else {
-            if ( !assignableRoles.contains( role.getId() ) ){
+            if ( !assignableRoles.contains( role.getIdLong() ) ){
                 user.sendMessage( "Role not found.", 7000L );
                 return;
             }
@@ -82,19 +86,19 @@ public class UserCommands extends DiscordCommand {
         Config config = ArmaModeration.get().getConfig(user.getGuild());
         if ( config == null ) return;
 
-        ArrayList<String> assignableRoles = config.get( "assignableRoles" );
+        ArrayList<Long> assignableRoles = config.get( "assignableRoles" );
         Role role = user.getGuild().getRolesByName( roleName, true ).get( 0 );
 
         if ( role == null ) {
-            user.sendMessage( "Role not found.", 7000L );
+            user.sendMessage( "Role not found.", 20L );
         } else {
-            if ( !assignableRoles.contains( role.getId() ) ){
-                user.sendMessage( "Role not found.", 7000L );
+            if ( !assignableRoles.contains( role.getIdLong() ) ){
+                user.sendMessage( "Role not found.", 20L );
                 return;
             }
 
             if ( !user.getMember().getRoles().contains( role ) ) {
-                user.sendMessage( "You don't have that role.", 7000L );
+                user.sendMessage( "You don't have that role.", 20L );
                 return;
             }
 
