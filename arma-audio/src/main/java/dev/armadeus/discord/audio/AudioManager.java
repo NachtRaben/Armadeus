@@ -34,6 +34,8 @@ public class AudioManager {
     public Map<Long, ScheduledTask> listeners = new HashMap<>();
     private PlayerWrapper player;
     float[] bands = new float[]{ 0.075f, 0.0375f, 0.03f, 0.022499999f, 0.0f, -0.015f, -0.022499999f, -0.0375f, -0.022499999f, -0.015f, 0.0f, 0.022499999f, 0.03f, 0.0375f, 0.075f };
+    @Getter
+    private float equalizerModifier = 1.0f;
 
     public AudioManager(Guild guild) {
         this.guild = guild;
@@ -41,7 +43,7 @@ public class AudioManager {
         GuildConfig config = ArmaAudio.core().guildManager().getConfigFor(guild);
         this.audioConfig = config.getMetadataOrInitialize("arma-audio", conf -> conf.set("volume", Float.toString(0.4f)));
         ArmaAudio.core().scheduler().buildTask(ArmaAudio.get(), () -> {
-            if(!getPlayer().isPlaying() && getPlayer().getLink().getChannelId() != -1) {
+            if (!getPlayer().isPlaying() && getPlayer().getLink().getChannelId() != -1) {
                 log.warn("{} => Disconnecting due to inactivity", guild.getName());
                 getScheduler().stop();
                 getPlayer().getLink().destroy();
@@ -66,14 +68,24 @@ public class AudioManager {
             player.setVolume(getVolume());
             Filters filters = player.getFilters();
             for (int i = 0; i < this.bands.length; i++) {
-                filters = filters.setBand(i, this.bands[i] * 1.5f);
+                filters = filters.setBand(i, this.bands[i] * equalizerModifier);
             }
             filters.commit();
         }
         return player;
     }
 
+    public void updateEqualizerModifier(float value) {
+        this.equalizerModifier = value;
+        Filters filters = getPlayer().getFilters();
+        for (int i = 0; i < this.bands.length; i++) {
+            filters = filters.setBand(i, this.bands[i] * equalizerModifier);
+        }
+        filters.commit();
+    }
+
     public static class TrackLoader {
+
         public static void loadAndPlay(DiscordCommandIssuer user, String identifier, int limit) {
             boolean isSearch = identifier.startsWith("ytsearch:") || identifier.startsWith("scsearch:");
             if (isSearch) {

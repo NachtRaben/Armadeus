@@ -1,5 +1,6 @@
 package dev.armadeus.discord.commands.admin;
 
+import co.aikar.commands.annotation.CatchUnknown;
 import co.aikar.commands.annotation.CommandAlias;
 import co.aikar.commands.annotation.CommandPermission;
 import co.aikar.commands.annotation.Conditions;
@@ -29,12 +30,12 @@ public class EvalCommand extends DiscordCommand {
     @CommandAlias("eval")
     @Description("Developer command used to run realtime evaluations")
     @Default
+    @CatchUnknown
     public void eval(DiscordCommandIssuer user) {
         // This fuckery is because some newlines get consumed inside the code-block
         String raw = user.getMessage().getContentRaw();
         logger.warn(raw);
         Matcher matcher = CODEBLOCK.matcher(raw);
-        logger.warn("{}", matcher.matches());
         if (!matcher.find()) {
             user.sendMessage("Scripts must be encased in a codeblock");
             return;
