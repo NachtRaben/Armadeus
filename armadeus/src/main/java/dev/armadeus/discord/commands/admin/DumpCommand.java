@@ -1,9 +1,7 @@
 package dev.armadeus.discord.commands.admin;
 
-import co.aikar.commands.annotation.CatchUnknown;
 import co.aikar.commands.annotation.CommandAlias;
 import co.aikar.commands.annotation.Conditions;
-import co.aikar.commands.annotation.Default;
 import co.aikar.commands.annotation.Private;
 import dev.armadeus.bot.api.command.DiscordCommand;
 import dev.armadeus.bot.api.command.DiscordCommandIssuer;
@@ -16,14 +14,13 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
+@Private
+@Conditions("owneronly")
+@CommandAlias("dump")
 public class DumpCommand extends DiscordCommand {
 
     @Private
-    @Conditions("owneronly")
-    @CommandAlias("eval")
-    @Default
-    @CatchUnknown
+    @CommandAlias("owners")
     public void dump(DiscordCommandIssuer user) {
         Map<User, List<Guild>> guilds = new HashMap<>();
         core.shardManager().getGuilds().forEach(g -> {
