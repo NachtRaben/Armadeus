@@ -73,7 +73,7 @@ public class ModerationCommands extends DiscordCommand {
     }
 
     @Private
-    @CommandAlias( "test.search" )
+    @CommandAlias( "query-user" )
     @DiscordPermission( Permission.BAN_MEMBERS )
     @Description( "Try a query without effecting the server." )
     public void testSearch( DiscordCommandIssuer issuer, String key ) {
@@ -98,7 +98,7 @@ public class ModerationCommands extends DiscordCommand {
     }
 
     @Private
-    @CommandAlias( "moderation.set" )
+    @CommandAlias( "modset" )
     @DiscordPermission( Permission.ADMINISTRATOR )
     @Description( "Change the servers moderation configuration." )
     public void editConfig( DiscordCommandIssuer user, String setting, String value ) {
@@ -110,14 +110,31 @@ public class ModerationCommands extends DiscordCommand {
             return;
         }
 
+        String oldValue = config.get( setting ).toString();
+
         if ( value.matches( "-?\\d+" ) ) {
             config.set( setting, Long.parseLong( value ) );
         } else {
             config.set( setting, value );
         }
 
-        String oldValue = config.get( setting ).toString();
         user.sendMessage( String.format( "`%s[ %s ]` **>>** `%1$s[ %s ]`", setting, oldValue, value ) );
+    }
+
+    @Private
+    @CommandAlias( "modlist" )
+    @DiscordPermission( Permission.ADMINISTRATOR )
+    @Description( "List configuration settings for Moderation." )
+    public void listConfig( DiscordCommandIssuer user ) {
+        Config config = ArmaModeration.get().getConfig( user.getGuild() );
+        if ( config == null ) return;
+
+        MessageBuilder messageBuilder = new MessageBuilder();
+        config.valueMap().forEach( (key, obj) -> {
+            messageBuilder.append( String.format( "```json\n%s: %s```\n", key, obj.toString() ) );
+        } );
+
+        user.sendMessage( messageBuilder.build() );
     }
 
     @Private

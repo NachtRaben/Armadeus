@@ -5,7 +5,6 @@ import dev.armadeus.bot.api.ArmaCore;
 import dev.armadeus.discord.moderation.ArmaModeration;
 import dev.armadeus.discord.moderation.objects.MessageCountData;
 import dev.armadeus.discord.moderation.util.MessageAction;
-import dev.armadeus.discord.moderation.util.SqlManager;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
@@ -91,7 +90,6 @@ public class ModerationListener extends ListenerAdapter {
 
         if ( member.getUser().isBot() || member.getUser().isSystem() ) return;
         if ( msg.getContentDisplay().isEmpty() ) return;
-        if ( msg.getAttachments().stream().anyMatch( Message.Attachment::isImage ) ) return;
 
         msgAction.profanityCheckMessage( msg, false );
         sqlManager.getConnection( guild ).insertLogEntry( member.getUser(), msg );
