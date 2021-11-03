@@ -12,8 +12,6 @@ import dev.armadeus.bot.api.config.GuildConfig;
 import dev.armadeus.discord.moderation.commands.ModerationCommands;
 import dev.armadeus.discord.moderation.commands.UserCommands;
 import dev.armadeus.discord.moderation.listeners.ModerationListener;
-import dev.armadeus.discord.moderation.util.CommandAction;
-import dev.armadeus.discord.moderation.util.FindGuildMember;
 import dev.armadeus.discord.moderation.util.SqlManager;
 import lombok.Getter;
 import lombok.experimental.Accessors;
@@ -70,14 +68,14 @@ public class ArmaModeration {
         return config.getMetadataOrInitialize("nano-moderation", c -> {
             c.set( "enabled", false );
             c.set( "slowmodeA", 7 );
-            c.set( "slowmodeB", 60 );
+            c.set( "slowmodeB", 180 );
             c.set( "muteAfterXMessages", 3 );
             c.set( "staffRoleID", 892590384004358225L );
             c.set( "muteRoleID", 894557484310757417L );
             c.set( "verifiedRoleID", 872169571572916275L );
             c.set( "msgChannel", 895211136620830762L );
+            c.set( "logsChannel", 895211274894442497L );
             c.set( "assignableRoles", new ArrayList<Long>() );
         });
     }
-
 }

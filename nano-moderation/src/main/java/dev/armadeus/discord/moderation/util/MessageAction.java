@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import static dev.armadeus.bot.api.config.ArmaConfig.logger;
 import static dev.armadeus.discord.moderation.ArmaModeration.httpClient;
@@ -21,6 +22,11 @@ import static dev.armadeus.discord.moderation.ArmaModeration.httpClient;
 public class MessageAction {
     private Config config = null;
     private final Map<Guild, List<Member>> mutedMembersInGuild = new ConcurrentHashMap<>();
+
+    public static List<IMentionable> getMentionedHumans( Message msg ) {
+        if ( msg.getAuthor().isSystem() ) return new ArrayList<IMentionable>();
+        return msg.getMentionedUsers().stream().filter( user -> !user.isBot() ).collect( Collectors.toList() );
+    }
 
     public void setGuild( Guild guild ) {
         config = ArmaModeration.get().getConfig( guild );
@@ -102,7 +108,7 @@ public class MessageAction {
         if ( mutedMembers.contains( member ) ) return;
         guild.addRoleToMember( member, muteRole ).queue( e -> {
             mutedMembers.add( member );
-            logger.info( String.format("%s( %s ) has been muted for %d seconds.", member.getUser().getName(), member.getUser(), muteTime) );
+            GuildLogger.log( guild, String.format("%s( %s ) has been muted for %d seconds.", member.getUser().getAsTag(), member.getUser(), muteTime) );
             guild.removeRoleFromMember( member, muteRole ).queueAfter( muteTime, TimeUnit.SECONDS, x -> mutedMembers.remove( member ) );
         });
     }

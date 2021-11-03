@@ -22,18 +22,19 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import static dev.armadeus.bot.api.config.ArmaConfig.logger;
 import static dev.armadeus.discord.moderation.ArmaModeration.sqlManager;
+import static dev.armadeus.discord.moderation.util.MessageAction.getMentionedHumans;
 
 public class ModerationListener extends ListenerAdapter {
     private final ArmaCore core;
-    public ModerationListener( ArmaCore core) {
+    public ModerationListener( ArmaCore core ) {
         this.core = core;
     }
+
     private static final MessageAction msgAction = new MessageAction();
     private static final Map<Member, MessageCountData> memberMessages = new ConcurrentHashMap<>();
 
     @Override
     public void onButtonClick( ButtonClickEvent event ) {
-        // TODO: Add spam prevention & detection.
         Guild guild = event.getGuild();
         if ( guild == null ) return;
 
@@ -45,7 +46,9 @@ public class ModerationListener extends ListenerAdapter {
         if ( verifiedRole == null ) return;
 
         Member clicker = event.getMember();
+
         if ( clicker == null ) return;
+        if ( clicker.getRoles().contains( verifiedRole ) ) return;
 
         switch ( event.getComponentId() ){
             case "ACCEPT_RULES":
@@ -96,15 +99,19 @@ public class ModerationListener extends ListenerAdapter {
 
         MessageCountData msgData = memberMessages.getOrDefault( member, new MessageCountData(msg) );
         boolean isSameAsLast = msg.getContentRaw().equals( msgData.getLastMessageRaw() );
+
         int compare = msgData.getLastMessageTime().plusSeconds( 3L ).compareTo( msg.getTimeCreated() );
         int msgCount = msgData.increment( msg, 100 );
+
+        boolean hasGroupPing = msgData.getGroupPing( msg );
+        int getGroupPings = msgData.getGroupPings();
 
         if ( memberMessages.size() >= 100 ) memberMessages.clear();
         memberMessages.forEach( (member1, msgData1) -> {
             if ( msgData1.getLastMessageTime().isBefore( msg.getTimeCreated().plusMinutes( 3L ) ) ) {
                 try {
-                    memberMessages.remove( member1 ); }
-                catch ( NullPointerException e ){
+                    memberMessages.remove( member1 );
+                } catch ( NullPointerException e ){
                     logger.info( "Failed to remove Member: " + member1.getUser() );
                 }
             }
@@ -115,10 +122,15 @@ public class ModerationListener extends ListenerAdapter {
 
         long muteMsgCount = config.getLongOrElse("muteAfterXMessages", 3L );
         long slowmodeA = config.getLongOrElse( "slowmodeA", 7L );
-        long slowmodeB = config.getLongOrElse( "slowmodeB", 60L );
+        long slowmodeB = config.getLongOrElse( "slowmodeB", 180L );
 
         if ( !member.hasPermission( Permission.MESSAGE_MENTION_EVERYONE ) ) {
-            if ( msg.mentionsEveryone() || msg.getMentions( Message.MentionType.USER ).size() >= 7 ) {
+            if ( msg.mentionsEveryone() || getMentionedHumans( msg ).size() > 6 ) {
+                msgAction.muteMemberInGuild( msg, slowmodeB );
+                return;
+            }
+            if ( hasGroupPing && getGroupPings > 2 ) {
+                msgData.setGroupPings( 0 );
                 msgAction.muteMemberInGuild( msg, slowmodeB );
                 return;
             }

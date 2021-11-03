@@ -12,6 +12,8 @@ import javax.annotation.Nullable;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static dev.armadeus.discord.moderation.util.MessageAction.getMentionedHumans;
+
 public class FindGuildMember {
     private static ArrayList<Member> search( DiscordCommandIssuer issuer, Guild guild, String search, boolean allowKeywords ) {
         if ( search.isEmpty() || search.isBlank() ) return null;
@@ -53,7 +55,7 @@ public class FindGuildMember {
         ArrayList<Member> members = search( issuer, guild, search, allowKeywords );
         if ( members != null ) return members;
 
-        List<IMentionable> mentions = message.getMentions( Message.MentionType.USER );
+        List<IMentionable> mentions = getMentionedHumans(message);
         if ( mentions.isEmpty() ) return null;
 
         List<Member> memberMentions = mentions.stream().filter( m -> m instanceof Member ).map( Member.class::cast ).collect( Collectors.toList() );

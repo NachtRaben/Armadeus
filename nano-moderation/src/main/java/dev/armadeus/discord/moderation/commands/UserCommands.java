@@ -9,13 +9,19 @@ import com.google.common.base.Joiner;
 import dev.armadeus.bot.api.command.DiscordCommand;
 import dev.armadeus.bot.api.command.DiscordCommandIssuer;
 import dev.armadeus.discord.moderation.ArmaModeration;
+import dev.armadeus.discord.moderation.util.GuildLogger;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.MessageBuilder;
 import net.dv8tion.jda.api.entities.Role;
+import net.dv8tion.jda.api.exceptions.ErrorResponseException;
 
 import java.awt.*;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Consumer;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Conditions("guildonly")
 public class UserCommands extends DiscordCommand {
@@ -50,13 +56,13 @@ public class UserCommands extends DiscordCommand {
             return;
         }
 
-        user.sendPrivateMessage( messageBuilder.build() );
+        try {
+            user.sendPrivateMessage( messageBuilder.build() );
+        } catch( ErrorResponseException ignore ) {}
     }
 
-    @CommandAlias( "iam" )
-    @Description( "Get self assignable role." )
-    @CommandPermission("armadeus.iam")
-    public void iam( DiscordCommandIssuer user, String role_names ) {
+    private void processRoles( Color colour, String title, String description, String separator, DiscordCommandIssuer user, String role_names, Consumer<Role> consumer ){
+        boolean breakMe = false;
         Config config = ArmaModeration.get().getConfig(user.getGuild());
         if ( config == null ) return;
 
@@ -68,17 +74,28 @@ public class UserCommands extends DiscordCommand {
         int amount = 0;
 
         for ( String role : rolesByName ) {
-            if ( amount++ > 3 ) break;
-            Role foundRole = user.getGuild().getRolesByName( role.trim(), true ).get( 0 );
-            if ( foundRole != null ) {
-                roles.add( foundRole );
-            } else {
-                notFounds.set( true );
+            if ( amount++ > 5 ) break;
+            List<Role> roleList = user.getGuild().getRolesByName( role.trim(), true );
+
+            if ( roleList.isEmpty() ) {
+                breakMe = true;
+                break;
             }
+
+            Role foundRole = roleList.get( 0 );
+            if ( foundRole != null ) roles.add( foundRole );
+        }
+
+        if ( breakMe ) {
+            String msg = user.getUser().getAsMention() + ": Invalid role(s) specified. If you'd like to self-assign " +
+            "multiple roles use commas (`,`) to separate them.\nie. `/iam role1, role2, role3`\n\nUse `/lsar` for a " +
+            "list of self assignable roles." ;
+            user.sendMessage( msg );
+            return;
         }
 
         if ( roles.isEmpty() ) {
-            user.sendMessage( "No roles found.", 7000L );
+            user.sendMessage( user.getUser().getAsMention() + ": No assignable roles found. Try running `/lsar` for a list of assignable roles!" );
             return;
         }
 
@@ -88,62 +105,52 @@ public class UserCommands extends DiscordCommand {
                 notFounds.set( true );
                 return;
             }
-            user.getGuild().addRoleToMember( user.getMember(), role ).queue();
+            consumer.accept( role );
         } );
 
         EmbedBuilder embedBuilder = new EmbedBuilder();
-        Joiner joiner = Joiner.on( "\n[+] " ).skipNulls();
+        Joiner joiner = Joiner.on( separator ).skipNulls();
 
         embedBuilder.setAuthor( "Role Manager", "https://mirai.red/", "https://mirai.red/resource/roleicon.png" );
-        embedBuilder.setTitle( "Roles Granted!", "https://mirai.red/" );
+        embedBuilder.setTitle( title, "https://mirai.red/" );
         embedBuilder.appendDescription( user.getUser().getAsMention() );
-        embedBuilder.appendDescription( " now has the following roles!\n[+] " );
-        joiner.appendTo(embedBuilder.getDescriptionBuilder(), roles);
+        embedBuilder.appendDescription( description + separator );
+
+        joiner.appendTo( embedBuilder.getDescriptionBuilder(),
+                roles.stream().flatMap( role -> Stream.of( role.getAsMention() ) ).collect( Collectors.toList() ) );
 
         if ( notFounds.get() ) {
             embedBuilder.appendDescription( "\n__Some roles were not found.__" );
         }
 
-        embedBuilder.setColor( Color.GREEN );
+        embedBuilder.setColor( colour );
         embedBuilder.setFooter( user.getUser().getAsTag(), user.getUser().getEffectiveAvatarUrl() );
 
+        StringBuilder logMessage = new StringBuilder( user.getUser().getAsTag() );
+        logMessage.append( "; " ).append( title ).append( "; " );
+
+        joiner = Joiner.on(", ").skipNulls();
+        joiner.appendTo( logMessage,
+                roles.stream().flatMap( role ->
+                        Stream.of( String.format( "@%s", role.getName() ) ) ).collect( Collectors.toList() ) );
+
+        GuildLogger.log( user.getGuild(), logMessage.toString() );
         user.sendMessage( embedBuilder.build() );
     }
 
+    @CommandAlias( "iam" )
+    @Description( "Request self assignable roles, comma separated." )
+    @CommandPermission("armadeus.iam")
+    public void iam( DiscordCommandIssuer user, String role_names ) {
+        processRoles( Color.GREEN, "Roles Granted!", " now has the following roles!", "\n[+] ",
+                user, role_names,  role -> user.getGuild().addRoleToMember( user.getMember(), role ).queue() );
+    }
+
     @CommandAlias( "iamn" )
-    @Description( "Remove self assignable role." )
+    @Description( "Remove self assignable roles, comma separated." )
     @CommandPermission("armadeus.iamn")
-    public void iamnot( DiscordCommandIssuer user, String role_name ) {
-        Config config = ArmaModeration.get().getConfig(user.getGuild());
-        if ( config == null ) return;
-
-        ArrayList<Long> assignableRoles = config.get( "assignableRoles" );
-        Role role = user.getGuild().getRolesByName( role_name, true ).get( 0 );
-
-        if ( role == null ) {
-            user.sendMessage( "Role not found.", 20L );
-        } else {
-            if ( !assignableRoles.contains( role.getIdLong() ) ){
-                user.sendMessage( "Role not found.", 20L );
-                return;
-            }
-
-            if ( !user.getMember().getRoles().contains( role ) ) {
-                user.sendMessage( "You don't have that role.", 20L );
-                return;
-            }
-
-            user.getGuild().removeRoleFromMember( user.getMember(), role ).queue();
-
-            EmbedBuilder embedBuilder = new EmbedBuilder();
-            embedBuilder.setAuthor( "Role Manager", "https://mirai.red/", "https://mirai.red/resource/roleicon.png" );
-            embedBuilder.setTitle( "Role Removed!", "https://mirai.red/" );
-            embedBuilder.appendDescription( user.getUser().getAsMention() );
-            embedBuilder.appendDescription( " no longer has the " ).appendDescription( role.getAsMention() ).appendDescription( " role!" );
-            embedBuilder.setColor( Color.RED );
-            embedBuilder.setFooter( user.getUser().getAsTag(), user.getUser().getEffectiveAvatarUrl() );
-
-            user.sendMessage( embedBuilder.build() );
-        }
+    public void iamnot( DiscordCommandIssuer user, String role_names ) {
+        processRoles( Color.RED, "Roles Removed!", " no longer has the following roles!", "\n[-] ",
+                user, role_names, role -> user.getGuild().removeRoleFromMember( user.getMember(), role ).queue() );
     }
 }
