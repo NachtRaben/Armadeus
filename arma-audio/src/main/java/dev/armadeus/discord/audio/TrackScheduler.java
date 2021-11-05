@@ -210,7 +210,7 @@ public class TrackScheduler extends AudioEventAdapter implements IPlayerEventLis
 
     public AudioTrack getCurrentTrack() {
         if (currentTrack != null) {
-            AudioTrack track = player.getPlayingTrack().makeClone();
+            AudioTrack track = currentTrack.makeClone();
             track.setUserData(currentTrack.getUserData());
             return track;
         }
