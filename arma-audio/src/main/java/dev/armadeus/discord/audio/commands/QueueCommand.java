@@ -30,8 +30,8 @@ public class QueueCommand extends AudioCommand {
 
         AudioTrack current = manager.getPlayer().getPlayingTrack();
         List<AudioTrack> tracks = manager.getPlayer().getScheduler().getQueue();
-        long totalTime = current.getInfo().isStream ? 0 : current.getDuration();
-        totalTime += tracks.stream().mapToLong(track -> track.getInfo().isStream ? 0 : track.getDuration()).sum() + current.getDuration() - current.getPosition();
+        long totalTime = current.getInfo().isStream ? 0 : current.getDuration() - current.getPosition();
+        totalTime += tracks.stream().mapToLong(track -> track.getInfo().isStream ? 0 : track.getDuration()).sum();
 
         EmbedBuilder eb = new EmbedBuilder(AudioEmbedUtils.getNowPlayingEmbed(user, current));
         eb.setAuthor(user.getGuild().getSelfMember().getEffectiveName() + "'s Queue:",
