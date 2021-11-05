@@ -35,6 +35,6 @@ public class NowPlayingCommand extends AudioCommand {
             eb.addField("RepeatAll:", "`" + scheduler.isRepeatQueue() + "`", true);
             eb.addField("RepeatTrack:", "`" + scheduler.isRepeatTrack() + "`", true);
         }
-        user.sendPrivateMessage(eb.build());
+        user.sendMessage(eb.build());
     }
 }
