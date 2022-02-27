@@ -99,6 +99,10 @@ public class AudioManager {
                             track -> TrackLoader.trackLoaded(user, track), // Single Track
                             playlist -> TrackLoader.playlistLoaded(user, playlist, limit), // Playlist
                             searchTracks -> {
+                                if (limit > 1)
+                                    TrackLoader.playlistLoaded(user, new DefaultAudioPlaylist("Search Results: " + search.substring(search.indexOf(':')), searchTracks, 0), limit);
+                                else
+                                    TrackLoader.trackLoaded(user, searchTracks.get(0));
                             }, // Search Results
                             () -> {
                             }, // No Results
