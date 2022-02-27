@@ -15,6 +15,7 @@ import lavalink.client.player.track.AudioTrack;
 import lavalink.client.player.track.AudioTrackEndReason;
 import lombok.Getter;
 import lombok.Setter;
+import net.dv8tion.jda.api.MessageBuilder;
 import net.dv8tion.jda.api.entities.AudioChannel;
 import net.dv8tion.jda.api.exceptions.InsufficientPermissionException;
 import org.slf4j.Logger;
@@ -167,7 +168,7 @@ public class TrackScheduler implements IPlayerEventListener {
     }
 
     private void sendEmbed(AudioTrack track, DiscordCommandIssuer sender) {
-        sender.sendMessage(AudioEmbedUtils.getNowPlayingEmbed(sender, track));
+        sender.queueMessagePurge(new MessageBuilder().setEmbeds(AudioEmbedUtils.getNowPlayingEmbed(sender, track)).build(), 0);
     }
 
     public List<AudioTrack> getQueue() {
