@@ -1,9 +1,5 @@
 package dev.armadeus.discord.audio.radio;
 
-import com.sedmelluq.discord.lavaplayer.player.AudioLoadResultHandler;
-import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
-import com.sedmelluq.discord.lavaplayer.track.AudioPlaylist;
-import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import dev.armadeus.bot.api.command.DiscordCommandIssuer;
 import dev.armadeus.discord.audio.ArmaAudio;
 import dev.armadeus.discord.audio.AudioManager;
@@ -11,6 +7,7 @@ import dev.armadeus.discord.audio.radio.stations.Hive365;
 import dev.armadeus.discord.audio.radio.stations.ListenMoe;
 import dev.armadeus.discord.audio.radio.stations.NoLife;
 import dev.armadeus.discord.audio.util.AudioInfoModifier;
+import lavalink.client.io.FunctionalResultHandler;
 import lombok.Getter;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import okhttp3.OkHttpClient;
@@ -50,38 +47,35 @@ public abstract class Radio {
         return stations.get(station.toLowerCase(Locale.ROOT));
     }
 
-    public MessageEmbed getNowPlayingEmbed(DiscordCommandIssuer issuer) { return null; }
+    public MessageEmbed getNowPlayingEmbed(DiscordCommandIssuer issuer) {
+        return null;
+    }
 
     public void play(DiscordCommandIssuer user) {
         log.warn("Playing radio");
         AudioManager manager = ArmaAudio.getManagerFor(user.getGuild());
-        manager.getPlayer().getLink().getRestClient().loadItem(url, new AudioLoadResultHandler() {
+        manager.getPlayer().getLink().getRestClient().loadItem(url, new FunctionalResultHandler(
+                        track -> {
+                            track.setUserData(user);
+                            AudioInfoModifier info = new AudioInfoModifier(track.getInfo());
+                            info.setTitle(identifier + "\u0000" + title).setArtist(artist);
+                            manager.getScheduler().play(track);
+                            manager.getScheduler().setRepeatTrack(true);
+                        },
+                        playlist -> {
+                            throw new UnsupportedOperationException();
+                        },
+                        search -> {
+                            throw new UnsupportedOperationException();
+                        },
+                        () -> {
+                        },
+                        exception -> {
+                            user.sendMessage("Failed to play `" + identifier + " Radio`, is it offline?");
+                            exception.printStackTrace();
+                        }
 
-            @Override
-            public void trackLoaded(AudioTrack track) {
-                track.setUserData(user);
-                AudioInfoModifier info = new AudioInfoModifier(track.getInfo());
-                info.setTitle(identifier + "\u0000" + title).setArtist(artist);
-                manager.getScheduler().play(track);
-                manager.getScheduler().setRepeatTrack(true);
-            }
-
-            @Override
-            public void playlistLoaded(AudioPlaylist playlist) {
-                throw new UnsupportedOperationException();
-            }
-
-            @Override
-            public void noMatches() {
-                throw new UnsupportedOperationException();
-            }
-
-            @Override
-            public void loadFailed(FriendlyException exception) {
-                user.sendMessage("Failed to play `" +  identifier + " Radio`, is it offline?");
-                exception.printStackTrace();
-            }
-        });
+                )
+        );
     }
-
 }

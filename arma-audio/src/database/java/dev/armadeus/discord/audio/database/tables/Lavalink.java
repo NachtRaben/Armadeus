@@ -6,6 +6,7 @@ package dev.armadeus.discord.audio.database.tables;
 import dev.armadeus.discord.audio.database.Keys;
 import dev.armadeus.discord.audio.database.Public;
 import dev.armadeus.discord.audio.database.tables.records.LavalinkRecord;
+import org.jooq.Record;
 import org.jooq.*;
 import org.jooq.impl.DSL;
 import org.jooq.impl.SQLDataType;

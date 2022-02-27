@@ -1,11 +1,11 @@
 package dev.armadeus.discord.audio.util;
 
-import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import dev.armadeus.discord.audio.AudioManager;
 import dev.armadeus.discord.audio.TrackScheduler;
 import lavalink.client.io.filters.Filters;
 import lavalink.client.io.jda.JdaLink;
 import lavalink.client.player.LavalinkPlayer;
+import lavalink.client.player.track.AudioTrack;
 import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,7 +15,7 @@ public class PlayerWrapper {
     private static final Logger logger = LoggerFactory.getLogger(PlayerWrapper.class);
     private final AudioManager manager;
     private final LavalinkPlayer internalPlayer;
-    private TrackScheduler scheduler;
+    private final TrackScheduler scheduler;
 
 
     public PlayerWrapper(AudioManager manager, LavalinkPlayer internalPlayer) {

@@ -1,6 +1,6 @@
 package dev.armadeus.discord.audio.util;
 
-import com.sedmelluq.discord.lavaplayer.track.AudioTrackInfo;
+import lavalink.client.player.track.AudioTrackInfo;
 
 import java.lang.reflect.Field;
 

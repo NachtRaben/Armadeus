@@ -1,7 +1,6 @@
 plugins {
     id 'idea'
     id 'java-library'
-    id 'com.github.johnrengelman.shadow'
 }
 
 dependencies {
@@ -11,9 +10,4 @@ dependencies {
     // Lombok
     compileOnly group: 'org.projectlombok', name: 'lombok', version: lombokVersion
     annotationProcessor group: 'org.projectlombok', name: 'lombok', version: lombokVersion
-}
-
-task copyPluginJar(type: Copy) {
-    from shadowJar
-    into '../../run/plugins/'
 }

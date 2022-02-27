@@ -5,12 +5,12 @@ import co.aikar.commands.annotation.CommandPermission;
 import co.aikar.commands.annotation.Conditions;
 import co.aikar.commands.annotation.Default;
 import co.aikar.commands.annotation.Description;
-import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import dev.armadeus.bot.api.command.DiscordCommandIssuer;
 import dev.armadeus.bot.api.util.TimeUtil;
 import dev.armadeus.discord.audio.AudioManager;
 import dev.armadeus.discord.audio.TrackScheduler;
 import dev.armadeus.discord.audio.util.AudioEmbedUtils;
+import lavalink.client.player.track.AudioTrack;
 import net.dv8tion.jda.api.EmbedBuilder;
 
 public class NowPlayingCommand extends AudioCommand {
@@ -28,8 +28,10 @@ public class NowPlayingCommand extends AudioCommand {
         EmbedBuilder eb = new EmbedBuilder(AudioEmbedUtils.getNowPlayingEmbed(user, manager.getPlayer().getPlayingTrack()));
         if (extended) {
             AudioTrack current = manager.getPlayer().getPlayingTrack();
+            long position = current != null ? manager.getPlayer().getInternalPlayer().getTrackPosition() : 0;
+            assert current != null;
             eb.addField("Position:", "`" + TimeUtil.format(manager.getPlayer().getTrackPosition())
-                    + "/" + (!current.getInfo().isStream ? TimeUtil.format(current.getDuration()) : "unknown") + "`", true);
+                    + "/" + (!current.getInfo().isStream() ? TimeUtil.format(current.getInfo().getLength()) : "unknown") + "`", true);
             eb.addField("Volume:", "`" + manager.getPlayer().getFilters().getVolume() * 100 + "%" + "`", true);
             eb.addField("QueueSize:", "`" + scheduler.getQueue().size() + "`", true);
             eb.addField("RepeatAll:", "`" + scheduler.isRepeatQueue() + "`", true);

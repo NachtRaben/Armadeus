@@ -1,8 +1,11 @@
 plugins {
     id 'idea'
     id 'java-library'
-    id 'com.github.johnrengelman.shadow'
     id 'nu.studer.jooq' version '5.2.1'
+}
+
+repositories {
+    maven { url 'https://jitpack.io' }
 }
 
 dependencies {
@@ -14,18 +17,18 @@ dependencies {
     compileOnly group: 'org.projectlombok', name: 'lombok', version: lombokVersion
     annotationProcessor group: 'org.projectlombok', name: 'lombok', version: lombokVersion
 
-    implementation group: 'dev.armadeus', name: 'LL-Client', version: 'master', changing: true // Lavalink
+//    implementation ('com.github.KittyBot-Org:Lavalink-Client:master-SNAPSHOT') {
+//        exclude module: 'JDA'
+//    }
+    implementation(group: 'dev.armadeus', name: 'LL-Client', version: 'master', changing: true) { // Lavalink
+        exclude module: 'JDA'
+    }
     implementation group: 'org.reflections', name: 'reflections', version: '0.9.12'
 
 }
 
 shadowJar {
     relocate 'org.reflections', 'dev.armadeus.discord.audio.libraries.reflections'
-}
-
-task copyPluginJar(type: Copy) {
-    from shadowJar
-    into '../../run/plugins/'
 }
 
 jooq {

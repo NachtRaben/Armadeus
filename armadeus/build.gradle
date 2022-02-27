@@ -12,7 +12,7 @@ dependencies {
     compileOnly group: 'dev.armadeus', name: 'arma-api', version: DEV_ENV, changing: true
     annotationProcessor group: 'com.velocitypowered', name: 'velocity-utils-annotation-processor', version: '4.0.0-SNAPSHOT', changing: true
 
-    compileOnly project(":arma-audio");
+//    compileOnly project(":arma-audio");
 
     // Lombok
     compileOnly group: 'org.projectlombok', name: 'lombok', version: lombokVersion
@@ -32,9 +32,4 @@ compileJava {
     options.compilerArgs += ["-parameters"]
     options.fork = true
     options.forkOptions.executable = 'javac'
-}
-
-task copyPluginJar(type: Copy) {
-    from shadowJar
-    into '../../run/plugins/'
 }
