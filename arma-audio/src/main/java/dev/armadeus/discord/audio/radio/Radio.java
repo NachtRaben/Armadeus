@@ -52,7 +52,6 @@ public abstract class Radio {
     }
 
     public void play(DiscordCommandIssuer user) {
-        log.warn("Playing radio");
         AudioManager manager = ArmaAudio.getManagerFor(user.getGuild());
         manager.getPlayer().getLink().getRestClient().loadItem(url, new FunctionalResultHandler(
                         track -> {
@@ -61,6 +60,7 @@ public abstract class Radio {
                             info.setTitle(identifier + "\u0000" + title).setArtist(artist);
                             manager.getScheduler().play(track);
                             manager.getScheduler().setRepeatTrack(true);
+                            user.sendMessage("Now playing `" + title + "` by `" + artist + "`");
                         },
                         playlist -> {
                             throw new UnsupportedOperationException();

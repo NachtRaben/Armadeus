@@ -8,6 +8,7 @@ import com.velocitypowered.api.event.Subscribe;
 import com.velocitypowered.api.plugin.Plugin;
 import dev.armadeus.bot.api.ArmaCore;
 import dev.armadeus.bot.api.command.DiscordCommand;
+import dev.armadeus.bot.api.events.GuildConfigReloadEvent;
 import dev.armadeus.bot.api.events.ShutdownEvent;
 import dev.armadeus.discord.audio.database.Tables;
 import dev.armadeus.discord.audio.database.tables.records.LavalinkRecord;
@@ -98,6 +99,16 @@ public class ArmaAudio {
     public void onShutdown(ShutdownEvent event) {
         lavalink.getLinks().forEach(Link::destroy);
         lavalink.shutdown();
+    }
+
+    @Subscribe
+    public void onConfigReload(GuildConfigReloadEvent event) {
+        try {
+            AudioManager manager = getManagerFor(event.getGuildId());
+            manager.getPlayer().setVolume(manager.getVolume());
+            logger.warn("Updating player volume from web for {} to {}", manager.getGuild().getName(), manager.getVolume());
+        } catch (NullPointerException ignored) {
+        }
     }
 
     private void registerNode(String name, String uri, String password) {
