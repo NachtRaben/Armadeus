@@ -20,7 +20,7 @@ public class InviteCommand extends DiscordCommand {
         EmbedBuilder embedBuilder = EmbedUtils.newBuilder(user);
         SelfUser bot = user.getJda().getSelfUser();
         embedBuilder.setAuthor(bot.getName(), "https://armadeus.net", bot.getAvatarUrl());
-        embedBuilder.setDescription("Invite me: [link](https://discord.armadeus.net/invite)" +
+        embedBuilder.setDescription("Invite me: [link](https://discord.com/oauth2/authorize?scope=bot&client_id=" + user.getJda().getSelfUser().getIdLong() + "&permissions=892726979)" +
                 "\nSupport: [link](https://discord.armadeus.net/)");
         user.sendMessage(embedBuilder.build());
     }
