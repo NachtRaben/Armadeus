@@ -8,6 +8,7 @@ import dev.armadeus.bot.api.command.DiscordCommand;
 import dev.armadeus.bot.api.command.DiscordCommandIssuer;
 import dev.armadeus.bot.api.util.EmbedUtils;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.SelfUser;
 
 public class InviteCommand extends DiscordCommand {
@@ -20,7 +21,7 @@ public class InviteCommand extends DiscordCommand {
         EmbedBuilder embedBuilder = EmbedUtils.newBuilder(user);
         SelfUser bot = user.getJda().getSelfUser();
         embedBuilder.setAuthor(bot.getName(), "https://armadeus.net", bot.getAvatarUrl());
-        embedBuilder.setDescription("Invite me: [link](https://discord.com/oauth2/authorize?scope=bot&client_id=" + user.getJda().getSelfUser().getIdLong() + "&permissions=892726979)" +
+        embedBuilder.setDescription("Invite me: [link](" + user.getJda().setRequiredScopes("bot", "applications.commands").getInviteUrl(Permission.getPermissions(892726979L)) + ")" +
                 "\nSupport: [link](https://discord.armadeus.net/)");
         user.sendMessage(embedBuilder.build());
     }
