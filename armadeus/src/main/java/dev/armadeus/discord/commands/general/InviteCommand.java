@@ -21,7 +21,7 @@ public class InviteCommand extends DiscordCommand {
         EmbedBuilder embedBuilder = EmbedUtils.newBuilder(user);
         SelfUser bot = user.getJda().getSelfUser();
         embedBuilder.setAuthor(bot.getName(), "https://armadeus.net", bot.getAvatarUrl());
-        embedBuilder.setDescription("Invite me: [link](" + user.getJda().setRequiredScopes("bot", "applications.commands").getInviteUrl(Permission.getPermissions(892726979L)) + ")" +
+        embedBuilder.setDescription("Invite me: [link](" + user.getJda().setRequiredScopes("bot", "applications.commands").getInviteUrl(Permission.getPermissions(892726979L)) + "L)" +
                 "\nSupport: [link](https://discord.armadeus.net/)");
         user.sendMessage(embedBuilder.build());
     }
