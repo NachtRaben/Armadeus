@@ -115,6 +115,7 @@ public class TrackScheduler implements IPlayerEventListener {
             if (currentTrack != null && repeatQueue)
                 queue.addLast(getCurrentTrack());
             if (queue.isEmpty() && isPlaying()) {
+                logger.warn(String.valueOf(queue.size()));
                 logger.info("{} => Stopping, empty queue", player.getManager().getGuild().getName());
                 stop();
             } else if (!queue.isEmpty()) {
@@ -168,6 +169,15 @@ public class TrackScheduler implements IPlayerEventListener {
 
     private void sendEmbed(AudioTrack track, DiscordCommandIssuer sender) {
         sender.getChannel().sendMessageEmbeds(AudioEmbedUtils.getNowPlayingEmbed(sender, track)).queue(m -> sender.queueMessagePurge(m, 0));
+    }
+
+    public void clearQueue() {
+        lock.lock();
+        try {
+            queue.clear();
+        } finally {
+            lock.unlock();
+        }
     }
 
     public List<AudioTrack> getQueue() {
@@ -225,14 +235,18 @@ public class TrackScheduler implements IPlayerEventListener {
         AudioTrackEndReason endReason = event.getReason();
         switch (endReason) {
             case FINISHED:
+                logger.warn("Finished");
                 if (repeatTrack) {
                     player.playTrack(getCurrentTrack());
                     break;
                 }
+                skip();
             case LOAD_FAILED:
+                logger.warn("Failed");
                 skip();
                 break;
             case STOPPED:
+                logger.warn("Stopped");
                 stop();
                 break;
         }

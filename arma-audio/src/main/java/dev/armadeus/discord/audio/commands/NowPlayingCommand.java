@@ -28,7 +28,6 @@ public class NowPlayingCommand extends AudioCommand {
         EmbedBuilder eb = new EmbedBuilder(AudioEmbedUtils.getNowPlayingEmbed(user, manager.getPlayer().getPlayingTrack()));
         if (extended) {
             AudioTrack current = manager.getPlayer().getPlayingTrack();
-            long position = current != null ? manager.getPlayer().getInternalPlayer().getTrackPosition() : 0;
             assert current != null;
             eb.addField("Position:", "`" + TimeUtil.format(manager.getPlayer().getTrackPosition())
                     + "/" + (!current.getInfo().isStream() ? TimeUtil.format(current.getInfo().getLength()) : "unknown") + "`", true);

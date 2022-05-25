@@ -5,6 +5,7 @@ import dev.armadeus.bot.api.util.TimeUtil;
 import dev.armadeus.discord.audio.radio.Radio;
 import lavalink.client.player.track.AudioTrack;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 
 import static dev.armadeus.bot.api.util.EmbedUtils.newBuilder;
@@ -12,6 +13,10 @@ import static dev.armadeus.bot.api.util.EmbedUtils.newBuilder;
 public class AudioEmbedUtils {
 
     public static MessageEmbed getNowPlayingEmbed(DiscordCommandIssuer user, AudioTrack track) {
+        return getNowPlayingEmbed(user.getMember(), track);
+    }
+
+    public static MessageEmbed getNowPlayingEmbed(Member user, AudioTrack track) {
         if (track.getInfo().getTitle().contains("\u0000")) {
             Radio radio = Radio.getStation(track.getInfo().getTitle().split("\u0000")[0]);
             if (radio != null) {
@@ -25,7 +30,7 @@ public class AudioEmbedUtils {
         builder.setAuthor("Now Playing: ",
                         EmbedBuilder.URL_PATTERN.matcher(track.getInfo().getUri()).matches()
                                 ? track.getInfo().getUri() : null, null)
-                .setFooter("Requested by: " + user.getMember().getEffectiveName(), user.getUser().getAvatarUrl())
+                .setFooter("Requested by: " + user.getEffectiveName(), user.getUser().getAvatarUrl())
                 .setDescription(String.format("Title: %s\nAuthor: %s\nLength: %s",
                         track.getInfo().getTitle().contains("\u0000") ? track.getInfo().getTitle().split("\u0000")[1] : track.getInfo().getTitle(),
                         track.getInfo().getAuthor(),

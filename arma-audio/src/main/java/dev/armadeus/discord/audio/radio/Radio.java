@@ -9,6 +9,7 @@ import dev.armadeus.discord.audio.radio.stations.NoLife;
 import dev.armadeus.discord.audio.util.AudioInfoModifier;
 import lavalink.client.io.FunctionalResultHandler;
 import lombok.Getter;
+import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import okhttp3.OkHttpClient;
 import org.slf4j.Logger;
@@ -47,17 +48,21 @@ public abstract class Radio {
         return stations.get(station.toLowerCase(Locale.ROOT));
     }
 
-    public MessageEmbed getNowPlayingEmbed(DiscordCommandIssuer issuer) {
+    public final MessageEmbed getNowPlayingEmbed(DiscordCommandIssuer issuer) {
+        return getNowPlayingEmbed(issuer.getMember());
+    }
+
+    public MessageEmbed getNowPlayingEmbed(Member member) {
         return null;
     }
 
     public void play(DiscordCommandIssuer user) {
         AudioManager manager = ArmaAudio.getManagerFor(user.getGuild());
         manager.getPlayer().getLink().getRestClient().loadItem(url, new FunctionalResultHandler(
-                        track -> {
-                            track.setUserData(user);
-                            AudioInfoModifier info = new AudioInfoModifier(track.getInfo());
-                            info.setTitle(identifier + "\u0000" + title).setArtist(artist);
+                track -> {
+                    track.setUserData(user);
+                    AudioInfoModifier info = new AudioInfoModifier(track.getInfo());
+                    info.setTitle(identifier + "\u0000" + title).setArtist(artist);
                             manager.getScheduler().play(track);
                             manager.getScheduler().setRepeatTrack(true);
                             user.sendMessage("Now playing `" + title + "` by `" + artist + "`");

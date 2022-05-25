@@ -4,11 +4,11 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.velocitypowered.api.scheduler.ScheduledTask;
-import dev.armadeus.bot.api.command.DiscordCommandIssuer;
 import dev.armadeus.bot.api.util.EmbedUtils;
 import dev.armadeus.discord.audio.ArmaAudio;
 import dev.armadeus.discord.audio.radio.Radio;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -38,15 +38,15 @@ public class ListenMoe extends Radio {
     }
 
     @Override
-    public MessageEmbed getNowPlayingEmbed(DiscordCommandIssuer issuer) {
+    public MessageEmbed getNowPlayingEmbed(Member issuer) {
         EmbedBuilder builder = EmbedUtils.newBuilder(issuer).setColor(Color.PINK)
                 .setTitle("Radio provided by LISTEN.moe", "https://listen.moe/")
                 .setDescription("JPop Radio Station");
 
-        if(current != null) {
+        if (current != null) {
             builder.appendDescription("\nTitle: " + current.title);
             builder.appendDescription("\nArtist: " + Arrays.stream(current.artists).map(art -> art.name).collect(Collectors.joining(", ")));
-            if(current.albums != null && current.albums.length > 0) {
+            if (current.albums != null && current.albums.length > 0) {
                 builder.setThumbnail(current.albums[0].getCoverURL());
                 builder.appendDescription("\nAlbum: " + current.albums[0].name);
             }

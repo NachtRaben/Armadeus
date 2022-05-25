@@ -4,6 +4,7 @@ import dev.armadeus.bot.api.command.DiscordCommand;
 import dev.armadeus.bot.api.command.DiscordCommandIssuer;
 import dev.armadeus.discord.audio.ArmaAudio;
 import dev.armadeus.discord.audio.AudioManager;
+import net.dv8tion.jda.api.entities.Member;
 
 public abstract class AudioCommand extends DiscordCommand {
 
@@ -36,4 +37,7 @@ public abstract class AudioCommand extends DiscordCommand {
         return ArmaAudio.getManagerFor(user.getGuild());
     }
 
+    public AudioManager getAudioManager(Member member) {
+        return ArmaAudio.getManagerFor(member.getGuild());
+    }
 }
