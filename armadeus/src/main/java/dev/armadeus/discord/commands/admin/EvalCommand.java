@@ -11,19 +11,22 @@ import dev.armadeus.bot.api.command.DiscordCommand;
 import dev.armadeus.bot.api.command.DiscordCommandIssuer;
 import dev.armadeus.discord.util.eval.Eval;
 import dev.armadeus.discord.util.eval.EvalResult;
+import lombok.SneakyThrows;
 import net.dv8tion.jda.api.MessageBuilder;
 import net.dv8tion.jda.api.entities.Message;
 
+import java.io.File;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
-import java.util.regex.Matcher;
+import java.nio.file.Files;
 import java.util.regex.Pattern;
 
 public class EvalCommand extends DiscordCommand {
 
     private static final Pattern CODEBLOCK = Pattern.compile("`{1,3}(.*?)`{1,3}", Pattern.DOTALL | Pattern.MULTILINE);
 
+    @SneakyThrows
     @Private
     @Conditions("developeronly")
     @CommandPermission("dev.eval")
@@ -31,17 +34,15 @@ public class EvalCommand extends DiscordCommand {
     @Description("Developer command used to run realtime evaluations")
     @Default
     @CatchUnknown
-    public void eval(DiscordCommandIssuer user, String input) {
+    public void eval(DiscordCommandIssuer user) {
         // This fuckery is because some newlines get consumed inside the code-block
-        String raw = user.getMessage().getContentRaw();
-        logger.warn(raw);
-        Matcher matcher = CODEBLOCK.matcher(raw);
-//        if (!matcher.find()) {
-//            user.sendMessage("Scripts must be encased in a codeblock");
-//            return;
-//        }
-        String script = matcher.find() ? matcher.group(1).trim() : input;
-
+        Message.Attachment att = user.getMessage().getAttachments().stream().filter(a -> a.getFileName().equals("script.groovy")).findFirst().orElse(null);
+        if (att == null) {
+            user.sendMessage("There is no valid script attached");
+            return;
+        }
+        File file = att.downloadToFile().get();
+        String script = String.join("\n", Files.readAllLines(file.toPath()));
         logger.warn("Executing Script:\n{}", script);
         Message m = user.getChannel().sendMessage("Processing... " + core.shardManager().getGuildById(317784247949590528L).getEmoteById(895763555893256242L).getAsMention()).complete();
 
