@@ -31,16 +31,16 @@ public class EvalCommand extends DiscordCommand {
     @Description("Developer command used to run realtime evaluations")
     @Default
     @CatchUnknown
-    public void eval(DiscordCommandIssuer user) {
+    public void eval(DiscordCommandIssuer user, String input) {
         // This fuckery is because some newlines get consumed inside the code-block
         String raw = user.getMessage().getContentRaw();
         logger.warn(raw);
         Matcher matcher = CODEBLOCK.matcher(raw);
-        if (!matcher.find()) {
-            user.sendMessage("Scripts must be encased in a codeblock");
-            return;
-        }
-        String script = matcher.group(1).trim();
+//        if (!matcher.find()) {
+//            user.sendMessage("Scripts must be encased in a codeblock");
+//            return;
+//        }
+        String script = matcher.find() ? matcher.group(1).trim() : input;
 
         logger.warn("Executing Script:\n{}", script);
         Message m = user.getChannel().sendMessage("Processing... " + core.shardManager().getGuildById(317784247949590528L).getEmoteById(895763555893256242L).getAsMention()).complete();
@@ -49,7 +49,7 @@ public class EvalCommand extends DiscordCommand {
         EvalResult<Object, String, Throwable> result = eval.run();
         MessageBuilder builder = new MessageBuilder();
         if (result.getMiddle() != null && !result.getMiddle().isBlank()) {
-            if(result.getMiddle().length() < 1000) {
+            if (result.getMiddle().length() < 1000) {
                 builder.append("**Output:**");
                 builder.appendCodeBlock(result.getMiddle(), "groovy");
             }
