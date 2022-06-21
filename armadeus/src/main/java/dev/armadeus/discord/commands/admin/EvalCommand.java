@@ -34,36 +34,31 @@ public class EvalCommand extends DiscordCommand {
     @Description("Developer command used to run realtime evaluations")
     @Default
     @CatchUnknown
-    public void eval(DiscordCommandIssuer user) {
+    public void eval(DiscordCommandIssuer user, File scriptFile) {
         // This fuckery is because some newlines get consumed inside the code-block
-        Message.Attachment att = user.getMessage().getAttachments().stream().filter(a -> a.getFileName().equals("script.groovy")).findFirst().orElse(null);
-        if (att == null) {
-            user.sendMessage("There is no valid script attached");
-            return;
-        }
-        File file = att.downloadToFile().get();
-        String script = String.join("\n", Files.readAllLines(file.toPath()));
+        String script = String.join("\n", Files.readAllLines(scriptFile.toPath()));
         logger.warn("Executing Script:\n{}", script);
         Message m = user.getChannel().sendMessage("Processing... " + core.shardManager().getGuildById(317784247949590528L).getEmoteById(895763555893256242L).getAsMention()).complete();
 
         Eval eval = new Eval(user, script);
         EvalResult<Object, String, Throwable> result = eval.run();
         MessageBuilder builder = new MessageBuilder();
+        logger.warn("Left: {}", result.getLeft());
+        logger.warn("Middle: {}", result.getMiddle());
+        logger.warn("Right: {}", result.getRight());
         if (result.getMiddle() != null && !result.getMiddle().isBlank()) {
-            if (result.getMiddle().length() < 1000) {
-                builder.append("**Output:**");
-                builder.appendCodeBlock(result.getMiddle(), "groovy");
-            }
+            builder.append("**Output:**");
+            builder.appendCodeBlock(result.getMiddle().substring(0, Math.min(1000, result.getMiddle().length())), "groovy");
         }
         if (result.getLeft() != null) {
             builder.append("**Result:**");
             builder.appendCodeBlock(String.valueOf(result.getLeft()), null);
         }
         if (result.getRight() != null) {
-            builder.append("**Error:**");
+            builder.append("**Error:**\n");
             StringWriter writer = new StringWriter();
             result.getRight().printStackTrace(new PrintWriter(writer));
-            builder.appendCodeBlock(String.valueOf(writer.toString()), "java");
+            builder.appendCodeBlock(String.valueOf(writer.toString()), "groovy");
         }
         if(builder.length() > Message.MAX_CONTENT_LENGTH) {
             user.getChannel().sendFile(builder.getStringBuilder().toString().getBytes(StandardCharsets.UTF_8), "eval.txt").queue();
