@@ -14,6 +14,7 @@ public class StopCommand extends AudioCommand {
     @CommandPermission("armadeus.stop")
     @Description("Stops all audio playback and disconnects from the channel")
     public void stop(DiscordCommandIssuer user) {
+        user.sendMessage("Stopping audio playback");
         AudioManager manager = getAudioManager(user);
         if (manager.getPlayer().getLink().getChannelId() != -1) {
             manager.getScheduler().stop();
