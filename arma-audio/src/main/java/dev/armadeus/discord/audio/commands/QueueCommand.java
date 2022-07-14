@@ -62,7 +62,7 @@ public class QueueCommand extends AudioCommand {
 
     @Subcommand("remove")
     @Description("Removes a song by index in the queue")
-    public void queueRemove(DiscordCommandIssuer issuer, int index) {
+    public void queueRemove(DiscordCommandIssuer issuer, @Optional int index) {
         AudioManager manager = getAudioManager(issuer);
         if (isNotPlaying(issuer))
             return;
