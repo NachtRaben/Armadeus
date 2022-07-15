@@ -5,7 +5,6 @@ import co.aikar.commands.annotation.CommandPermission;
 import co.aikar.commands.annotation.Conditions;
 import co.aikar.commands.annotation.Default;
 import co.aikar.commands.annotation.Description;
-import co.aikar.commands.annotation.Subcommand;
 import com.velocitypowered.api.event.Subscribe;
 import dev.armadeus.bot.api.command.DiscordCommandIssuer;
 import dev.armadeus.bot.api.util.TimeUtil;
@@ -58,20 +57,6 @@ public class QueueCommand extends AudioCommand {
 
         MessageBuilder builder = getQueueEmbed(user.getMember(), manager, 1);
         user.sendMessage(builder.build());
-    }
-
-    @Subcommand("remove")
-    @Description("Removes a song by index in the queue")
-    public void queueRemove(DiscordCommandIssuer issuer, int index) {
-        AudioManager manager = getAudioManager(issuer);
-        if (isNotPlaying(issuer))
-            return;
-        List<AudioTrack> queue = manager.getScheduler().getQueue();
-        AudioTrack removed = queue.remove(index - 1);
-        manager.getScheduler().clearQueue();
-        queue.forEach(track -> manager.getScheduler().queue(track));
-        if (removed != null)
-            issuer.sendMessage("Removed `%s` by `%s` from the queue", removed.getInfo().getTitle(), removed.getInfo().getAuthor());
     }
 
     private MessageBuilder getQueueEmbed(Member member, AudioManager manager, int index) {
