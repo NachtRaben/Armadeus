@@ -40,7 +40,7 @@ public class WelcomeListener extends ListenerAdapter {
         if (dm) {
             e.getMember().getUser().openPrivateChannel().queue(pc -> pc.sendMessage(msg).queue());
         } else if (e.getGuild().getDefaultChannel() != null) {
-            e.getGuild().getDefaultChannel().sendMessage(msg).queue();
+            e.getGuild().getDefaultChannel().asTextChannel().sendMessage(msg).queue();
         }
     }
 
