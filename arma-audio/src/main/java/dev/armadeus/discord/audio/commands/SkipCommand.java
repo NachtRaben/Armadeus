@@ -5,10 +5,10 @@ import co.aikar.commands.annotation.CommandPermission;
 import co.aikar.commands.annotation.Conditions;
 import co.aikar.commands.annotation.Description;
 import co.aikar.commands.annotation.Optional;
+import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import dev.armadeus.bot.api.command.DiscordCommandIssuer;
 import dev.armadeus.bot.api.util.StringUtils;
 import dev.armadeus.discord.audio.AudioManager;
-import lavalink.client.player.track.AudioTrack;
 
 import java.util.List;
 
@@ -42,7 +42,7 @@ public class SkipCommand extends AudioCommand {
         String[] tokens = track.split(" ");
         logger.warn("skip token");
         for (AudioTrack t : tracks) {
-            if (StringUtils.tokenCompare(t.getInfo().getTitle(), tokens)) {
+            if (StringUtils.tokenCompare(t.getInfo().title, tokens)) {
                 manager.getScheduler().skipTo(t);
                 return;
             }

@@ -4,10 +4,10 @@ import co.aikar.commands.annotation.CommandAlias;
 import co.aikar.commands.annotation.CommandPermission;
 import co.aikar.commands.annotation.Conditions;
 import co.aikar.commands.annotation.Description;
+import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import dev.armadeus.bot.api.command.DiscordCommandIssuer;
 import dev.armadeus.bot.api.util.TimeUtil;
 import dev.armadeus.discord.audio.AudioManager;
-import lavalink.client.player.track.AudioTrack;
 
 public class SeekCommand extends AudioCommand {
 
@@ -24,7 +24,7 @@ public class SeekCommand extends AudioCommand {
 
         AudioManager manager = getAudioManager(user);
         AudioTrack current = manager.getPlayer().getPlayingTrack();
-        if (current.getInfo().isStream()) {
+        if (current.getInfo().isStream) {
             user.sendMessage("Sorry, but this track is not seekable");
             return;
         }
@@ -35,9 +35,9 @@ public class SeekCommand extends AudioCommand {
         if (seek)
             position = time.startsWith("+") ? manager.getPlayer().getTrackPosition() + position : manager.getPlayer().getTrackPosition() - position;
         else
-            position = Math.max(0, Math.min(position, current.getInfo().getLength()));
+            position = Math.max(0, Math.min(position, current.getInfo().length));
 
         manager.getPlayer().seekTo(position);
-        user.sendMessage("Seeking to `" + TimeUtil.format(position) + "/" + TimeUtil.format(current.getInfo().getLength()) + "`");
+        user.sendMessage("Seeking to `" + TimeUtil.format(position) + "/" + TimeUtil.format(current.getInfo().length) + "`");
     }
 }

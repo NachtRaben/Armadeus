@@ -4,13 +4,13 @@ import co.aikar.commands.annotation.CommandAlias;
 import co.aikar.commands.annotation.Conditions;
 import co.aikar.commands.annotation.Default;
 import co.aikar.commands.annotation.Description;
+import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import com.velocitypowered.api.scheduler.ScheduledTask;
 import dev.armadeus.bot.api.command.DiscordCommandIssuer;
 import dev.armadeus.bot.api.util.StringUtils;
 import dev.armadeus.bot.api.util.TimeUtil;
 import dev.armadeus.discord.audio.ArmaAudio;
 import dev.armadeus.discord.audio.AudioManager;
-import lavalink.client.player.track.AudioTrack;
 import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.entities.RichPresence;
 
@@ -122,9 +122,9 @@ public class ListenCommand extends AudioCommand {
 
             AudioTrack track = manager.getPlayer().getPlayingTrack();
             long position = track != null ? manager.getPlayer().getTrackPosition() : 0;
-            boolean shouldSearch = (track == null || !StringUtils.tokenCompare(track.getInfo().getTitle(), presence.getTitle(), presence.getAuthor()));
+            boolean shouldSearch = (track == null || !StringUtils.tokenCompare(track.getInfo().title, presence.getTitle(), presence.getAuthor()));
             if (shouldSearch) {
-                ListenCommand.this.logger.info("Changing track expected {} but got {}", presence.getTitle(), track == null ? "NULL" : track.getInfo().getTitle());
+                ListenCommand.this.logger.info("Changing track expected {} but got {}", presence.getTitle(), track == null ? "NULL" : track.getInfo().title);
                 CompletableFuture<List<AudioTrack>> future = manager.getPlayer().getLink().getRestClient().getYoutubeSearchResult(presence.getTitle() + " " + presence.getAuthor());
                 try {
                     skip.set(true);
@@ -138,7 +138,7 @@ public class ListenCommand extends AudioCommand {
 
                     boolean found = false;
                     for (AudioTrack t : tracks) {
-                        found = StringUtils.tokenCompare(t.getInfo().getTitle(), presence.getTitle(), presence.getAuthor());
+                        found = StringUtils.tokenCompare(t.getInfo().title, presence.getTitle(), presence.getAuthor());
                         if (!found)
                             continue;
                         t.setUserData(user);
