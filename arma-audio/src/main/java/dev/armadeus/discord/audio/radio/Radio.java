@@ -1,6 +1,5 @@
 package dev.armadeus.discord.audio.radio;
 
-import com.sedmelluq.discord.lavaplayer.player.FunctionalResultHandler;
 import dev.armadeus.bot.api.command.DiscordCommandIssuer;
 import dev.armadeus.discord.audio.ArmaAudio;
 import dev.armadeus.discord.audio.AudioManager;
@@ -8,6 +7,7 @@ import dev.armadeus.discord.audio.radio.stations.Hive365;
 import dev.armadeus.discord.audio.radio.stations.ListenMoe;
 import dev.armadeus.discord.audio.radio.stations.NoLife;
 import dev.armadeus.discord.audio.util.AudioInfoModifier;
+import lavalink.client.io.FunctionalResultHandler;
 import lombok.Getter;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.MessageEmbed;
@@ -66,6 +66,9 @@ public abstract class Radio {
                             manager.getScheduler().play(track);
                             manager.getScheduler().setRepeatTrack(true);
                             user.sendMessage("Now playing `" + title + "` by `" + artist + "`");
+                        },
+                        search -> {
+                            throw new UnsupportedOperationException();
                         },
                         playlist -> {
                             throw new UnsupportedOperationException();

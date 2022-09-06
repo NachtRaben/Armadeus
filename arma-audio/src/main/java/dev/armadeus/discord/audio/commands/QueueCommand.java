@@ -5,13 +5,13 @@ import co.aikar.commands.annotation.CommandPermission;
 import co.aikar.commands.annotation.Conditions;
 import co.aikar.commands.annotation.Default;
 import co.aikar.commands.annotation.Description;
-import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import com.velocitypowered.api.event.Subscribe;
 import dev.armadeus.bot.api.command.DiscordCommandIssuer;
 import dev.armadeus.bot.api.util.TimeUtil;
 import dev.armadeus.discord.audio.ArmaAudio;
 import dev.armadeus.discord.audio.AudioManager;
 import dev.armadeus.discord.audio.util.AudioEmbedUtils;
+import lavalink.client.player.track.AudioTrack;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.MessageBuilder;
 import net.dv8tion.jda.api.entities.Member;
@@ -64,12 +64,12 @@ public class QueueCommand extends AudioCommand {
             return new MessageBuilder("There are no tracks being played");
         AudioTrack current = manager.getPlayer().getPlayingTrack();
         List<AudioTrack> tracks = manager.getPlayer().getScheduler().getQueue();
-        long totalTime = current.getInfo().isStream ? 0 : current.getInfo().length - manager.getPlayer().getTrackPosition();
-        totalTime += tracks.stream().mapToLong(track -> track.getInfo().isStream ? 0 : track.getInfo().length).sum();
+        long totalTime = current.getInfo().isStream() ? 0 : current.getInfo().getLength() - manager.getPlayer().getTrackPosition();
+        totalTime += tracks.stream().mapToLong(track -> track.getInfo().isStream() ? 0 : track.getInfo().getLength()).sum();
 
         EmbedBuilder eb = new EmbedBuilder(AudioEmbedUtils.getNowPlayingEmbed(member, current));
         eb.setAuthor(member.getGuild().getSelfMember().getEffectiveName() + "'s Queue:",
-                EmbedBuilder.URL_PATTERN.matcher(current.getInfo().uri).matches() ? current.getInfo().uri : null,
+                EmbedBuilder.URL_PATTERN.matcher(current.getInfo().getUri()).matches() ? current.getInfo().getUri() : null,
                 null);
 
         int pages = (int) Math.ceil((double) tracks.size() / 10.0d);
@@ -82,7 +82,7 @@ public class QueueCommand extends AudioCommand {
 
         for (int i = start; i < end; i++) {
             AudioTrack track = tracks.get(i);
-            String message = String.format(trackDescription, i + 1, track.getInfo().uri, track.getInfo().title, (track.getInfo().isStream ? "Stream" : TimeUtil.format(track.getInfo().length)));
+            String message = String.format(trackDescription, i + 1, track.getInfo().getUri(), track.getInfo().getTitle(), (track.getInfo().isStream() ? "Stream" : TimeUtil.format(track.getInfo().getLength())));
             if (eb.getDescriptionBuilder().length() + message.length() > MessageEmbed.TEXT_MAX_LENGTH)
                 break;
             else

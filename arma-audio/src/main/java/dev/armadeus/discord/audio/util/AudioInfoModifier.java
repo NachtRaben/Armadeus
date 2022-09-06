@@ -1,7 +1,9 @@
 package dev.armadeus.discord.audio.util;
 
 
-import com.sedmelluq.discord.lavaplayer.track.AudioTrackInfo;
+
+import lavalink.client.player.track.AudioTrackInfo;
+import lavalink.client.player.track.DefaultAudioTrackInfo;
 
 import java.lang.reflect.Field;
 
@@ -13,7 +15,7 @@ public class AudioInfoModifier {
 
     static {
         try {
-            Class<?> clz = AudioTrackInfo.class;
+            Class<?> clz = DefaultAudioTrackInfo.class;
             titleField = clz.getDeclaredField("title");
             titleField.setAccessible(true);
             artistField = clz.getDeclaredField("author");

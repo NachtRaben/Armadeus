@@ -1,7 +1,5 @@
 package dev.armadeus.discord.audio;
 
-import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
-import com.sedmelluq.discord.lavaplayer.track.AudioTrackEndReason;
 import com.velocitypowered.api.scheduler.ScheduledTask;
 import dev.armadeus.bot.api.command.DiscordCommandIssuer;
 import dev.armadeus.discord.audio.util.AudioEmbedUtils;
@@ -13,6 +11,8 @@ import lavalink.client.player.event.TrackEndEvent;
 import lavalink.client.player.event.TrackExceptionEvent;
 import lavalink.client.player.event.TrackStartEvent;
 import lavalink.client.player.event.TrackStuckEvent;
+import lavalink.client.player.track.AudioTrack;
+import lavalink.client.player.track.AudioTrackEndReason;
 import lombok.Getter;
 import lombok.Setter;
 import net.dv8tion.jda.api.entities.AudioChannel;
@@ -63,7 +63,7 @@ public class TrackScheduler implements IPlayerEventListener {
     }
 
     public void play(AudioTrack track) {
-        logger.info("{} => Playing {}", player.getManager().getGuild().getName(), track.getInfo().title);
+        logger.info("{} => Playing {}", player.getManager().getGuild().getName(), track.getInfo().getTitle());
         DiscordCommandIssuer user = track.getUserData(DiscordCommandIssuer.class);
 
         // No requester set or banned
@@ -225,12 +225,12 @@ public class TrackScheduler implements IPlayerEventListener {
 
     // Events
     private void onTrackStart(TrackStartEvent event) {
-        logger.info("{} => Track start {}", player.getManager().getGuild().getName(), event.getTrack().getInfo().title);
+        logger.info("{} => Track start {}", player.getManager().getGuild().getName(), event.getTrack().getInfo().getTitle());
         currentTrack = event.getTrack();
     }
 
     public void onTrackEnd(TrackEndEvent event) {
-        logger.info("{} => Track end {} - Reason: {}", player.getManager().getGuild().getName(), event.getTrack().getInfo().title, event.getReason());
+        logger.info("{} => Track end {} - Reason: {}", player.getManager().getGuild().getName(), event.getTrack().getInfo().getTitle(), event.getReason());
         IPlayer player = event.getPlayer();
         AudioTrackEndReason endReason = event.getReason();
         switch (endReason) {
@@ -256,7 +256,7 @@ public class TrackScheduler implements IPlayerEventListener {
         AudioTrack track = event.getTrack();
         Exception exception = event.getException();
         AudioManager manager = player.getManager();
-        logger.warn(String.format("%s => Track exception for %s", player.getManager().getGuild().getName(), track.getInfo().title), exception);
+        logger.warn(String.format("%s => Track exception for %s", player.getManager().getGuild().getName(), track.getInfo().getTitle()), exception);
         if (exception == null) {
             logger.warn("Null exception in audio manager");
             return;
@@ -272,15 +272,15 @@ public class TrackScheduler implements IPlayerEventListener {
         future.forEach(ScheduledTask::cancel);
         manager.listeners.clear();
         DiscordCommandIssuer requester = event.getTrack().getUserData(DiscordCommandIssuer.class);
-        requester.sendMessage(String.format("Failed to play `%s` because, `%s` %s", track.getInfo().title, exception.getMessage(), (exception.getCause() != null ? "`" + exception.getCause().getMessage() + "`" : "")));
+        requester.sendMessage(String.format("Failed to play `%s` because, `%s` %s", track.getInfo().getTitle(), exception.getMessage(), (exception.getCause() != null ? "`" + exception.getCause().getMessage() + "`" : "")));
         skip();
     }
 
     public void onTrackStuck(TrackStuckEvent event) {
-        logger.info("{} => Track stuck {}", player.getManager().getGuild().getName(), event.getTrack().getInfo().title);
+        logger.info("{} => Track stuck {}", player.getManager().getGuild().getName(), event.getTrack().getInfo().getTitle());
         AudioTrack track = event.getTrack();
         DiscordCommandIssuer requester = track.getUserData(DiscordCommandIssuer.class);
-        requester.sendMessage("Got stuck while playing `" + track.getInfo().title + "`. It will be skipped.");
+        requester.sendMessage("Got stuck while playing `" + track.getInfo().getTitle() + "`. It will be skipped.");
         skip();
     }
 
