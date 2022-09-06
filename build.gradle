@@ -57,7 +57,7 @@ allprojects {
         mavenCentral()
         maven {
             name = "NachtRaben-Nexus"
-            url = "https://nachtraben.com/nexus/repository/maven-public/"
+            url = "https://mvn.armadeus.dev/repository/maven-public/"
         }
         // JDA Dependencies
         maven { name 'm2-dv8tion'; url 'https://m2.dv8tion.net/releases' }
