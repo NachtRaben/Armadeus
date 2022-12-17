@@ -152,6 +152,8 @@ public class TrackScheduler implements IPlayerEventListener {
     public boolean joinAudioChannel(DiscordCommandIssuer user) {
         long connected = player.getLink().getChannelId();
         AudioChannel userChannel = user.getVoiceChannel();
+        logger.warn("Connected? {}", connected);
+        logger.warn("Playing? {}", isPlaying());
         if (connected != -1 && isPlaying()) {
             return true;
         }
