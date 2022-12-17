@@ -143,7 +143,7 @@ public class TrackScheduler implements IPlayerEventListener {
 
     public boolean isPlaying() {
         AudioTrack ptrack = player.getPlayingTrack();
-        if(currentTrack == null && ptrack != null) {
+        if (currentTrack == null && ptrack != null) {
             currentTrack = ptrack;
         }
         return currentTrack != null;
@@ -155,20 +155,24 @@ public class TrackScheduler implements IPlayerEventListener {
         logger.warn("Connected? {}", connected);
         logger.warn("Playing? {}", isPlaying());
         if (connected != -1 && isPlaying()) {
+            logger.warn("We're resuming in the current channel");
             return true;
         }
-        if (userChannel != null) {
-            try {
-                player.getLink().connect(Objects.requireNonNull(userChannel.getGuild().getVoiceChannelById(userChannel.getIdLong())));
-                logger.info("{} => Connecting to {}", userChannel.getGuild().getName(), userChannel.getName());
-                return true;
-            } catch (InsufficientPermissionException e) {
-                logger.error("Failed to join user channel", e);
-                user.sendMessage(String.join("\n", "Failed to join your channel because of missing permission `" + e.getPermission() + "`",
-                        "This may be due to a discord bug, please ensure the bot is an `Administrator` or add a channel specific override for `VOICE_CONNECT` and `VOICE_MOVE_OTHERS`"));
-            }
+        if (userChannel == null) {
+            logger.warn("Couldn't determine user channel, aborting");
+            return false;
         }
-        return false;
+        try {
+            logger.warn("Attempting to connect to user channel!");
+            player.getLink().connect(Objects.requireNonNull(userChannel.getGuild().getVoiceChannelById(userChannel.getIdLong())));
+            logger.info("{} => Connecting to {}", userChannel.getGuild().getName(), userChannel.getName());
+            return true;
+        } catch (InsufficientPermissionException e) {
+            logger.error("Failed to join user channel", e);
+            user.sendMessage(String.join("\n", "Failed to join your channel because of missing permission `" + e.getPermission() + "`",
+                    "This may be due to a discord bug, please ensure the bot is an `Administrator` or add a channel specific override for `VOICE_CONNECT` and `VOICE_MOVE_OTHERS`"));
+            return false;
+        }
     }
 
     private void sendEmbed(AudioTrack track, DiscordCommandIssuer sender) {
