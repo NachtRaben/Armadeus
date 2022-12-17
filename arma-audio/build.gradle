@@ -17,13 +17,13 @@ dependencies {
     compileOnly group: 'org.projectlombok', name: 'lombok', version: lombokVersion
     annotationProcessor group: 'org.projectlombok', name: 'lombok', version: lombokVersion
 
-//    implementation ('com.github.KittyBot-Org:Lavalink-Client:master-SNAPSHOT') {
-//        exclude module: 'JDA'
-//    }
+    implementation ('com.github.KittyBot-Org:Lavalink-Client:master-SNAPSHOT') {
+        exclude module: 'JDA'
+    }
 //    implementation(group: 'dev.armadeus', name: 'LL-Client', version: 'master', changing: true) { // Lavalink
 //        exclude module: 'JDA'
 //    }
-    implementation group: 'com.github.KittyBot-Org', name: 'Lavalink-Client', version: 'jdav5-SNAPSHOT'
+//    implementation group: 'com.github.KittyBot-Org', name: 'Lavalink-Client', version: 'jdav5-SNAPSHOT'
 
     implementation group: 'org.reflections', name: 'reflections', version: '0.9.12'
 
