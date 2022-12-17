@@ -79,6 +79,7 @@ public class TrackScheduler implements IPlayerEventListener {
         }
 
         if (!joinAudioChannel(user)) {
+            logger.warn("Unable to join channel, stopping playback");
             stop();
             return;
         }
@@ -160,6 +161,7 @@ public class TrackScheduler implements IPlayerEventListener {
                 logger.info("{} => Connecting to {}", userChannel.getGuild().getName(), userChannel.getName());
                 return true;
             } catch (InsufficientPermissionException e) {
+                logger.error("Failed to join user channel", e);
                 user.sendMessage(String.join("\n", "Failed to join your channel because of missing permission `" + e.getPermission() + "`",
                         "This may be due to a discord bug, please ensure the bot is an `Administrator` or add a channel specific override for `VOICE_CONNECT` and `VOICE_MOVE_OTHERS`"));
             }
