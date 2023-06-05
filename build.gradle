@@ -47,11 +47,11 @@ allprojects {
         resolutionStrategy.cacheDynamicVersionsFor 0, 'seconds'
     }
 
-    compileJava {
-        options.compilerArgs += ["-parameters"]
-        options.fork = true
-        options.forkOptions.executable = 'javac'
-    }
+//   compileJava {
+//       options.compilerArgs += ["-parameters"]
+//       options.fork = true
+//       options.forkOptions.executable = 'javac'
+//   }
 
     compileJava.options.encoding = javadoc.options.encoding = "UTF-8"
 
@@ -70,14 +70,14 @@ allprojects {
     }
 
     task sourcesJar(type: Jar, dependsOn: classes) {
-        classifier('sources')
-        archiveName = project.name + '-sources.jar'
+        archiveClassifier = 'sources'
+        archiveFileName = project.name + '-sources.jar'
         from project.sourceSets.main.allSource
     }
 
     task javadocJar(type: Jar, dependsOn: javadoc) {
-        classifier('javadoc')
-        archiveName = rootProject.name + '-javadoc.jar'
+        archiveClassifier = 'javadoc'
+        archiveFileName = rootProject.name + '-javadoc.jar'
         from javadoc.destinationDir
     }
 

@@ -29,8 +29,8 @@ shadowJar {
     relocate 'org.reflections', 'dev.armadeus.discord.libraries.reflections'
 }
 
-compileJava {
-    options.compilerArgs += ["-parameters"]
-    options.fork = true
-    options.forkOptions.executable = 'javac'
-}
+//compileJava {
+//    options.compilerArgs += ["-parameters"]
+//    options.fork = true
+//    options.forkOptions.executable = 'javac'
+//}
