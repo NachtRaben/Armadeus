@@ -1,5 +1,9 @@
 package dev.armadeus.discord.audio.radio;
 
+import com.sedmelluq.discord.lavaplayer.player.AudioLoadResultHandler;
+import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
+import com.sedmelluq.discord.lavaplayer.track.AudioPlaylist;
+import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import dev.armadeus.bot.api.command.DiscordCommandIssuer;
 import dev.armadeus.discord.audio.ArmaAudio;
 import dev.armadeus.discord.audio.AudioManager;
@@ -7,7 +11,6 @@ import dev.armadeus.discord.audio.radio.stations.Hive365;
 import dev.armadeus.discord.audio.radio.stations.ListenMoe;
 import dev.armadeus.discord.audio.radio.stations.NoLife;
 import dev.armadeus.discord.audio.util.AudioInfoModifier;
-import lavalink.client.io.FunctionalResultHandler;
 import lombok.Getter;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.MessageEmbed;
@@ -58,29 +61,33 @@ public abstract class Radio {
 
     public void play(DiscordCommandIssuer user) {
         AudioManager manager = ArmaAudio.getManagerFor(user.getGuild());
-        manager.getPlayer().getLink().getRestClient().loadItem(url, new FunctionalResultHandler(
-                track -> {
-                    track.setUserData(user);
-                    AudioInfoModifier info = new AudioInfoModifier(track.getInfo());
-                    info.setTitle(identifier + "\u0000" + title).setArtist(artist);
-                            manager.getScheduler().play(track);
-                            manager.getScheduler().setRepeatTrack(true);
-                            user.sendMessage("Now playing `" + title + "` by `" + artist + "`");
-                        },
-                        search -> {
-                            throw new UnsupportedOperationException();
-                        },
-                        playlist -> {
-                            throw new UnsupportedOperationException();
-                        },
-                        () -> {
-                        },
-                        exception -> {
-                            user.sendMessage("Failed to play `" + identifier + " Radio`, is it offline?");
-                            exception.printStackTrace();
-                        }
+        manager.getPlayer().getLink().getRestClient().loadItem(url, new AudioLoadResultHandler() {
 
-                )
-        );
+                    @Override
+                    public void trackLoaded(AudioTrack track) {
+                        track.setUserData(user);
+                        AudioInfoModifier info = new AudioInfoModifier(track.getInfo());
+                        info.setTitle(identifier + "\u0000" + title).setArtist(artist);
+                        manager.getScheduler().play(track);
+                        manager.getScheduler().setRepeatTrack(true);
+                        user.sendMessage("Now playing `" + title + "` by `" + artist + "`");
+                    }
+
+                    @Override
+                    public void playlistLoaded(AudioPlaylist playlist) {
+                        throw new UnsupportedOperationException();
+                    }
+
+                    @Override
+                    public void noMatches() {
+                        throw new UnsupportedOperationException();
+                    }
+
+                    @Override
+                    public void loadFailed(FriendlyException exception) {
+                        user.sendMessage("Failed to play `" + identifier + " Radio`, is it offline?");
+                        exception.printStackTrace();
+                    }
+                });
     }
 }

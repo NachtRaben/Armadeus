@@ -1,17 +1,18 @@
 package dev.armadeus.discord.audio;
 
 import com.electronwill.nightconfig.core.Config;
+import com.sedmelluq.discord.lavaplayer.player.AudioLoadResultHandler;
+import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
+import com.sedmelluq.discord.lavaplayer.track.AudioPlaylist;
+import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
+import com.sedmelluq.discord.lavaplayer.track.BasicAudioPlaylist;
 import com.velocitypowered.api.scheduler.ScheduledTask;
 import dev.armadeus.bot.api.command.DiscordCommandIssuer;
 import dev.armadeus.bot.api.config.GuildConfig;
 import dev.armadeus.discord.audio.util.PlayerWrapper;
-import lavalink.client.io.FunctionalResultHandler;
 import lavalink.client.io.Link;
 import lavalink.client.io.filters.Filters;
 import lavalink.client.io.jda.JdaLink;
-import lavalink.client.player.track.AudioPlaylist;
-import lavalink.client.player.track.AudioTrack;
-import lavalink.client.player.track.DefaultAudioPlaylist;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.api.entities.Guild;
@@ -42,7 +43,7 @@ public class AudioManager {
         GuildConfig config = ArmaAudio.core().guildManager().getConfigFor(guild);
         this.audioConfig = config.getMetadataOrInitialize("arma-audio", conf -> conf.set("volume", Float.toString(0.4f)));
         ArmaAudio.core().scheduler().buildTask(ArmaAudio.get(), () -> {
-            if (!getPlayer().isPlaying() && getPlayer().getLink().getChannelId() != -1) {
+            if (!getPlayer().isPlaying() && getPlayer().getLink().getChannel() != null) {
                 log.warn("{} => Disconnecting due to inactivity", guild.getName());
                 getScheduler().stop();
                 getPlayer().getLink().destroy();
@@ -95,23 +96,37 @@ public class AudioManager {
                 identifier = "ytsearch:" + identifier;
 
             var search = identifier;
-            ArmaAudio.getManagerFor(user.getGuild()).getPlayer().getLink().getRestClient().loadItem(identifier, new FunctionalResultHandler(
-                            track -> TrackLoader.trackLoaded(user, track), // Single Track
-                            playlist -> TrackLoader.playlistLoaded(user, playlist, limit), // Playlist
-                            searchTracks -> {
-                                if (limit > 1)
-                                    TrackLoader.playlistLoaded(user, new DefaultAudioPlaylist("Search Results: " + search.substring(search.indexOf(':')), searchTracks, 0), limit);
-                                else
-                                    TrackLoader.trackLoaded(user, searchTracks.get(0));
-                            }, // Search Results
-                            () -> {
-                            }, // No Results
-                            exception -> { // Exception
-                                user.sendMessage(String.format("Failed to load results because of `%s`", exception));
-                                log.warn("Exception encountered during track loading for " + search, exception);
-                            }
-                    )
-            );
+            ArmaAudio.getManagerFor(user.getGuild()).getPlayer().getLink().getRestClient().loadItem(identifier, new AudioLoadResultHandler() {
+
+                @Override
+                public void trackLoaded(AudioTrack track) {
+                    TrackLoader.trackLoaded(user, track);
+                }
+
+                @Override
+                public void playlistLoaded(AudioPlaylist playlist) {
+                    if (playlist.isSearchResult()) {
+                        List<AudioTrack> searchTracks = playlist.getTracks();
+                        if (limit > 1)
+                            TrackLoader.playlistLoaded(user, new BasicAudioPlaylist("Search Results: " + search.substring(search.indexOf(':')), searchTracks, searchTracks.get(0), true), limit);
+                        else
+                            TrackLoader.trackLoaded(user, searchTracks.get(0));
+                    } else {
+                        TrackLoader.playlistLoaded(user, playlist, limit);
+                    }
+                }
+
+                @Override
+                public void noMatches() {
+
+                }
+
+                @Override
+                public void loadFailed(FriendlyException exception) {
+                    user.sendMessage(String.format("Failed to load results because of `%s`", exception));
+                    log.warn("Exception encountered during track loading for " + search, exception);
+                }
+            });
         }
 
         private static void processSearch(DiscordCommandIssuer user, String search, int limit) {
@@ -131,7 +146,7 @@ public class AudioManager {
                     return;
                 }
                 if (limit > 1) {
-                    AudioPlaylist playlist = new DefaultAudioPlaylist("Search Results for " + search.substring(search.indexOf(':') + 1), tracks, 0);
+                    AudioPlaylist playlist = new BasicAudioPlaylist("Search Results for " + search.substring(search.indexOf(':') + 1), tracks, tracks.get(0), true);
                     TrackLoader.playlistLoaded(user, playlist, limit);
                 } else {
                     TrackLoader.trackLoaded(user, tracks.get(0));
@@ -142,7 +157,7 @@ public class AudioManager {
         private static void trackLoaded(DiscordCommandIssuer user, AudioTrack track) {
             track.setUserData(user);
             ArmaAudio.getManagerFor(user.getGuild()).getPlayer().getScheduler().queue(track);
-            user.sendMessage(String.format("Added `%s` by `%s` to the queue!", track.getInfo().getTitle(), track.getInfo().getAuthor()), 5);
+            user.sendMessage(String.format("Added `%s` by `%s` to the queue!", track.getInfo().title, track.getInfo().author), 5);
         }
 
         public static void playlistLoaded(DiscordCommandIssuer user, AudioPlaylist playlist, int limit) {

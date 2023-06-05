@@ -3,9 +3,9 @@ package dev.armadeus.discord.audio.commands;
 import co.aikar.commands.annotation.CommandAlias;
 import co.aikar.commands.annotation.CommandPermission;
 import co.aikar.commands.annotation.Description;
+import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import dev.armadeus.bot.api.command.DiscordCommandIssuer;
 import dev.armadeus.discord.audio.AudioManager;
-import lavalink.client.player.track.AudioTrack;
 
 import java.util.List;
 
@@ -23,6 +23,6 @@ public class RemoveCommand extends AudioCommand {
         manager.getScheduler().clearQueue();
         queue.forEach(track -> manager.getScheduler().queue(track));
         if (removed != null)
-            issuer.sendMessage("Removed `%s` by `%s` from the queue", removed.getInfo().getTitle(), removed.getInfo().getAuthor());
+            issuer.sendMessage("Removed `%s` by `%s` from the queue", removed.getInfo().title, removed.getInfo().author);
     }
 }

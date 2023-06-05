@@ -28,7 +28,7 @@ public class RepeatCommand extends AudioCommand {
 
         manager.getPlayer().getScheduler().setRepeatTrack(repeat);
         if (repeat) {
-            user.sendMessage("I will now repeat `" + manager.getPlayer().getPlayingTrack().getInfo().getTitle() + "`");
+            user.sendMessage("I will now repeat `" + manager.getPlayer().getPlayingTrack().getInfo().title + "`");
         } else {
             user.sendMessage("I will no longer repeat the track");
         }

@@ -5,20 +5,20 @@ import co.aikar.commands.annotation.CommandPermission;
 import co.aikar.commands.annotation.Conditions;
 import co.aikar.commands.annotation.Default;
 import co.aikar.commands.annotation.Description;
+import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import com.velocitypowered.api.event.Subscribe;
 import dev.armadeus.bot.api.command.DiscordCommandIssuer;
 import dev.armadeus.bot.api.util.TimeUtil;
 import dev.armadeus.discord.audio.ArmaAudio;
 import dev.armadeus.discord.audio.AudioManager;
 import dev.armadeus.discord.audio.util.AudioEmbedUtils;
-import lavalink.client.player.track.AudioTrack;
 import net.dv8tion.jda.api.EmbedBuilder;
-import net.dv8tion.jda.api.MessageBuilder;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
-import net.dv8tion.jda.api.interactions.components.ActionRow;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
+import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder;
+import net.dv8tion.jda.api.utils.messages.MessageEditBuilder;
 
 import java.util.List;
 
@@ -44,7 +44,7 @@ public class QueueCommand extends AudioCommand {
         }
         int index = Integer.parseInt(tokens[1]);
         AudioManager manager = getAudioManager(event.getMember());
-        MessageBuilder builder = getQueueEmbed(event.getMember(), manager, index);
+        MessageEditBuilder builder = new MessageEditBuilder().applyCreateData(getQueueEmbed(event.getMember(), manager, index).build());
         event.getMessage().editMessage(builder.build()).queue();
     }
 
@@ -55,21 +55,21 @@ public class QueueCommand extends AudioCommand {
         if (isNotPlaying(user))
             return;
 
-        MessageBuilder builder = getQueueEmbed(user.getMember(), manager, 1);
+        MessageCreateBuilder builder = getQueueEmbed(user.getMember(), manager, 1);
         user.sendMessage(builder.build());
     }
 
-    private MessageBuilder getQueueEmbed(Member member, AudioManager manager, int index) {
+    private MessageCreateBuilder getQueueEmbed(Member member, AudioManager manager, int index) {
         if (!manager.getPlayer().isPlaying())
-            return new MessageBuilder("There are no tracks being played");
+            return new MessageCreateBuilder().setContent("There are no tracks being played");
         AudioTrack current = manager.getPlayer().getPlayingTrack();
         List<AudioTrack> tracks = manager.getPlayer().getScheduler().getQueue();
-        long totalTime = current.getInfo().isStream() ? 0 : current.getInfo().getLength() - manager.getPlayer().getTrackPosition();
-        totalTime += tracks.stream().mapToLong(track -> track.getInfo().isStream() ? 0 : track.getInfo().getLength()).sum();
+        long totalTime = current.getInfo().isStream ? 0 : current.getInfo().length - manager.getPlayer().getTrackPosition();
+        totalTime += tracks.stream().mapToLong(track -> track.getInfo().isStream ? 0 : track.getInfo().length).sum();
 
         EmbedBuilder eb = new EmbedBuilder(AudioEmbedUtils.getNowPlayingEmbed(member, current));
         eb.setAuthor(member.getGuild().getSelfMember().getEffectiveName() + "'s Queue:",
-                EmbedBuilder.URL_PATTERN.matcher(current.getInfo().getUri()).matches() ? current.getInfo().getUri() : null,
+                EmbedBuilder.URL_PATTERN.matcher(current.getInfo().uri).matches() ? current.getInfo().uri : null,
                 null);
 
         int pages = (int) Math.ceil((double) tracks.size() / 10.0d);
@@ -82,32 +82,32 @@ public class QueueCommand extends AudioCommand {
 
         for (int i = start; i < end; i++) {
             AudioTrack track = tracks.get(i);
-            String message = String.format(trackDescription, i + 1, track.getInfo().getUri(), track.getInfo().getTitle(), (track.getInfo().isStream() ? "Stream" : TimeUtil.format(track.getInfo().getLength())));
+            String message = String.format(trackDescription, i + 1, track.getInfo().uri, track.getInfo().title, (track.getInfo().isStream ? "Stream" : TimeUtil.format(track.getInfo().length)));
             if (eb.getDescriptionBuilder().length() + message.length() > MessageEmbed.TEXT_MAX_LENGTH)
                 break;
             else
                 eb.appendDescription(message);
         }
         eb.setFooter("Tracks: " + (tracks.size() + 1) + " Runtime: " + TimeUtil.format(totalTime), member.getJDA().getSelfUser().getAvatarUrl());
-        MessageBuilder builder = new MessageBuilder()
+        MessageCreateBuilder builder = new MessageCreateBuilder()
                 .setEmbeds(eb.build());
         if (pages > 1) {
             if (index == 1) {
-                builder.setActionRows(ActionRow.of(
+                builder.addActionRow(
                         Button.secondary("armaqueue-current", String.valueOf(index) + "/" + pages).asDisabled(),
                         Button.primary("armaqueue-" + String.valueOf(index + 1), "▶️")
-                ));
+                );
             } else if (index == pages) {
-                builder.setActionRows(ActionRow.of(
+                builder.addActionRow(
                         Button.primary("armaqueue-" + String.valueOf(index - 1), "◀️"),
                         Button.secondary("armaqueue-current", String.valueOf(index) + "/" + pages).asDisabled()
-                ));
+                );
             } else {
-                builder.setActionRows(ActionRow.of(
+                builder.addActionRow(
                         Button.primary("armaqueue-" + String.valueOf(index - 1), "◀️"),
                         Button.secondary("armaqueue-current", String.valueOf(index) + "/" + pages).asDisabled(),
                         Button.primary("armaqueue-" + String.valueOf(index + 1), "▶️")
-                ));
+                );
             }
         }
         return builder;

@@ -1,9 +1,9 @@
 package dev.armadeus.discord.audio.util;
 
+import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import dev.armadeus.bot.api.command.DiscordCommandIssuer;
 import dev.armadeus.bot.api.util.TimeUtil;
 import dev.armadeus.discord.audio.radio.Radio;
-import lavalink.client.player.track.AudioTrack;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.MessageEmbed;
@@ -17,8 +17,8 @@ public class AudioEmbedUtils {
     }
 
     public static MessageEmbed getNowPlayingEmbed(Member user, AudioTrack track) {
-        if (track.getInfo().getTitle().contains("\u0000")) {
-            Radio radio = Radio.getStation(track.getInfo().getTitle().split("\u0000")[0]);
+        if (track.getInfo().title.contains("\u0000")) {
+            Radio radio = Radio.getStation(track.getInfo().title.split("\u0000")[0]);
             if (radio != null) {
                 MessageEmbed embed = radio.getNowPlayingEmbed(user);
                 if (embed != null) {
@@ -28,15 +28,15 @@ public class AudioEmbedUtils {
         }
         EmbedBuilder builder = newBuilder(user);
         builder.setAuthor("Now Playing: ",
-                        EmbedBuilder.URL_PATTERN.matcher(track.getInfo().getUri()).matches()
-                                ? track.getInfo().getUri() : null, null)
+                        EmbedBuilder.URL_PATTERN.matcher(track.getInfo().uri).matches()
+                                ? track.getInfo().uri : null, null)
                 .setFooter("Requested by: " + user.getEffectiveName(), user.getUser().getAvatarUrl())
                 .setDescription(String.format("Title: %s\nAuthor: %s\nLength: %s",
-                        track.getInfo().getTitle().contains("\u0000") ? track.getInfo().getTitle().split("\u0000")[1] : track.getInfo().getTitle(),
-                        track.getInfo().getAuthor(),
-                        track.getInfo().isStream() ? "Stream" : TimeUtil.format(track.getInfo().getLength())));
-        if (track.getInfo().getUri().contains("youtube"))
-            builder.setThumbnail(String.format("https://img.youtube.com/vi/%s/default.jpg", track.getInfo().getIdentifier()));
+                        track.getInfo().title.contains("\u0000") ? track.getInfo().title.split("\u0000")[1] : track.getInfo().title,
+                        track.getInfo().author,
+                        track.getInfo().isStream ? "Stream" : TimeUtil.format(track.getInfo().length)));
+        if (track.getInfo().uri.contains("youtube"))
+            builder.setThumbnail(String.format("https://img.youtube.com/vi/%s/default.jpg", track.getInfo().identifier));
         return builder.build();
     }
 }
