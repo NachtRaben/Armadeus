@@ -9,7 +9,7 @@ repositories {
 }
 
 dependencies {
-    jooqGenerator group: 'org.postgresql', name: 'postgresql', version: '42.3.3'
+    jooqGenerator group: 'org.postgresql', name: 'postgresql', version: '42.3.8'
     compileOnly group: 'dev.armadeus', name: 'arma-api', version: DEV_ENV, changing: true
     annotationProcessor group: 'com.velocitypowered', name: 'velocity-utils-annotation-processor', version: '4.0.0-SNAPSHOT', changing: true
 
