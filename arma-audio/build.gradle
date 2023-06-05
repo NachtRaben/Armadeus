@@ -16,7 +16,7 @@ dependencies {
     // Lombok
     compileOnly group: 'org.projectlombok', name: 'lombok', version: lombokVersion
     annotationProcessor group: 'org.projectlombok', name: 'lombok', version: lombokVersion
-    implementation 'com.sedmelluq:lavaplayer:1.3.77'
+    implementation 'com.github.walkyst:lavaplayer-fork:1.4.2'
 
     implementation('com.github.freyacodes:Lavalink-Client:jda5-SNAPSHOT') {
     }

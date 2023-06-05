@@ -32,11 +32,14 @@ allprojects {
         log4jVersion = '2.20.0'
         guavaVersion = '32.0.0-jre'
         jdaVersion = '5.0.0-beta.10'
-        groovyVersion = '4.0.12'
+        groovyVersion = '3.0.17'
     }
 
     java {
         sourceCompatibility = targetCompatibility = JavaVersion.VERSION_17
+//        toolchain {
+//            languageVersion = JavaLanguageVersion.of(17)
+//        }
     }
 
     configurations.all {
@@ -67,13 +70,13 @@ allprojects {
     }
 
     task sourcesJar(type: Jar, dependsOn: classes) {
-        classifier = 'sources'
+        classifier('sources')
         archiveName = project.name + '-sources.jar'
         from project.sourceSets.main.allSource
     }
 
     task javadocJar(type: Jar, dependsOn: javadoc) {
-        classifier = 'javadoc'
+        classifier('javadoc')
         archiveName = rootProject.name + '-javadoc.jar'
         from javadoc.destinationDir
     }
